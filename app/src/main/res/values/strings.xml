@@ -2845,16 +2845,22 @@
 
     <integer-array name="fontSizeValues" translatable="false">
         <item>-1</item>
+        <item>-3</item>
+        <item>-2</item>
         <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>3</item>
     </integer-array>
 
     <string-array name="fontSizeNames">
         <item>Default</item>
+        <item>Smallest</item>
+        <item>Smaller</item>
         <item>Small</item>
         <item>Medium</item>
         <item>Large</item>
+        <item>Super large</item>
     </string-array>
 
     <string-array name="spacingNames">

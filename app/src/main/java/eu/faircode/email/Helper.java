@@ -2178,16 +2178,32 @@ public class Helper {
     static float getTextSize(Context context, int zoom) {
         TypedArray ta = null;
         try {
-            if (zoom == 0)
-                ta = context.obtainStyledAttributes(
-                        androidx.appcompat.R.style.TextAppearance_AppCompat_Small, new int[]{android.R.attr.textSize});
-            else if (zoom == 2)
-                ta = context.obtainStyledAttributes(
-                        androidx.appcompat.R.style.TextAppearance_AppCompat_Large, new int[]{android.R.attr.textSize});
-            else
-                ta = context.obtainStyledAttributes(
-                        androidx.appcompat.R.style.TextAppearance_AppCompat_Medium, new int[]{android.R.attr.textSize});
-            return ta.getDimension(0, 0);
+            int styleRes;
+            float scale = 1f;
+            switch (zoom) {
+                case -3: // Smallest
+                    styleRes = androidx.appcompat.R.style.TextAppearance_AppCompat_Small;
+                    scale = 0.7f;
+                    break;
+                case -2: // Smaller
+                    styleRes = androidx.appcompat.R.style.TextAppearance_AppCompat_Small;
+                    scale = 0.85f;
+                    break;
+                case 0: // Small
+                    styleRes = androidx.appcompat.R.style.TextAppearance_AppCompat_Small;
+                    break;
+                case 2: // Large
+                    styleRes = androidx.appcompat.R.style.TextAppearance_AppCompat_Large;
+                    break;
+                case 3: // Super large
+                    styleRes = androidx.appcompat.R.style.TextAppearance_AppCompat_Large;
+                    scale = 1.25f;
+                    break;
+                default: // 1 (Medium), -1 (Default), or anything unrecognised
+                    styleRes = androidx.appcompat.R.style.TextAppearance_AppCompat_Medium;
+            }
+            ta = context.obtainStyledAttributes(styleRes, new int[]{android.R.attr.textSize});
+            return ta.getDimension(0, 0) * scale;
         } finally {
             if (ta != null)
                 ta.recycle();
