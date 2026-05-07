@@ -705,7 +705,7 @@
         <item name="themeName">black</item>
         <item name="colorPrimary">@color/black</item>
         <item name="colorPrimaryDark">@color/black</item>
-        <item name="colorAccent">@color/customGold</item>
+        <item name="colorAccent">@color/customYellow</item>
 
         <item name="customActionBarTheme">@style/actionBarStyleCustom</item>
         <item name="colorToolbarBorder">@color/customYellow</item>
