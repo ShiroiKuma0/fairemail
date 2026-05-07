@@ -72,24 +72,25 @@ public class FragmentDialogTheme extends FragmentDialogBase {
         boolean blank = (checkedId == R.id.rbThemeBlank);
         boolean bw = (checkedId == R.id.rbThemeBlackOrWhite);
         boolean bandw = (checkedId == R.id.rbThemeBlackAndWhite);
+        boolean custom = (checkedId == R.id.rbThemeCustom);
         boolean mono = (checkedId == R.id.rbThemeYouMono);
         boolean you = (checkedId == R.id.rbThemeYou || mono);
-        boolean colored = (grey || bw || solarized || you ||
+        boolean colored = (grey || bw || custom || solarized || you ||
                 checkedId == R.id.rbThemeBlueOrange ||
                 checkedId == R.id.rbThemeRedGreen ||
                 checkedId == R.id.rbThemeYellowPurple);
         int optionId = rgThemeOptions.getCheckedRadioButtonId();
 
-        swReverse.setEnabled(colored && !grey && !solarized && !bw && !mono);
+        swReverse.setEnabled(colored && !grey && !solarized && !bw && !custom && !mono);
 
-        rgThemeOptions.setEnabled(colored);
+        rgThemeOptions.setEnabled(colored && !custom);
         for (int i = 0; i < rgThemeOptions.getChildCount(); i++)
-            rgThemeOptions.getChildAt(i).setEnabled(colored);
+            rgThemeOptions.getChildAt(i).setEnabled(colored && !custom);
 
-        tvSystem.setEnabled(colored && optionId == R.id.rbThemeSystem);
+        tvSystem.setEnabled(colored && !custom && optionId == R.id.rbThemeSystem);
 
-        swBlack.setEnabled(colored && !grey && !bw && !solarized && optionId != R.id.rbThemeLight);
-        swBeige.setEnabled(cards && !bandw && !solarized && optionId != R.id.rbThemeDark);
+        swBlack.setEnabled(colored && !grey && !bw && !custom && !solarized && optionId != R.id.rbThemeLight);
+        swBeige.setEnabled(cards && !bandw && !custom && !solarized && optionId != R.id.rbThemeDark);
 
         swHtmlLight.setEnabled(colored ? optionId != R.id.rbThemeLight : !blank);
         swComposerLight.setEnabled(colored ? optionId != R.id.rbThemeLight : !blank);
@@ -260,6 +261,9 @@ public class FragmentDialogTheme extends FragmentDialogBase {
             case "black_and_white":
                 rgTheme.check(R.id.rbThemeBlackAndWhite);
                 break;
+            case "custom":
+                rgTheme.check(R.id.rbThemeCustom);
+                break;
 
             case "you_light":
             case "you_dark":
@@ -376,6 +380,8 @@ public class FragmentDialogTheme extends FragmentDialogBase {
                                 editor.putString("theme", (dark ? "black" : "white")).apply();
                         } else if (checkedRadioButtonId == R.id.rbThemeBlackAndWhite) {
                             editor.putString("theme", "black_and_white").apply();
+                        } else if (checkedRadioButtonId == R.id.rbThemeCustom) {
+                            editor.putString("theme", "custom").apply();
                         } else if (checkedRadioButtonId == R.id.rbThemeYou) {
                             if (system)
                                 editor.putString("theme",
@@ -544,6 +550,9 @@ public class FragmentDialogTheme extends FragmentDialogBase {
                 else
                     return R.style.AppThemeBlackAndWhite;
 
+            case "custom":
+                return R.style.AppThemeCustom;
+
                 // System
             case "system":
             case "blue_orange_system":
@@ -674,7 +683,7 @@ public class FragmentDialogTheme extends FragmentDialogBase {
         boolean tabular_card_bg = prefs.getBoolean("tabular_card_bg", false);
         String theme = prefs.getString("theme", "blue_orange_system");
         boolean dark = Helper.isDarkTheme(context);
-        boolean black = (theme.endsWith("black") || "black_and_white".equals(theme));
+        boolean black = (theme.endsWith("black") || "black_and_white".equals(theme) || "custom".equals(theme));
         boolean solarized = theme.startsWith("solarized");
         boolean you = theme.startsWith("you_");
 
