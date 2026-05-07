@@ -8530,7 +8530,7 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
 
         this.colorUnread = (highlight_unread ? colorUnreadHighlight : Helper.resolveColor(context, R.attr.colorUnread));
         this.colorRead = Helper.resolveColor(context, R.attr.colorRead);
-        this.colorSender = Helper.resolveColor(context, R.attr.colorUnread);
+        this.colorSender = Helper.resolveColor(context, R.attr.colorSenderAccent);
         this.colorVerified = Helper.resolveColor(context, R.attr.colorVerified);
         this.colorEncrypt = Helper.resolveColor(context, R.attr.colorEncrypt);
         this.colorSeparator = Helper.resolveColor(context, R.attr.colorSeparator);
@@ -8586,11 +8586,11 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
         this.subject_top = prefs.getBoolean("subject_top", false);
 
         int fz_sender = prefs.getInt("font_size_sender", -1);
-        if (fz_sender >= 0)
+        if (fz_sender != -1)
             font_size_sender = Helper.getTextSize(context, fz_sender);
 
         int fz_subject = prefs.getInt("font_size_subject", -1);
-        if (fz_subject >= 0)
+        if (fz_subject != -1)
             font_size_subject = Helper.getTextSize(context, fz_subject);
 
         this.subject_italic = prefs.getBoolean("subject_italic", true);
