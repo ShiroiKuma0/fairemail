@@ -670,6 +670,13 @@
     <string name="title_advanced_subject_top">Show subject above sender</string>
     <string name="title_advanced_subject_italic">Show subject in italics</string>
     <string name="title_advanced_sender_italic" translatable="false">Show sender in italics</string>
+    <string name="title_custom_colors_section" translatable="false">Custom theme colours</string>
+    <string name="title_custom_colors_remark" translatable="false">Only applies when the Custom (yellow on black) theme is selected. Tap a swatch to change the colour, long-press to reset to default. Iteration 1.1: swatches save but do not yet take effect.</string>
+    <string name="title_custom_color_background" translatable="false">Background</string>
+    <string name="title_custom_color_text_primary" translatable="false">Body text</string>
+    <string name="title_custom_color_read" translatable="false">Read message accent</string>
+    <string name="title_custom_color_unread" translatable="false">Unread message accent</string>
+    <string name="title_custom_color_sender" translatable="false">Sender accent</string>
     <string name="title_advanced_highlight_subject">Highlight subject</string>
     <string name="title_advanced_font_size_subject">Text size subject</string>
     <string name="title_advanced_subject_ellipsize">If needed, shorten the subject</string>
