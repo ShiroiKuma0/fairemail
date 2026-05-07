@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Customizable colour palette for the Custom theme. AppThemeCustom (in
+        styles.xml) and background_black.xml reference these by name. In iteration
+        1.1 the defaults below are the only values rendered; iteration 1.2+ adds
+        the runtime override mechanism that swaps in user-chosen colours.
+    -->
+    <color name="customColorBackground">#000000</color>
+    <color name="customColorTextPrimary">#FFFF00</color>
+    <color name="customColorRead">#FFFF00</color>
+    <color name="customColorUnread">#FFFF00</color>
+    <color name="customColorSender">#FFFF00</color>
+</resources>
