@@ -2,6 +2,12 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- https://material.io/resources/color/ -->
 
+    <!-- Custom theme (yellow-on-black) palette -->
+    <color name="customYellow">#FFFF00</color>
+    <color name="customGold">#FFC107</color>
+    <color name="customOrange">#FF8000</color>
+    <color name="customDimYellow">#332E00</color>
+
     <color name="splashBackground">#7f7f7f</color>
 
     <color name="colorDebug">#bc3f3f</color>
