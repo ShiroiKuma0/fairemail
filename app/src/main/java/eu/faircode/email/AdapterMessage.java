@@ -249,7 +249,7 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
     private int colorUnreadHighlight;
     private int colorUnread;
     private int colorRead;
-    private int colorSubject;
+    private int colorSender;
     private int colorVerified;
     private int colorEncrypt;
     private int colorSeparator;
@@ -296,6 +296,7 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
     private Float font_size_subject;
     private boolean subject_top;
     private boolean subject_italic;
+    private boolean sender_italic;
     private String sender_ellipsize;
     private String subject_ellipsize;
 
@@ -803,8 +804,6 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
             }
 
             if (tvSubject != null) {
-                tvSubject.setTextColor(colorSubject);
-
                 boolean full = "full".equals(subject_ellipsize);
                 tvSubject.setSingleLine(!full);
 
@@ -2022,7 +2021,8 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
             }
 
             Typeface typeface = (message.unseen > 0 ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
-            tvFrom.setTypeface(typeface);
+            // Sender: never bold; italic optional via sender_italic preference
+            tvFrom.setTypeface(null, sender_italic ? Typeface.ITALIC : Typeface.NORMAL);
             tvSize.setTypeface(typeface);
             tvTime.setTypeface(typeface);
             if (subject_italic)
@@ -2035,11 +2035,21 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
             tvCount.setTypeface(typeface);
 
             int colorUnseen = (message.unseen > 0 ? colorUnread : colorRead);
-            if (!Objects.equals(tvFrom.getTag(), colorUnseen)) {
-                tvFrom.setTag(colorUnseen);
-                tvFrom.setTextColor(colorUnseen);
+            // Sender: always colorSender (theme colorUnread, ignoring highlight_color preference)
+            if (!Objects.equals(tvFrom.getTag(), colorSender)) {
+                tvFrom.setTag(colorSender);
+                tvFrom.setTextColor(colorSender);
+            }
+            // Size + time: read/unread coloring (with highlight_color when enabled)
+            if (!Objects.equals(tvSize.getTag(), colorUnseen)) {
+                tvSize.setTag(colorUnseen);
                 tvSize.setTextColor(colorUnseen);
                 tvTime.setTextColor(colorUnseen);
+            }
+            // Subject: read/unread coloring — highlighted when unread, regular yellow when read
+            if (!Objects.equals(tvSubject.getTag(), colorUnseen)) {
+                tvSubject.setTag(colorUnseen);
+                tvSubject.setTextColor(colorUnseen);
             }
         }
 
@@ -8491,12 +8501,11 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
         this.textColorHighlightInverse = Helper.resolveColor(context, android.R.attr.textColorHighlightInverse);
 
         boolean highlight_unread = prefs.getBoolean("highlight_unread", true);
-        boolean highlight_subject = prefs.getBoolean("highlight_subject", false);
         this.colorUnreadHighlight = prefs.getInt("highlight_color", Helper.resolveColor(context, R.attr.colorUnreadHighlight));
 
         this.colorUnread = (highlight_unread ? colorUnreadHighlight : Helper.resolveColor(context, R.attr.colorUnread));
         this.colorRead = Helper.resolveColor(context, R.attr.colorRead);
-        this.colorSubject = Helper.resolveColor(context, highlight_subject ? R.attr.colorUnreadHighlight : R.attr.colorRead);
+        this.colorSender = Helper.resolveColor(context, R.attr.colorUnread);
         this.colorVerified = Helper.resolveColor(context, R.attr.colorVerified);
         this.colorEncrypt = Helper.resolveColor(context, R.attr.colorEncrypt);
         this.colorSeparator = Helper.resolveColor(context, R.attr.colorSeparator);
@@ -8560,6 +8569,7 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
             font_size_subject = Helper.getTextSize(context, fz_subject);
 
         this.subject_italic = prefs.getBoolean("subject_italic", true);
+        this.sender_italic = prefs.getBoolean("sender_italic", false);
         this.sender_ellipsize = prefs.getString("sender_ellipsize", compact ? "end" : "full");
         this.subject_ellipsize = prefs.getString("subject_ellipsize", "full");
         this.show_filtered = prefs.getBoolean("show_filtered", false);
