@@ -97,7 +97,7 @@ abstract class ActivityBase extends AppCompatActivity implements SharedPreferenc
     @Override
     protected void attachBaseContext(Context base) {
         originalContext = base;
-        super.attachBaseContext(ApplicationEx.getLocalizedContext(base));
+        super.attachBaseContext(new ColorOverrideContextWrapper(ApplicationEx.getLocalizedContext(base)));
     }
 
     Context getOriginalContext() {
