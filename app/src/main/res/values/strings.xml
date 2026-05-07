@@ -666,6 +666,7 @@
 
     <string name="title_advanced_subject_top">Show subject above sender</string>
     <string name="title_advanced_subject_italic">Show subject in italics</string>
+    <string name="title_advanced_sender_italic" translatable="false">Show sender in italics</string>
     <string name="title_advanced_highlight_subject">Highlight subject</string>
     <string name="title_advanced_font_size_subject">Text size subject</string>
     <string name="title_advanced_subject_ellipsize">If needed, shorten the subject</string>
