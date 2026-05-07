@@ -30,6 +30,8 @@
     <!-- Custom theme support: per-theme toolbar overlay + 1dp bottom-border color -->
     <attr name="customActionBarTheme" format="reference" />
     <attr name="colorToolbarBorder" format="reference" />
+    <!-- Sender colour in message list; defaults to ?attr/colorUnread to keep non-custom themes unchanged -->
+    <attr name="colorSenderAccent" format="reference" />
 
     <style name="AppThemeBaseLight" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="themeName">light</item>
@@ -92,6 +94,7 @@
 
         <item name="customActionBarTheme">@style/actionBarStyleLight</item>
         <item name="colorToolbarBorder">@android:color/transparent</item>
+        <item name="colorSenderAccent">?attr/colorUnread</item>
 
         <item name="activatableItemBackground">@drawable/activatable_item_background_light</item>
 
@@ -169,6 +172,7 @@
 
         <item name="customActionBarTheme">@style/actionBarStyleDark</item>
         <item name="colorToolbarBorder">@android:color/transparent</item>
+        <item name="colorSenderAccent">?attr/colorUnread</item>
 
         <item name="activatableItemBackground">@drawable/activatable_item_background_dark</item>
 
@@ -709,6 +713,7 @@
 
         <item name="customActionBarTheme">@style/actionBarStyleCustom</item>
         <item name="colorToolbarBorder">@color/customYellow</item>
+        <item name="colorSenderAccent">@color/customYellow</item>
 
         <item name="android:textColor">@color/customYellow</item>
         <item name="android:textColorPrimary">@color/customYellow</item>
@@ -721,8 +726,8 @@
         <item name="android:textColorLinkInverse">@color/customGold</item>
 
         <item name="colorRead">@color/customYellow</item>
-        <item name="colorUnread">@color/customGold</item>
-        <item name="colorUnreadHighlight">@color/customGold</item>
+        <item name="colorUnread">@color/customYellow</item>
+        <item name="colorUnreadHighlight">@color/customYellow</item>
 
         <item name="colorSeparator">@color/customDimYellow</item>
         <item name="colorWarning">@color/customOrange</item>
