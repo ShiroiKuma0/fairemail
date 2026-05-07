@@ -24,7 +24,7 @@ android {
     // https://apilevels.com/
     // https://developer.android.com/studio/releases#api-level-support
     defaultConfig {
-        applicationId "eu.faircode.email"
+        applicationId "shiroikuma.fairemail"
         compileSdk = 37
         minSdkVersion 23
         targetSdkVersion 37
@@ -59,7 +59,7 @@ android {
         ndk {
             // sqlite
             // https://developer.android.com/ndk/guides/abis
-            abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
+            abiFilters "arm64-v8a"
         }
     }
 
