@@ -713,33 +713,33 @@
 
         <item name="customActionBarTheme">@style/actionBarStyleCustom</item>
         <item name="colorToolbarBorder">@color/customYellow</item>
-        <item name="colorSenderAccent">@color/customYellow</item>
+        <item name="colorSenderAccent">@color/customColorSender</item>
 
-        <item name="android:textColor">@color/customYellow</item>
-        <item name="android:textColorPrimary">@color/customYellow</item>
-        <item name="android:textColorPrimaryDisableOnly">@color/customYellow</item>
-        <item name="android:textColorSecondary">@color/customYellow</item>
-        <item name="android:textColorTertiary">@color/customYellow</item>
+        <item name="android:textColor">@color/customColorTextPrimary</item>
+        <item name="android:textColorPrimary">@color/customColorTextPrimary</item>
+        <item name="android:textColorPrimaryDisableOnly">@color/customColorTextPrimary</item>
+        <item name="android:textColorSecondary">@color/customColorTextPrimary</item>
+        <item name="android:textColorTertiary">@color/customColorTextPrimary</item>
         <item name="android:textColorHint">@color/customDimYellow</item>
-        <item name="android:textColorAlertDialogListItem">@color/customYellow</item>
+        <item name="android:textColorAlertDialogListItem">@color/customColorTextPrimary</item>
         <item name="android:textColorLink">@color/customGold</item>
         <item name="android:textColorLinkInverse">@color/customGold</item>
 
-        <item name="colorRead">@color/customYellow</item>
-        <item name="colorUnread">@color/customYellow</item>
-        <item name="colorUnreadHighlight">@color/customYellow</item>
+        <item name="colorRead">@color/customColorRead</item>
+        <item name="colorUnread">@color/customColorUnread</item>
+        <item name="colorUnreadHighlight">@color/customColorUnread</item>
 
         <item name="colorSeparator">@color/customDimYellow</item>
         <item name="colorWarning">@color/customOrange</item>
 
-        <item name="colorDrawerBackground">@color/black</item>
-        <item name="colorDrawerText">@color/customYellow</item>
-        <item name="colorCardBackground">@color/black</item>
+        <item name="colorDrawerBackground">@color/customColorBackground</item>
+        <item name="colorDrawerText">@color/customColorTextPrimary</item>
+        <item name="colorCardBackground">@color/customColorBackground</item>
 
-        <item name="colorFabForeground">@color/black</item>
+        <item name="colorFabForeground">@color/customColorBackground</item>
         <item name="colorFabBackground">@color/customGold</item>
 
-        <item name="colorInfoForeground">@color/customYellow</item>
+        <item name="colorInfoForeground">@color/customColorTextPrimary</item>
         <item name="colorInfoBackground">@color/customDimYellow</item>
 
         <item name="android:windowBackground">@drawable/background_black</item>

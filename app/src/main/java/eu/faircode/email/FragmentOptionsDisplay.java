@@ -51,6 +51,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.constraintlayout.widget.Group;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.preference.PreferenceManager;
 
@@ -215,6 +216,13 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
     private Group grpAvatar;
     private Group grpUnzip;
 
+    private androidx.cardview.widget.CardView cardCustomColors;
+    private ViewButtonColor btnCustomColorBackground;
+    private ViewButtonColor btnCustomColorTextPrimary;
+    private ViewButtonColor btnCustomColorRead;
+    private ViewButtonColor btnCustomColorUnread;
+    private ViewButtonColor btnCustomColorSender;
+
     private NumberFormat NF = NumberFormat.getNumberInstance();
 
     final static int[] account_color_sizes = {3, 6, 12};
@@ -242,7 +250,8 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
             "unzip", "attachments_alt", "thumbnails", "pdf_preview", "video_preview", "audio_preview", "barcode_preview",
             "list_count", "bundled_fonts", "narrow_fonts", "parse_classes",
             "background_color", "text_color", "text_size", "text_font", "text_align", "text_titles",
-            "authentication", "authentication_indicator"
+            "authentication", "authentication_indicator",
+            "custom_color_background", "custom_color_text_primary", "custom_color_read", "custom_color_unread", "custom_color_sender"
     ));
 
     @Override
@@ -401,6 +410,13 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
 
         grpAvatar = view.findViewById(R.id.grpAvatar);
         grpUnzip = view.findViewById(R.id.grpUnzip);
+
+        cardCustomColors = view.findViewById(R.id.cardCustomColors);
+        btnCustomColorBackground = view.findViewById(R.id.btnCustomColorBackground);
+        btnCustomColorTextPrimary = view.findViewById(R.id.btnCustomColorTextPrimary);
+        btnCustomColorRead = view.findViewById(R.id.btnCustomColorRead);
+        btnCustomColorUnread = view.findViewById(R.id.btnCustomColorUnread);
+        btnCustomColorSender = view.findViewById(R.id.btnCustomColorSender);
 
         List<StyleHelper.FontDescriptor> fonts = StyleHelper.getFonts(getContext());
 
@@ -821,6 +837,15 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
                 builder.build().show();
             }
         });
+
+        // Custom theme colour pickers — one wireUp call per ViewButtonColor.
+        // Iteration 1.1: swatches save to prefs but no override mechanism is hooked
+        // up yet, so picking a colour visibly only updates the swatch itself.
+        wireCustomColorButton(btnCustomColorBackground, CustomThemeColors.ENTRIES[0]);
+        wireCustomColorButton(btnCustomColorTextPrimary, CustomThemeColors.ENTRIES[1]);
+        wireCustomColorButton(btnCustomColorRead, CustomThemeColors.ENTRIES[2]);
+        wireCustomColorButton(btnCustomColorUnread, CustomThemeColors.ENTRIES[3]);
+        wireCustomColorButton(btnCustomColorSender, CustomThemeColors.ENTRIES[4]);
 
         spAccountColor.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -1707,6 +1732,15 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
             btnHighlightColor.setColor(prefs.getInt("highlight_color",
                     Helper.resolveColor(getContext(), R.attr.colorUnreadHighlight)));
 
+            // Custom theme colour pickers — visible only when theme=custom
+            boolean isCustomTheme = "custom".equals(prefs.getString("theme", null));
+            cardCustomColors.setVisibility(isCustomTheme ? View.VISIBLE : View.GONE);
+            btnCustomColorBackground.setColor(CustomThemeColors.getEffectiveColor(getContext(), CustomThemeColors.ENTRIES[0]));
+            btnCustomColorTextPrimary.setColor(CustomThemeColors.getEffectiveColor(getContext(), CustomThemeColors.ENTRIES[1]));
+            btnCustomColorRead.setColor(CustomThemeColors.getEffectiveColor(getContext(), CustomThemeColors.ENTRIES[2]));
+            btnCustomColorUnread.setColor(CustomThemeColors.getEffectiveColor(getContext(), CustomThemeColors.ENTRIES[3]));
+            btnCustomColorSender.setColor(CustomThemeColors.getEffectiveColor(getContext(), CustomThemeColors.ENTRIES[4]));
+
 
             spAccountColor.setSelection(prefs.getInt("account_color", 1));
 
@@ -1915,5 +1949,60 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
         ivRed.setImageBitmap(ImageHelper.makeCircular(red, radius));
         ivGreen.setImageBitmap(ImageHelper.makeCircular(green, radius));
         ivBlue.setImageBitmap(ImageHelper.makeCircular(blue, radius));
+    }
+
+    /**
+     * Wire one ViewButtonColor to its colour picker dialog.
+     * Tap opens the picker; long-press resets the colour to default.
+     * In iteration 1.1 saving the pref does not visibly change anything other
+     * than the swatch — the override-resolution mechanism is added in 1.2.
+     */
+    private void wireCustomColorButton(final ViewButtonColor button, final CustomThemeColors.Entry entry) {
+        final Context context = getContext();
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        button.setColor(CustomThemeColors.getEffectiveColor(context, entry));
+
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int initialColor = CustomThemeColors.getEffectiveColor(context, entry);
+                int editTextColor = Helper.resolveColor(context, android.R.attr.editTextColor);
+                ColorPickerDialogBuilder
+                        .with(context)
+                        .setTitle(entry.labelRes)
+                        .initialColor(initialColor)
+                        .showColorEdit(true)
+                        .setColorEditTextColor(editTextColor)
+                        .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
+                        .density(6)
+                        .lightnessSliderOnly()
+                        .setPositiveButton(android.R.string.ok, new ColorPickerClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int selectedColor, Integer[] allColors) {
+                                prefs.edit().putInt(entry.prefKey, selectedColor).apply();
+                                button.setColor(selectedColor);
+                            }
+                        })
+                        .setNegativeButton(R.string.title_reset, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                prefs.edit().remove(entry.prefKey).apply();
+                                button.setColor(ContextCompat.getColor(context, entry.colorRes));
+                            }
+                        })
+                        .build()
+                        .show();
+            }
+        });
+
+        button.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                prefs.edit().remove(entry.prefKey).apply();
+                button.setColor(ContextCompat.getColor(context, entry.colorRes));
+                return true;
+            }
+        });
     }
 }
