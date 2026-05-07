@@ -2219,6 +2219,13 @@ public class Helper {
     }
 
     static int resolveColor(Context context, int attr, int def) {
+        // For customizable Custom-theme attrs, check the user override before the
+        // system attr resolution. This catches the obtainStyledAttributes path
+        // which doesn't go through Resources.getColor; it resolves the attr to its
+        // colour resource id and then looks up the override pref by that id.
+        Integer customOverride = CustomThemeColors.getOverrideForAttr(context, attr);
+        if (customOverride != null)
+            return customOverride;
         int[] attrs = new int[]{attr};
         TypedArray a = context.getTheme().obtainStyledAttributes(attrs);
         int color = a.getColor(0, def);
