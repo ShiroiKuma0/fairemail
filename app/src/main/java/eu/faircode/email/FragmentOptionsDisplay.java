@@ -153,6 +153,7 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
     private SwitchCompat swReverseAddresses;
     private Spinner spFontSizeSender;
     private Spinner spSenderEllipsize;
+    private SwitchCompat swSenderItalic;
 
     private SwitchCompat swSubjectTop;
     private SwitchCompat swSubjectItalic;
@@ -229,7 +230,7 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
             "avatars", "bimi", "bimi_vmc", "gravatars", "libravatars", "favicons", "favicons_partial", "favicons_manifest", "ddg_icons", "favicons_dmarc", "generated_icons", "identicons",
             "circular", "saturation", "brightness", "threshold",
             "email_format", "prefer_contact", "only_contact", "distinguish_contacts", "show_recipients", "reverse_addresses",
-            "font_size_sender", "sender_ellipsize",
+            "font_size_sender", "sender_ellipsize", "sender_italic",
             "subject_top", "subject_italic", "highlight_subject", "font_size_subject", "subject_ellipsize",
             "keywords_header", "labels_header", "flags", "flags_background",
             "preview", "preview_italic", "preview_lines", "align_header",
@@ -341,6 +342,7 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
         swReverseAddresses = view.findViewById(R.id.swReverseAddresses);
         spFontSizeSender = view.findViewById(R.id.spFontSizeSender);
         spSenderEllipsize = view.findViewById(R.id.spSenderEllipsize);
+        swSenderItalic = view.findViewById(R.id.swSenderItalic);
 
         swSubjectTop = view.findViewById(R.id.swSubjectTop);
         swSubjectItalic = view.findViewById(R.id.swSubjectItalic);
@@ -1167,6 +1169,14 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
             }
         });
 
+        swSenderItalic.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+                prefs.edit().putBoolean("sender_italic", checked).apply();
+                WidgetUnified.updateData(getContext());
+            }
+        });
+
         swHighlightSubject.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
@@ -1751,6 +1761,7 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
             swDistinguishContacts.setChecked(prefs.getBoolean("distinguish_contacts", false));
             swShowRecipients.setChecked(prefs.getBoolean("show_recipients", false));
             swReverseAddresses.setChecked(prefs.getBoolean("reverse_addresses", true));
+            swSenderItalic.setChecked(prefs.getBoolean("sender_italic", false));
 
             swSubjectTop.setChecked(prefs.getBoolean("subject_top", false));
             swSubjectItalic.setChecked(prefs.getBoolean("subject_italic", true));
