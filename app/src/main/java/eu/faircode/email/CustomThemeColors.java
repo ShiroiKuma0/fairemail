@@ -58,27 +58,48 @@ final class CustomThemeColors {
 
     /** A single customizable colour role. */
     static final class Entry {
+        final String section;
+        @StringRes final int sectionLabelRes;
         final String prefKey;
         @StringRes final int labelRes;
+        @StringRes final int descriptionRes;
         @ColorRes final int colorRes;
 
-        Entry(String prefKey, @StringRes int labelRes, @ColorRes int colorRes) {
+        Entry(String section, @StringRes int sectionLabelRes,
+              String prefKey, @StringRes int labelRes,
+              @StringRes int descriptionRes, @ColorRes int colorRes) {
+            this.section = section;
+            this.sectionLabelRes = sectionLabelRes;
             this.prefKey = prefKey;
             this.labelRes = labelRes;
+            this.descriptionRes = descriptionRes;
             this.colorRes = colorRes;
         }
     }
 
     /**
-     * Iteration 1 set of customizable roles. Order is the order shown in the picker UI.
-     * Iteration 2+ extends this list to cover the remaining theme attrs.
+     * Customizable roles. Adjacent entries with the same {@link Entry#section}
+     * id are visually grouped under one header (rendered using
+     * {@link Entry#sectionLabelRes}). Iteration 3.2 expands this list to cover
+     * the remaining theme attrs that currently fall back to literal
+     * customYellow / customGold / customDimYellow / customOrange / black.
      */
     static final Entry[] ENTRIES = new Entry[]{
-            new Entry("custom_color_background", R.string.title_custom_color_background, R.color.customColorBackground),
-            new Entry("custom_color_text_primary", R.string.title_custom_color_text_primary, R.color.customColorTextPrimary),
-            new Entry("custom_color_read", R.string.title_custom_color_read, R.color.customColorRead),
-            new Entry("custom_color_unread", R.string.title_custom_color_unread, R.color.customColorUnread),
-            new Entry("custom_color_sender", R.string.title_custom_color_sender, R.color.customColorSender),
+            new Entry("backgrounds", R.string.title_custom_color_section_backgrounds,
+                    "custom_color_background", R.string.title_custom_color_background,
+                    R.string.title_custom_color_background_desc, R.color.customColorBackground),
+            new Entry("text", R.string.title_custom_color_section_text,
+                    "custom_color_text_primary", R.string.title_custom_color_text_primary,
+                    R.string.title_custom_color_text_primary_desc, R.color.customColorTextPrimary),
+            new Entry("accents", R.string.title_custom_color_section_accents,
+                    "custom_color_read", R.string.title_custom_color_read,
+                    R.string.title_custom_color_read_desc, R.color.customColorRead),
+            new Entry("accents", R.string.title_custom_color_section_accents,
+                    "custom_color_unread", R.string.title_custom_color_unread,
+                    R.string.title_custom_color_unread_desc, R.color.customColorUnread),
+            new Entry("accents", R.string.title_custom_color_section_accents,
+                    "custom_color_sender", R.string.title_custom_color_sender,
+                    R.string.title_custom_color_sender_desc, R.color.customColorSender),
     };
 
     /** Resource id → pref key map; built once at class init from {@link #ENTRIES}. */
