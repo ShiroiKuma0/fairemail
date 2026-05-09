@@ -22,6 +22,7 @@ package eu.faircode.email;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
@@ -43,6 +44,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -217,17 +219,14 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
     private Group grpUnzip;
 
     private androidx.cardview.widget.CardView cardCustomColors;
-    private ViewButtonColor btnCustomColorBackground;
-    private ViewButtonColor btnCustomColorTextPrimary;
-    private ViewButtonColor btnCustomColorRead;
-    private ViewButtonColor btnCustomColorUnread;
-    private ViewButtonColor btnCustomColorSender;
+    private android.widget.LinearLayout containerCustomColors;
+    private final java.util.List<ViewButtonColor> customColorButtons = new java.util.ArrayList<>();
 
     private NumberFormat NF = NumberFormat.getNumberInstance();
 
     final static int[] account_color_sizes = {3, 6, 12};
 
-    final static List<String> RESET_OPTIONS = Collections.unmodifiableList(Arrays.asList(
+    static List<String> RESET_OPTIONS = Collections.unmodifiableList(Arrays.asList(
             "theme", "startup",
             "date", "date_week", "date_fixed", "date_bold", "date_time", "group_category",
             "cards", "beige", "tabular_card_bg", "shadow_unread", "shadow_border", "shadow_highlight", "dividers", "tabular_unread_bg",
@@ -250,9 +249,19 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
             "unzip", "attachments_alt", "thumbnails", "pdf_preview", "video_preview", "audio_preview", "barcode_preview",
             "list_count", "bundled_fonts", "narrow_fonts", "parse_classes",
             "background_color", "text_color", "text_size", "text_font", "text_align", "text_titles",
-            "authentication", "authentication_indicator",
-            "custom_color_background", "custom_color_text_primary", "custom_color_read", "custom_color_unread", "custom_color_sender"
+            "authentication", "authentication_indicator"
     ));
+
+    static {
+        // Append every custom_color_* pref key from CustomThemeColors.ENTRIES so the
+        // global Display reset wipes user overrides too. Doing this in a static
+        // initializer means iter 3.2's expansion to new entries is picked up
+        // automatically without touching this list.
+        java.util.List<String> mutable = new java.util.ArrayList<>(RESET_OPTIONS);
+        for (CustomThemeColors.Entry entry : CustomThemeColors.ENTRIES)
+            mutable.add(entry.prefKey);
+        RESET_OPTIONS = java.util.Collections.unmodifiableList(mutable);
+    }
 
     @Override
     @Nullable
@@ -412,11 +421,8 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
         grpUnzip = view.findViewById(R.id.grpUnzip);
 
         cardCustomColors = view.findViewById(R.id.cardCustomColors);
-        btnCustomColorBackground = view.findViewById(R.id.btnCustomColorBackground);
-        btnCustomColorTextPrimary = view.findViewById(R.id.btnCustomColorTextPrimary);
-        btnCustomColorRead = view.findViewById(R.id.btnCustomColorRead);
-        btnCustomColorUnread = view.findViewById(R.id.btnCustomColorUnread);
-        btnCustomColorSender = view.findViewById(R.id.btnCustomColorSender);
+        containerCustomColors = view.findViewById(R.id.containerCustomColors);
+        populateCustomColorPicker();
 
         List<StyleHelper.FontDescriptor> fonts = StyleHelper.getFonts(getContext());
 
@@ -837,15 +843,6 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
                 builder.build().show();
             }
         });
-
-        // Custom theme colour pickers — one wireUp call per ViewButtonColor.
-        // Iteration 1.1: swatches save to prefs but no override mechanism is hooked
-        // up yet, so picking a colour visibly only updates the swatch itself.
-        wireCustomColorButton(btnCustomColorBackground, CustomThemeColors.ENTRIES[0]);
-        wireCustomColorButton(btnCustomColorTextPrimary, CustomThemeColors.ENTRIES[1]);
-        wireCustomColorButton(btnCustomColorRead, CustomThemeColors.ENTRIES[2]);
-        wireCustomColorButton(btnCustomColorUnread, CustomThemeColors.ENTRIES[3]);
-        wireCustomColorButton(btnCustomColorSender, CustomThemeColors.ENTRIES[4]);
 
         spAccountColor.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -1735,11 +1732,9 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
             // Custom theme colour pickers — visible only when theme=custom
             boolean isCustomTheme = "custom".equals(prefs.getString("theme", null));
             cardCustomColors.setVisibility(isCustomTheme ? View.VISIBLE : View.GONE);
-            btnCustomColorBackground.setColor(CustomThemeColors.getEffectiveColor(getContext(), CustomThemeColors.ENTRIES[0]));
-            btnCustomColorTextPrimary.setColor(CustomThemeColors.getEffectiveColor(getContext(), CustomThemeColors.ENTRIES[1]));
-            btnCustomColorRead.setColor(CustomThemeColors.getEffectiveColor(getContext(), CustomThemeColors.ENTRIES[2]));
-            btnCustomColorUnread.setColor(CustomThemeColors.getEffectiveColor(getContext(), CustomThemeColors.ENTRIES[3]));
-            btnCustomColorSender.setColor(CustomThemeColors.getEffectiveColor(getContext(), CustomThemeColors.ENTRIES[4]));
+            for (int i = 0; i < customColorButtons.size() && i < CustomThemeColors.ENTRIES.length; i++)
+                customColorButtons.get(i).setColor(
+                        CustomThemeColors.getEffectiveColor(getContext(), CustomThemeColors.ENTRIES[i]));
 
 
             spAccountColor.setSelection(prefs.getInt("account_color", 1));
@@ -1949,6 +1944,72 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
         ivRed.setImageBitmap(ImageHelper.makeCircular(red, radius));
         ivGreen.setImageBitmap(ImageHelper.makeCircular(green, radius));
         ivBlue.setImageBitmap(ImageHelper.makeCircular(blue, radius));
+    }
+
+    /**
+     * Populate the custom-colour picker container by iterating
+     * {@link CustomThemeColors#ENTRIES}. Adjacent entries with the same
+     * {@link CustomThemeColors.Entry#section} share one header above the first.
+     * Each entry renders as: {@code [section header (if new section)] [swatch
+     * with label] [italic description]}. Called once from onCreateView; the
+     * resulting button list is updated by {@link #setOptions()} on every
+     * resume.
+     */
+    private void populateCustomColorPicker() {
+        Context context = getContext();
+        if (context == null) return;
+        Resources res = getResources();
+        int dp4 = (int) (4 * res.getDisplayMetrics().density);
+        int dp6 = (int) (6 * res.getDisplayMetrics().density);
+        int dp12 = (int) (12 * res.getDisplayMetrics().density);
+        int dp18 = (int) (18 * res.getDisplayMetrics().density);
+
+        String currentSection = null;
+        for (CustomThemeColors.Entry entry : CustomThemeColors.ENTRIES) {
+            // Section header — render once when section changes
+            if (!entry.section.equals(currentSection)) {
+                currentSection = entry.section;
+                TextView header = new TextView(context);
+                header.setText(entry.sectionLabelRes);
+                header.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16);
+                header.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+                LinearLayout.LayoutParams headerLp = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                headerLp.topMargin = dp18;
+                headerLp.bottomMargin = dp4;
+                header.setLayoutParams(headerLp);
+                containerCustomColors.addView(header);
+            }
+
+            // Swatch — uses the small-button style via the 3-arg constructor with defStyleAttr
+            ViewButtonColor button = new ViewButtonColor(context, null, android.R.attr.buttonStyleSmall);
+            button.setText(entry.labelRes);
+            button.setPadding(dp6, button.getPaddingTop(), dp6, button.getPaddingBottom());
+            LinearLayout.LayoutParams buttonLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            buttonLp.topMargin = dp6;
+            button.setLayoutParams(buttonLp);
+            containerCustomColors.addView(button);
+            wireCustomColorButton(button, entry);
+            customColorButtons.add(button);
+
+            // Per-row description — italic small text under the swatch
+            if (entry.descriptionRes != 0) {
+                TextView desc = new TextView(context);
+                desc.setText(entry.descriptionRes);
+                desc.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12);
+                desc.setTypeface(desc.getTypeface(), android.graphics.Typeface.ITALIC);
+                LinearLayout.LayoutParams descLp = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                descLp.topMargin = dp4;
+                descLp.rightMargin = dp12;
+                desc.setLayoutParams(descLp);
+                containerCustomColors.addView(desc);
+            }
+        }
     }
 
     /**

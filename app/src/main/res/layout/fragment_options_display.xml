@@ -2508,90 +2508,35 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/cardAdvanced">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <LinearLayout
+                android:id="@+id/containerCustomColors"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingHorizontal="6dp"
+                android:orientation="vertical"
+                android:paddingHorizontal="12dp"
                 android:paddingVertical="12dp">
 
                 <TextView
                     android:id="@+id/tvCustomColorsTitle"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/title_custom_colors_section"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
                 <TextView
                     android:id="@+id/tvCustomColorsRemark"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:layout_marginEnd="48dp"
                     android:text="@string/title_custom_colors_remark"
                     android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                    android:textStyle="italic"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tvCustomColorsTitle" />
+                    android:textStyle="italic" />
 
-                <eu.faircode.email.ViewButtonColor
-                    android:id="@+id/btnCustomColorBackground"
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:paddingHorizontal="6dp"
-                    android:text="@string/title_custom_color_background"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tvCustomColorsRemark" />
-
-                <eu.faircode.email.ViewButtonColor
-                    android:id="@+id/btnCustomColorTextPrimary"
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:paddingHorizontal="6dp"
-                    android:text="@string/title_custom_color_text_primary"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/btnCustomColorBackground" />
-
-                <eu.faircode.email.ViewButtonColor
-                    android:id="@+id/btnCustomColorRead"
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:paddingHorizontal="6dp"
-                    android:text="@string/title_custom_color_read"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/btnCustomColorTextPrimary" />
-
-                <eu.faircode.email.ViewButtonColor
-                    android:id="@+id/btnCustomColorUnread"
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:paddingHorizontal="6dp"
-                    android:text="@string/title_custom_color_unread"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/btnCustomColorRead" />
-
-                <eu.faircode.email.ViewButtonColor
-                    android:id="@+id/btnCustomColorSender"
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:paddingHorizontal="6dp"
-                    android:text="@string/title_custom_color_sender"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/btnCustomColorUnread" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                <!-- Section headers, swatches, and per-row descriptions are appended
+                     here programmatically by FragmentOptionsDisplay.populateCustomColorPicker
+                     based on CustomThemeColors.ENTRIES. -->
+            </LinearLayout>
         </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
