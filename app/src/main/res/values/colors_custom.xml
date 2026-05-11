@@ -1,14 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-        Customizable colour palette for the Custom theme. AppThemeCustom (in
-        styles.xml) and background_black.xml reference these by name. In iteration
-        1.1 the defaults below are the only values rendered; iteration 1.2+ adds
-        the runtime override mechanism that swaps in user-chosen colours.
+        Customizable colour palette for the Custom theme. AppThemeCustom and
+        actionBarStyleCustom (in styles.xml) and background_black.xml reference
+        these by name. Defaults below match the values previously rendered as
+        literal references to customYellow / customGold / customDimYellow /
+        customOrange / @color/black / inherited darkActionForeground etc., so
+        an unchanged Custom theme appearance is preserved when no override is set.
     -->
+
+    <!-- iteration 3.1 set: original 5 customizable roles -->
     <color name="customColorBackground">#000000</color>
     <color name="customColorTextPrimary">#FFFF00</color>
     <color name="customColorRead">#FFFF00</color>
     <color name="customColorUnread">#FFFF00</color>
     <color name="customColorSender">#FFFF00</color>
+
+    <!-- iteration 3.2 set: backgrounds -->
+    <color name="customColorTopBarBackground">#000000</color>
+    <color name="customColorStatusBarBackground">#000000</color>
+    <color name="customColorFabBackground">#FFC107</color>
+    <color name="customColorInfoBackground">#332E00</color>
+    <color name="customColorThumb">#555555</color>
+
+    <!-- iteration 3.2 set: text -->
+    <color name="customColorTopBarText">#FFFF00</color>
+    <color name="customColorHint">#332E00</color>
+    <color name="customColorLink">#FFC107</color>
+    <color name="customColorInfoForeground">#FFFF00</color>
+
+    <!-- iteration 3.2 set: icons -->
+    <color name="customColorTopBarIcons">#FFFF00</color>
+    <color name="customColorBottomActionIcons">#FFFF00</color>
+    <color name="customColorBottomActionIconsDisabled">#332E00</color>
+    <color name="customColorFabForeground">#000000</color>
+
+    <!-- iteration 3.2 set: decorations and accents -->
+    <color name="customColorAccent">#FFFF00</color>
+    <color name="customColorToolbarBorder">#FFFF00</color>
+    <color name="customColorSeparator">#332E00</color>
+
+    <!-- iteration 3.2 set: status indicators -->
+    <color name="customColorWarning">#FF8000</color>
+    <color name="customColorEncrypt">#00E000</color>
+    <color name="customColorVerified">#00FF00</color>
+    <color name="customColorAccept">#00FF00</color>
+
+    <!-- iteration 3.2 set: highlights -->
+    <color name="customColorHighlight">#7FFFE000</color>
+    <color name="customColorBookmark">#FFFF00</color>
+    <color name="customColorBadge">#F44336</color>
 </resources>
