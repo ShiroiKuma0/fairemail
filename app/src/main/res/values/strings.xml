@@ -669,19 +669,85 @@
     <string name="title_advanced_sender_italic" translatable="false">Show sender in italics</string>
     <string name="title_custom_colors_section" translatable="false">Custom theme colours</string>
     <string name="title_custom_colors_remark" translatable="false">Only applies when the Custom (yellow on black) theme is selected. Tap a swatch to change the colour, long-press to reset to default.</string>
+
+    <!-- section headers -->
     <string name="title_custom_color_section_backgrounds" translatable="false">Backgrounds</string>
     <string name="title_custom_color_section_text" translatable="false">Text</string>
+    <string name="title_custom_color_section_icons" translatable="false">Icons</string>
     <string name="title_custom_color_section_accents" translatable="false">Message list accents</string>
+    <string name="title_custom_color_section_decorations" translatable="false">Decorations and accents</string>
+    <string name="title_custom_color_section_status" translatable="false">Status indicators</string>
+    <string name="title_custom_color_section_highlights" translatable="false">Highlights</string>
+
+    <!-- Backgrounds -->
     <string name="title_custom_color_background" translatable="false">Background</string>
-    <string name="title_custom_color_background_desc" translatable="false">Drawer background, card backgrounds, FAB foreground icon, and anywhere the window background drawable shows through.</string>
+    <string name="title_custom_color_background_desc" translatable="false">Drawer background, card backgrounds, and anywhere the window background drawable shows through.</string>
+    <string name="title_custom_color_top_bar_background" translatable="false">Top bar background</string>
+    <string name="title_custom_color_top_bar_background_desc" translatable="false">Background of the top action bar (toolbar). Affects colorPrimary.</string>
+    <string name="title_custom_color_status_bar_background" translatable="false">Status bar background</string>
+    <string name="title_custom_color_status_bar_background_desc" translatable="false">Background of the system status bar at the top of the screen. Affects colorPrimaryDark.</string>
+    <string name="title_custom_color_fab_background" translatable="false">FAB background</string>
+    <string name="title_custom_color_fab_background_desc" translatable="false">Background of the floating action button — the round circle in the bottom-right corner.</string>
+    <string name="title_custom_color_info_background" translatable="false">Info card background</string>
+    <string name="title_custom_color_info_background_desc" translatable="false">Background of info banner cards (e.g., the helpful explanatory blocks at the top of settings tabs).</string>
+    <string name="title_custom_color_thumb" translatable="false">Thumbnail background</string>
+    <string name="title_custom_color_thumb_desc" translatable="false">Placeholder background shown while images load.</string>
+
+    <!-- Text -->
     <string name="title_custom_color_text_primary" translatable="false">Body text</string>
     <string name="title_custom_color_text_primary_desc" translatable="false">Most text colours that resolve via the theme attrs textColorPrimary, textColorSecondary, textColorTertiary in code paths.</string>
+    <string name="title_custom_color_top_bar_text" translatable="false">Top bar text</string>
+    <string name="title_custom_color_top_bar_text_desc" translatable="false">Title and subtitle text shown in the top action bar.</string>
+    <string name="title_custom_color_hint" translatable="false">Hint text</string>
+    <string name="title_custom_color_hint_desc" translatable="false">Hint text shown inside empty input fields. Affects textColorHint.</string>
+    <string name="title_custom_color_link" translatable="false">Link text</string>
+    <string name="title_custom_color_link_desc" translatable="false">Clickable hyperlink text in message bodies and elsewhere.</string>
+    <string name="title_custom_color_info_foreground" translatable="false">Info card text</string>
+    <string name="title_custom_color_info_foreground_desc" translatable="false">Text colour inside info banner cards.</string>
+
+    <!-- Icons -->
+    <string name="title_custom_color_top_bar_icons" translatable="false">Top bar icons</string>
+    <string name="title_custom_color_top_bar_icons_desc" translatable="false">Icons in the top action bar (back arrow, search, menu, close X).</string>
+    <string name="title_custom_color_bottom_action_icons" translatable="false">Bottom action bar icons</string>
+    <string name="title_custom_color_bottom_action_icons_desc" translatable="false">Icons in the bottom action bar of the message view (up, down, trash, snooze, archive).</string>
+    <string name="title_custom_color_bottom_action_icons_disabled" translatable="false">Bottom action bar icons (disabled)</string>
+    <string name="title_custom_color_bottom_action_icons_disabled_desc" translatable="false">Bottom action bar icons when the action is unavailable for the current message.</string>
+    <string name="title_custom_color_fab_foreground" translatable="false">FAB foreground</string>
+    <string name="title_custom_color_fab_foreground_desc" translatable="false">Icon drawn inside the floating action button (e.g., the pencil for compose).</string>
+
+    <!-- Message list accents -->
     <string name="title_custom_color_read" translatable="false">Read message accent</string>
     <string name="title_custom_color_read_desc" translatable="false">Subject text of read messages in the message list.</string>
     <string name="title_custom_color_unread" translatable="false">Unread message accent</string>
     <string name="title_custom_color_unread_desc" translatable="false">Subject text of unread messages in the message list (when no separate highlight colour is set).</string>
     <string name="title_custom_color_sender" translatable="false">Sender accent</string>
     <string name="title_custom_color_sender_desc" translatable="false">Sender column in the message list.</string>
+
+    <!-- Decorations and accents -->
+    <string name="title_custom_color_accent" translatable="false">Accent</string>
+    <string name="title_custom_color_accent_desc" translatable="false">Switches when on, checkboxes, radio buttons, click ripples. Affects colorAccent.</string>
+    <string name="title_custom_color_toolbar_border" translatable="false">Toolbar border</string>
+    <string name="title_custom_color_toolbar_border_desc" translatable="false">Thin border line drawn under the top action bar separating it from content.</string>
+    <string name="title_custom_color_separator" translatable="false">Separator</string>
+    <string name="title_custom_color_separator_desc" translatable="false">Horizontal separator lines between groups in settings and lists.</string>
+
+    <!-- Status indicators -->
+    <string name="title_custom_color_warning" translatable="false">Warning</string>
+    <string name="title_custom_color_warning_desc" translatable="false">Warning icons and text used to flag issues that need attention (e.g., authentication warnings).</string>
+    <string name="title_custom_color_encrypt" translatable="false">Encryption indicator</string>
+    <string name="title_custom_color_encrypt_desc" translatable="false">Lock/key icon shown when a message is encrypted.</string>
+    <string name="title_custom_color_verified" translatable="false">Verified indicator</string>
+    <string name="title_custom_color_verified_desc" translatable="false">Check mark shown when a message signature is verified.</string>
+    <string name="title_custom_color_accept" translatable="false">Accept indicator</string>
+    <string name="title_custom_color_accept_desc" translatable="false">Generic positive/accept status icons.</string>
+
+    <!-- Highlights -->
+    <string name="title_custom_color_highlight" translatable="false">Selection highlight</string>
+    <string name="title_custom_color_highlight_desc" translatable="false">Selected message background tint (semi-transparent overlay). Default is partially transparent.</string>
+    <string name="title_custom_color_bookmark" translatable="false">Bookmark indicator</string>
+    <string name="title_custom_color_bookmark_desc" translatable="false">Bookmark/flag/star icon when a message is flagged.</string>
+    <string name="title_custom_color_badge" translatable="false">Badge</string>
+    <string name="title_custom_color_badge_desc" translatable="false">Notification dot or badge colour shown on icons.</string>
     <string name="title_advanced_highlight_subject">Highlight subject</string>
     <string name="title_advanced_font_size_subject">Text size subject</string>
     <string name="title_advanced_subject_ellipsize">If needed, shorten the subject</string>
