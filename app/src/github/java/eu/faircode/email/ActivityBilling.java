@@ -225,7 +225,18 @@ public class ActivityBilling extends ActivityBase implements
     }
 
     private static String getResponse(Context context) throws NoSuchAlgorithmException {
-        return Helper.sha256(BuildConfig.APPLICATION_ID.replace(".debug", "") + getChallenge(context));
+        // M66B's payment server computes the activation response as
+        //     sha256("eu.faircode.email" + sha256(ANDROID_ID))
+        // and emails it to the buyer. This fork's APPLICATION_ID is renamed
+        // (shiroikuma.fairemail) which would make the computed expected hash
+        // differ from the issued one and a legitimately-purchased activation
+        // code returns "invalid response". Pinning the salt to the original
+        // package id makes the verification match against the same value the
+        // server signed against. The challenge (sha256 of the per-app-signing
+        // ANDROID_ID, see getChallenge below) is still device-specific and
+        // non-transferable, so this does not weaken the cryptographic check —
+        // it only corrects the salt for the fork's renamed package.
+        return Helper.sha256("eu.faircode.email" + getChallenge(context));
     }
 
     static boolean activatePro(Context context, Uri data) throws NoSuchAlgorithmException {
