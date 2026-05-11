@@ -80,17 +80,61 @@ final class CustomThemeColors {
     /**
      * Customizable roles. Adjacent entries with the same {@link Entry#section}
      * id are visually grouped under one header (rendered using
-     * {@link Entry#sectionLabelRes}). Iteration 3.2 expands this list to cover
-     * the remaining theme attrs that currently fall back to literal
-     * customYellow / customGold / customDimYellow / customOrange / black.
+     * {@link Entry#sectionLabelRes}).
      */
     static final Entry[] ENTRIES = new Entry[]{
+            // === Backgrounds ===
             new Entry("backgrounds", R.string.title_custom_color_section_backgrounds,
                     "custom_color_background", R.string.title_custom_color_background,
                     R.string.title_custom_color_background_desc, R.color.customColorBackground),
+            new Entry("backgrounds", R.string.title_custom_color_section_backgrounds,
+                    "custom_color_top_bar_background", R.string.title_custom_color_top_bar_background,
+                    R.string.title_custom_color_top_bar_background_desc, R.color.customColorTopBarBackground),
+            new Entry("backgrounds", R.string.title_custom_color_section_backgrounds,
+                    "custom_color_status_bar_background", R.string.title_custom_color_status_bar_background,
+                    R.string.title_custom_color_status_bar_background_desc, R.color.customColorStatusBarBackground),
+            new Entry("backgrounds", R.string.title_custom_color_section_backgrounds,
+                    "custom_color_fab_background", R.string.title_custom_color_fab_background,
+                    R.string.title_custom_color_fab_background_desc, R.color.customColorFabBackground),
+            new Entry("backgrounds", R.string.title_custom_color_section_backgrounds,
+                    "custom_color_info_background", R.string.title_custom_color_info_background,
+                    R.string.title_custom_color_info_background_desc, R.color.customColorInfoBackground),
+            new Entry("backgrounds", R.string.title_custom_color_section_backgrounds,
+                    "custom_color_thumb", R.string.title_custom_color_thumb,
+                    R.string.title_custom_color_thumb_desc, R.color.customColorThumb),
+
+            // === Text ===
             new Entry("text", R.string.title_custom_color_section_text,
                     "custom_color_text_primary", R.string.title_custom_color_text_primary,
                     R.string.title_custom_color_text_primary_desc, R.color.customColorTextPrimary),
+            new Entry("text", R.string.title_custom_color_section_text,
+                    "custom_color_top_bar_text", R.string.title_custom_color_top_bar_text,
+                    R.string.title_custom_color_top_bar_text_desc, R.color.customColorTopBarText),
+            new Entry("text", R.string.title_custom_color_section_text,
+                    "custom_color_hint", R.string.title_custom_color_hint,
+                    R.string.title_custom_color_hint_desc, R.color.customColorHint),
+            new Entry("text", R.string.title_custom_color_section_text,
+                    "custom_color_link", R.string.title_custom_color_link,
+                    R.string.title_custom_color_link_desc, R.color.customColorLink),
+            new Entry("text", R.string.title_custom_color_section_text,
+                    "custom_color_info_foreground", R.string.title_custom_color_info_foreground,
+                    R.string.title_custom_color_info_foreground_desc, R.color.customColorInfoForeground),
+
+            // === Icons ===
+            new Entry("icons", R.string.title_custom_color_section_icons,
+                    "custom_color_top_bar_icons", R.string.title_custom_color_top_bar_icons,
+                    R.string.title_custom_color_top_bar_icons_desc, R.color.customColorTopBarIcons),
+            new Entry("icons", R.string.title_custom_color_section_icons,
+                    "custom_color_bottom_action_icons", R.string.title_custom_color_bottom_action_icons,
+                    R.string.title_custom_color_bottom_action_icons_desc, R.color.customColorBottomActionIcons),
+            new Entry("icons", R.string.title_custom_color_section_icons,
+                    "custom_color_bottom_action_icons_disabled", R.string.title_custom_color_bottom_action_icons_disabled,
+                    R.string.title_custom_color_bottom_action_icons_disabled_desc, R.color.customColorBottomActionIconsDisabled),
+            new Entry("icons", R.string.title_custom_color_section_icons,
+                    "custom_color_fab_foreground", R.string.title_custom_color_fab_foreground,
+                    R.string.title_custom_color_fab_foreground_desc, R.color.customColorFabForeground),
+
+            // === Message list accents ===
             new Entry("accents", R.string.title_custom_color_section_accents,
                     "custom_color_read", R.string.title_custom_color_read,
                     R.string.title_custom_color_read_desc, R.color.customColorRead),
@@ -100,6 +144,42 @@ final class CustomThemeColors {
             new Entry("accents", R.string.title_custom_color_section_accents,
                     "custom_color_sender", R.string.title_custom_color_sender,
                     R.string.title_custom_color_sender_desc, R.color.customColorSender),
+
+            // === Decorations and accents ===
+            new Entry("decorations", R.string.title_custom_color_section_decorations,
+                    "custom_color_accent", R.string.title_custom_color_accent,
+                    R.string.title_custom_color_accent_desc, R.color.customColorAccent),
+            new Entry("decorations", R.string.title_custom_color_section_decorations,
+                    "custom_color_toolbar_border", R.string.title_custom_color_toolbar_border,
+                    R.string.title_custom_color_toolbar_border_desc, R.color.customColorToolbarBorder),
+            new Entry("decorations", R.string.title_custom_color_section_decorations,
+                    "custom_color_separator", R.string.title_custom_color_separator,
+                    R.string.title_custom_color_separator_desc, R.color.customColorSeparator),
+
+            // === Status indicators ===
+            new Entry("status", R.string.title_custom_color_section_status,
+                    "custom_color_warning", R.string.title_custom_color_warning,
+                    R.string.title_custom_color_warning_desc, R.color.customColorWarning),
+            new Entry("status", R.string.title_custom_color_section_status,
+                    "custom_color_encrypt", R.string.title_custom_color_encrypt,
+                    R.string.title_custom_color_encrypt_desc, R.color.customColorEncrypt),
+            new Entry("status", R.string.title_custom_color_section_status,
+                    "custom_color_verified", R.string.title_custom_color_verified,
+                    R.string.title_custom_color_verified_desc, R.color.customColorVerified),
+            new Entry("status", R.string.title_custom_color_section_status,
+                    "custom_color_accept", R.string.title_custom_color_accept,
+                    R.string.title_custom_color_accept_desc, R.color.customColorAccept),
+
+            // === Highlights ===
+            new Entry("highlights", R.string.title_custom_color_section_highlights,
+                    "custom_color_highlight", R.string.title_custom_color_highlight,
+                    R.string.title_custom_color_highlight_desc, R.color.customColorHighlight),
+            new Entry("highlights", R.string.title_custom_color_section_highlights,
+                    "custom_color_bookmark", R.string.title_custom_color_bookmark,
+                    R.string.title_custom_color_bookmark_desc, R.color.customColorBookmark),
+            new Entry("highlights", R.string.title_custom_color_section_highlights,
+                    "custom_color_badge", R.string.title_custom_color_badge,
+                    R.string.title_custom_color_badge_desc, R.color.customColorBadge),
     };
 
     /** Resource id → pref key map; built once at class init from {@link #ENTRIES}. */
