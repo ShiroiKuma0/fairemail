@@ -748,6 +748,16 @@
     <string name="title_custom_color_bookmark_desc" translatable="false">Bookmark/flag/star icon when a message is flagged.</string>
     <string name="title_custom_color_badge" translatable="false">Badge</string>
     <string name="title_custom_color_badge_desc" translatable="false">Notification dot or badge colour shown on icons.</string>
+
+    <!-- Custom font section -->
+    <string name="title_custom_font_section" translatable="false">Custom font</string>
+    <string name="title_custom_font_remark" translatable="false">Use a custom TTF/OTF font and weight for message body, subject, and sender text. Weight applies to whichever font is active — pick a font, set a weight, or both. Maximum file size 20 MB.</string>
+    <string name="title_custom_font_pick" translatable="false">Pick font…</string>
+    <string name="title_custom_font_default" translatable="false">Default font</string>
+    <string name="title_custom_font_weight_label" translatable="false">Weight: %1$d</string>
+    <string name="title_custom_font_weight_natural" translatable="false">Weight: natural (font default)</string>
+    <string name="title_custom_font_weight_desc" translatable="false">0 = use the font\'s natural weight. 400 = normal, 700 = bold. Variable-weight fonts honour any value in 100–900; fixed-weight fonts will render at the closest available match.</string>
+    <string name="title_custom_font_error" translatable="false">Could not load font: %1$s</string>
     <string name="title_advanced_highlight_subject">Highlight subject</string>
     <string name="title_advanced_font_size_subject">Text size subject</string>
     <string name="title_advanced_subject_ellipsize">If needed, shorten the subject</string>
