@@ -919,7 +919,7 @@ abstract class ActivityBase extends AppCompatActivity implements SharedPreferenc
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
         Log.i("Preference " + key + "=" + prefs.getAll().get(key));
-        if ("theme".equals(key) || "beige".equals(key) || CustomThemeColors.isCustomColorPref(key)) {
+        if ("theme".equals(key) || "beige".equals(key) || CustomThemeColors.isCustomColorPref(key) || CustomFont.isPrefKey(key)) {
             finish();
             if (visible &&
                     (this.getClass().equals(ActivitySetup.class) ||
