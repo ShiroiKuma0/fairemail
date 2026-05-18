@@ -974,6 +974,13 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
             tvSignedData = vsBody.findViewById(R.id.tvSignedData);
 
             tvBody = vsBody.findViewById(R.id.tvBody);
+            // tvBody.linkTextColor is read from android:textColorLink at inflation via
+            // TypedArray.getColorStateList, which routes through package-private
+            // Resources.loadColorStateList and bypasses ColorOverrideResources. Apply
+            // the colour explicitly here using the value resolved via Helper.resolveColor
+            // (which honours customColorLink overrides through the iter 1.2 short-circuit)
+            // so body link colour stays in lockstep with the user's Link text swatch.
+            tvBody.setLinkTextColor(textColorLink);
             if (hyphenation &&
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
