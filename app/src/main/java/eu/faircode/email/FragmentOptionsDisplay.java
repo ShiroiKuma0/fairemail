@@ -222,6 +222,21 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
     private android.widget.LinearLayout containerCustomColors;
     private final java.util.List<ViewButtonColor> customColorButtons = new java.util.ArrayList<>();
 
+    private android.widget.Button btnCustomFontPick;
+    private android.widget.Button btnCustomFontClear;
+    private TextView tvCustomFontName;
+    private TextView tvCustomFontWeightLabel;
+    private android.widget.SeekBar sbCustomFontWeight;
+    private final androidx.activity.result.ActivityResultLauncher<String[]> fontPicker =
+            registerForActivityResult(
+                    new androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
+                    new androidx.activity.result.ActivityResultCallback<android.net.Uri>() {
+                        @Override
+                        public void onActivityResult(android.net.Uri uri) {
+                            onFontPicked(uri);
+                        }
+                    });
+
     private NumberFormat NF = NumberFormat.getNumberInstance();
 
     final static int[] account_color_sizes = {3, 6, 12};
@@ -260,6 +275,9 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
         java.util.List<String> mutable = new java.util.ArrayList<>(RESET_OPTIONS);
         for (CustomThemeColors.Entry entry : CustomThemeColors.ENTRIES)
             mutable.add(entry.prefKey);
+        mutable.add(CustomFont.PREF_PATH);
+        mutable.add(CustomFont.PREF_NAME);
+        mutable.add(CustomFont.PREF_WEIGHT);
         RESET_OPTIONS = java.util.Collections.unmodifiableList(mutable);
     }
 
@@ -423,6 +441,13 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
         cardCustomColors = view.findViewById(R.id.cardCustomColors);
         containerCustomColors = view.findViewById(R.id.containerCustomColors);
         populateCustomColorPicker();
+
+        btnCustomFontPick = view.findViewById(R.id.btnCustomFontPick);
+        btnCustomFontClear = view.findViewById(R.id.btnCustomFontClear);
+        tvCustomFontName = view.findViewById(R.id.tvCustomFontName);
+        tvCustomFontWeightLabel = view.findViewById(R.id.tvCustomFontWeightLabel);
+        sbCustomFontWeight = view.findViewById(R.id.sbCustomFontWeight);
+        wireCustomFontControls();
 
         List<StyleHelper.FontDescriptor> fonts = StyleHelper.getFonts(getContext());
 
@@ -2009,6 +2034,122 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
                 desc.setLayoutParams(descLp);
                 containerCustomColors.addView(desc);
             }
+        }
+    }
+
+    /**
+     * Wire the custom-font controls in the Display options screen.
+     * Pick button launches SAF; clear button removes the picked file and pref.
+     * Weight slider stores its value on touch release (not while dragging) so
+     * the activity recreate triggered by the pref change does not fire mid-drag.
+     */
+    private void wireCustomFontControls() {
+        final Context context = getContext();
+        if (context == null)
+            return;
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        // Initialise the name label from prefs
+        String currentName = prefs.getString(CustomFont.PREF_NAME, null);
+        tvCustomFontName.setText(TextUtils.isEmpty(currentName)
+                ? getString(R.string.title_custom_font_default)
+                : currentName);
+
+        btnCustomFontPick.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    fontPicker.launch(new String[]{"*/*"});
+                } catch (Throwable ex) {
+                    Log.unexpectedError(getParentFragmentManager(), ex);
+                }
+            }
+        });
+
+        btnCustomFontClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CustomFont.clearStoredFile(context);
+                prefs.edit()
+                        .remove(CustomFont.PREF_PATH)
+                        .remove(CustomFont.PREF_NAME)
+                        .apply();
+                // onSharedPreferenceChanged in ActivityBase will fire and recreate.
+            }
+        });
+
+        // Initialise the slider position from prefs (0 = natural, 1..9 = 100..900)
+        int currentWeight = prefs.getInt(CustomFont.PREF_WEIGHT, 0);
+        int sliderPos = (currentWeight <= 0 ? 0 : Math.min(9, Math.max(1, currentWeight / 100)));
+        sbCustomFontWeight.setProgress(sliderPos);
+        updateFontWeightLabel(sliderPos);
+
+        sbCustomFontWeight.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
+                updateFontWeightLabel(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(android.widget.SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(android.widget.SeekBar seekBar) {
+                int weight = (seekBar.getProgress() == 0 ? 0 : seekBar.getProgress() * 100);
+                if (prefs.getInt(CustomFont.PREF_WEIGHT, 0) == weight)
+                    return; // no-op, avoid triggering recreate on touch release after a no-change drag
+                prefs.edit().putInt(CustomFont.PREF_WEIGHT, weight).apply();
+                // onSharedPreferenceChanged in ActivityBase will fire and recreate.
+            }
+        });
+    }
+
+    private void updateFontWeightLabel(int sliderPos) {
+        if (tvCustomFontWeightLabel == null)
+            return;
+        if (sliderPos == 0)
+            tvCustomFontWeightLabel.setText(R.string.title_custom_font_weight_natural);
+        else
+            tvCustomFontWeightLabel.setText(
+                    getString(R.string.title_custom_font_weight_label, sliderPos * 100));
+    }
+
+    /**
+     * Called by the {@link #fontPicker} ActivityResultLauncher when the user
+     * picks a font file. Copies the bytes into internal storage and saves the
+     * resulting path plus display name to prefs; ActivityBase's pref listener
+     * then triggers a recreate so the new typeface takes effect immediately.
+     */
+    private void onFontPicked(@Nullable android.net.Uri uri) {
+        if (uri == null)
+            return; // user cancelled
+        final Context context = getContext();
+        if (context == null)
+            return;
+        try {
+            String name = CustomFont.getDisplayName(context, uri);
+            if (TextUtils.isEmpty(name))
+                name = uri.getLastPathSegment();
+            if (TextUtils.isEmpty(name))
+                name = "font.ttf";
+            String path = CustomFont.copyToInternal(context, uri);
+            // Sanity check: try to load it as a typeface; if it throws, do not save.
+            android.graphics.Typeface probe = android.graphics.Typeface.createFromFile(new java.io.File(path));
+            if (probe == null)
+                throw new java.io.IOException("Typeface.createFromFile returned null");
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            prefs.edit()
+                    .putString(CustomFont.PREF_PATH, path)
+                    .putString(CustomFont.PREF_NAME, name)
+                    .apply();
+            // onSharedPreferenceChanged in ActivityBase will fire and recreate.
+        } catch (Throwable ex) {
+            Log.w(ex);
+            CustomFont.clearStoredFile(context);
+            android.widget.Toast.makeText(context,
+                    getString(R.string.title_custom_font_error, ex.getMessage() == null ? "?" : ex.getMessage()),
+                    android.widget.Toast.LENGTH_LONG).show();
         }
     }
 
