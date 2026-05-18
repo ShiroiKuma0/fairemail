@@ -2050,6 +2050,12 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
             else
                 tvSubject.setTypeface(typeface);
             tvCount.setTypeface(typeface);
+            // Apply user's custom font / weight on top of the bind-time setTypeface calls
+            // above. CustomFont.apply preserves the italic and bold style flags those
+            // calls just set, so sender_italic, subject_italic, and the unread-bold cue
+            // all survive. No-op when neither pref is set.
+            CustomFont.apply(context, tvFrom);
+            CustomFont.apply(context, tvSubject);
 
             int colorUnseen = (message.unseen > 0 ? colorUnread : colorRead);
             // Sender: always colorSender (theme colorUnread, ignoring highlight_color preference)
@@ -3172,6 +3178,9 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
                     else
                         tvBody.setTextColor(contrast ? textColorPrimary : colorRead);
                     tvBody.setTypeface(StyleHelper.getTypeface(display_font, context));
+                    // Apply user's custom font / weight on top of the display_font choice,
+                    // preserving any style flags. No-op when neither font pref is set.
+                    CustomFont.apply(context, tvBody);
 
                     tvBody.setVisibility(View.VISIBLE);
                     wvBody.setVisibility(View.GONE);
