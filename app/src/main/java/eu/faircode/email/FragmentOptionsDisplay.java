@@ -2120,6 +2120,12 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
      * picks a font file. Copies the bytes into internal storage and saves the
      * resulting path plus display name to prefs; ActivityBase's pref listener
      * then triggers a recreate so the new typeface takes effect immediately.
+     *
+     * The pref save is deferred via Handler.post because this callback fires
+     * inside super.onResume() before ActivityBase sets visible=true, and the
+     * listener only relaunches when visible is true. Without the defer, the
+     * activity finishes itself without relaunching and the app appears to die
+     * silently (preferences are still saved, but the user sees the app vanish).
      */
     private void onFontPicked(@Nullable android.net.Uri uri) {
         if (uri == null)
@@ -2133,17 +2139,25 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
                 name = uri.getLastPathSegment();
             if (TextUtils.isEmpty(name))
                 name = "font.ttf";
-            String path = CustomFont.copyToInternal(context, uri);
+            final String fname = name;
+            final String fpath = CustomFont.copyToInternal(context, uri);
             // Sanity check: try to load it as a typeface; if it throws, do not save.
-            android.graphics.Typeface probe = android.graphics.Typeface.createFromFile(new java.io.File(path));
+            android.graphics.Typeface probe = android.graphics.Typeface.createFromFile(new java.io.File(fpath));
             if (probe == null)
                 throw new java.io.IOException("Typeface.createFromFile returned null");
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-            prefs.edit()
-                    .putString(CustomFont.PREF_PATH, path)
-                    .putString(CustomFont.PREF_NAME, name)
-                    .apply();
-            // onSharedPreferenceChanged in ActivityBase will fire and recreate.
+            // Defer the pref save until the next main-thread cycle. See javadoc above
+            // for why. Use the application context so the post survives fragment detach.
+            final Context appContext = context.getApplicationContext();
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    PreferenceManager.getDefaultSharedPreferences(appContext).edit()
+                            .putString(CustomFont.PREF_PATH, fpath)
+                            .putString(CustomFont.PREF_NAME, fname)
+                            .apply();
+                    // onSharedPreferenceChanged in ActivityBase will fire and recreate.
+                }
+            });
         } catch (Throwable ex) {
             Log.w(ex);
             CustomFont.clearStoredFile(context);
