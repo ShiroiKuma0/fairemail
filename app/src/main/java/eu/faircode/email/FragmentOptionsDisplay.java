@@ -159,6 +159,7 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
     private SwitchCompat swSenderItalic;
 
     private SwitchCompat swSubjectTop;
+    private SwitchCompat swSubjectLinesNarrow;
     private SwitchCompat swSubjectItalic;
     private SwitchCompat swHighlightSubject;
     private Spinner spFontSizeSubject;
@@ -251,7 +252,7 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
             "circular", "saturation", "brightness", "threshold",
             "email_format", "prefer_contact", "only_contact", "distinguish_contacts", "show_recipients", "reverse_addresses",
             "font_size_sender", "sender_ellipsize", "sender_italic",
-            "subject_top", "subject_italic", "highlight_subject", "font_size_subject", "subject_ellipsize",
+            "subject_top", "subject_lines_narrow", "subject_italic", "highlight_subject", "font_size_subject", "subject_ellipsize",
             "keywords_header", "labels_header", "flags", "flags_background",
             "preview", "preview_italic", "preview_lines", "align_header",
             "addresses", "hide_attachments",
@@ -382,6 +383,7 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
         swSenderItalic = view.findViewById(R.id.swSenderItalic);
 
         swSubjectTop = view.findViewById(R.id.swSubjectTop);
+        swSubjectLinesNarrow = view.findViewById(R.id.swSubjectLinesNarrow);
         swSubjectItalic = view.findViewById(R.id.swSubjectItalic);
         swHighlightSubject = view.findViewById(R.id.swHighlightSubject);
         spFontSizeSubject = view.findViewById(R.id.spFontSizeSubject);
@@ -1205,6 +1207,14 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
             }
         });
 
+        swSubjectLinesNarrow.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+                prefs.edit().putBoolean("subject_lines_narrow", checked).apply();
+                WidgetUnified.updateData(getContext());
+            }
+        });
+
         swSubjectItalic.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
@@ -1815,6 +1825,7 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
             swSenderItalic.setChecked(prefs.getBoolean("sender_italic", false));
 
             swSubjectTop.setChecked(prefs.getBoolean("subject_top", false));
+            swSubjectLinesNarrow.setChecked(prefs.getBoolean("subject_lines_narrow", false));
             swSubjectItalic.setChecked(prefs.getBoolean("subject_italic", true));
             swHighlightSubject.setChecked(prefs.getBoolean("highlight_subject", false));
 
