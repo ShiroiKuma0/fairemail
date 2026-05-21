@@ -43,6 +43,7 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
@@ -510,6 +511,12 @@ abstract class ActivityBase extends AppCompatActivity implements SharedPreferenc
         super.onResume();
 
         visible = true;
+
+        // Apply user's Custom font / weight to the toolbar title TextView(s). Done
+        // here (after super.onResume so the toolbar has been fully laid out and its
+        // title TextView created lazily) and on every resume so a pref change that
+        // recreates the activity picks up the new typeface. See CustomFont.apply.
+        applyTopBarFont();
 
         if (!(this instanceof ActivityMain)) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -1252,6 +1259,29 @@ abstract class ActivityBase extends AppCompatActivity implements SharedPreferenc
             Log.i(f.getClass().getSimpleName() + " " + what + " " + elapsed + " ms");
         }
     };
+
+    /**
+     * Walk the toolbar's direct TextView children (title + subtitle, when present) and
+     * apply the user's Custom font / weight for ROLE_TOP_BAR. The toolbar's title
+     * TextView is created lazily on first setTitle call so this must run AFTER the
+     * activity has set up its action bar, which onResume guarantees. Subsequent
+     * setTitle calls reuse the same TextView so a one-shot apply per resume sticks.
+     * No-op when the role and Default have no overrides.
+     */
+    private void applyTopBarFont() {
+        try {
+            androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+            if (toolbar == null)
+                return;
+            for (int i = 0; i < toolbar.getChildCount(); i++) {
+                View v = toolbar.getChildAt(i);
+                if (v instanceof TextView)
+                    CustomFont.apply(this, (TextView) v, CustomFont.ROLE_TOP_BAR);
+            }
+        } catch (Throwable ex) {
+            Log.w(ex);
+        }
+    }
 
     public interface IKeyPressedListener {
         boolean onKeyPressed(KeyEvent event);

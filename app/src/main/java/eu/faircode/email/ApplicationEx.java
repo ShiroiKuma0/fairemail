@@ -179,6 +179,11 @@ public class ApplicationEx extends Application
         final boolean leak_canary = prefs.getBoolean("leak_canary", BuildConfig.TEST_RELEASE);
         final boolean load_emoji = prefs.getBoolean("load_emoji", false);
 
+        // One-time migration: copy the legacy single-knob font weight pref to each
+        // role-specific weight pref so users who set "all bold" in the previous
+        // iteration keep that effect on a per-role basis after the role refactor.
+        CustomFont.migrateLegacyWeightIfNeeded(this);
+
         prev = Thread.getDefaultUncaughtExceptionHandler();
 
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
