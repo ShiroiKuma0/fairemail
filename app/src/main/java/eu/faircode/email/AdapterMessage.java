@@ -295,6 +295,7 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
     private Float font_size_sender;
     private Float font_size_subject;
     private boolean subject_top;
+    private boolean subject_lines_narrow;
     private boolean subject_italic;
     private boolean sender_italic;
     private String sender_ellipsize;
@@ -361,6 +362,14 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
     private static final int MAX_RECIPIENTS_COMPACT = 3;
     private static final int MAX_RECIPIENTS_NORMAL = 7;
 
+    // Below this screen width (dp) the message list is considered "narrow" and, when
+    // subject_lines_narrow is enabled, the subject wraps to two lines with the date
+    // dropped to the end of the last subject line. On the Huawei Mate XT, folded-
+    // portrait is ~366dp wide while every other fold/orientation state is >=~745dp,
+    // so 500 cleanly isolates folded-portrait without affecting the wider states.
+    private static final int FOLDED_WIDTH_DP = 500;
+    private static final int SUBJECT_LINES_NARROW = 2;
+
     public class ViewHolder extends RecyclerView.ViewHolder implements
             View.OnClickListener,
             View.OnLongClickListener,
@@ -393,6 +402,7 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
         private ImageView ivForwarded;
         private ImageView ivAttachments;
         private TextView tvSubject;
+        private boolean twoLineNarrow; // folded-portrait two-line subject mode for this holder
         private TextView tvKeywords;
         private TextView tvFolder;
         private TextView tvLabels;
@@ -832,11 +842,142 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
                     tvKeywords.setSingleLine(true);
             }
 
+            // Two-line subject when narrow (folded-portrait). When subject_lines_narrow
+            // is enabled and the screen is narrow, the subject is allowed two lines with
+            // line one running the full width and the date dropped to the end of line two.
+            // The actual line split is computed at bind time in applyTwoLineSubject because
+            // it depends on the message text and the measured view width; here we only set
+            // the per-holder layout state. Holders are rebuilt when the activity recreates
+            // on fold, so the narrow test is re-evaluated for each fold state.
+            if (compact && subject_lines_narrow && tvSubject != null) {
+                int widthDp = itemView.getContext().getResources()
+                        .getConfiguration().screenWidthDp;
+                twoLineNarrow = (widthDp > 0 && widthDp < FOLDED_WIDTH_DP);
+                if (twoLineNarrow) {
+                    tvSubject.setSingleLine(false);
+                    tvSubject.setMaxLines(SUBJECT_LINES_NARROW);
+                    tvSubject.setEllipsize(TextUtils.TruncateAt.END);
+
+                    // Subject runs the full width (up to the flag/star), so line one is not
+                    // clipped by the date column; line two is kept clear of the date by the
+                    // bind-time split. The date and size drop to the subject's bottom so they
+                    // sit at the end of the last subject line.
+                    ViewGroup.LayoutParams slp = tvSubject.getLayoutParams();
+                    if (slp instanceof ConstraintLayout.LayoutParams) {
+                        ConstraintLayout.LayoutParams sclp = (ConstraintLayout.LayoutParams) slp;
+                        sclp.endToStart = R.id.ibFlagged;
+                        sclp.endToEnd = ConstraintLayout.LayoutParams.UNSET;
+                        tvSubject.setLayoutParams(sclp);
+                    }
+                    anchorToSubjectBottom(tvTime);
+                    anchorToSubjectBottom(tvSize);
+                }
+            }
+
             if (viewType != R.layout.item_message_compact && viewType != R.layout.item_message_normal)
                 return;
 
             if (!BuildConfig.DEBUG && !accessibility)
                 return;
+        }
+
+        /**
+         * Re-anchor a right-column view (date or size) so its bottom aligns with the
+         * bottom of the subject view and its top constraint is detached. With only the
+         * bottom anchored, the view rides to the bottom of whatever the subject's last
+         * rendered line is: a one-line subject keeps the date on line one, a two-line
+         * subject drops it to the end of line two. Used only in the narrow two-line
+         * subject mode; the default XML constraints are restored when a fresh holder is
+         * built (which happens on the activity recreate that a fold triggers).
+         */
+        private void anchorToSubjectBottom(TextView tv) {
+            if (tv == null || tvSubject == null)
+                return;
+            ViewGroup.LayoutParams lp = tv.getLayoutParams();
+            if (!(lp instanceof ConstraintLayout.LayoutParams))
+                return;
+            ConstraintLayout.LayoutParams clp = (ConstraintLayout.LayoutParams) lp;
+            clp.bottomToBottom = tvSubject.getId();
+            clp.topToBottom = ConstraintLayout.LayoutParams.UNSET;
+            clp.topToTop = ConstraintLayout.LayoutParams.UNSET;
+            tv.setLayoutParams(clp);
+        }
+
+        /**
+         * Folded-portrait two-line subject. Android cannot natively render a single
+         * TextView whose first line is full width while its last line stops short for a
+         * bottom-right date (there is no text float), so the break is computed manually.
+         *
+         * The subject view is laid out full width, so its own Layout already knows where
+         * line one wraps at full width. After layout we check, on the view's own message
+         * queue (so getWidth and getLayout are valid): if the whole subject fits before
+         * the date on one line we leave it alone; otherwise we keep line one exactly as
+         * the full-width layout wrapped it and re-flow the remainder onto line two,
+         * truncated with an ellipsis to leave room for the date. The date itself is
+         * anchored to the subject bottom by anchorToSubjectBottom, so it lands at the end
+         * of whichever line the subject ends on.
+         *
+         * The runnable guards on the view still showing the original (un-split) text, which
+         * makes it both idempotent and safe against recycling: a recycled holder shows new
+         * text, an already-split holder shows the split text, and either way the guard
+         * skips. The date width is measured from the date view's own paint.
+         */
+        private void applyTwoLineSubject(final CharSequence original) {
+            if (tvSubject == null || tvTime == null || TextUtils.isEmpty(original))
+                return;
+            final TextView subjectView = tvSubject;
+            final TextView dateView = tvTime;
+            subjectView.post(new Runnable() {
+                @Override
+                public void run() {
+                    // Only act while the view still shows the original text (not recycled,
+                    // not already split).
+                    if (!TextUtils.equals(subjectView.getText(), original))
+                        return;
+                    int w = subjectView.getWidth()
+                            - subjectView.getPaddingLeft() - subjectView.getPaddingRight();
+                    Layout layout = subjectView.getLayout();
+                    if (w <= 0 || layout == null)
+                        return;
+
+                    android.text.TextPaint paint = subjectView.getPaint();
+                    CharSequence dateText = dateView.getText();
+                    float dateWidth = (dateText == null ? 0f
+                            : dateView.getPaint().measureText(dateText.toString()));
+                    // Reserve the date plus a small gap so text never touches the date.
+                    float reserve = dateWidth + dpToPx(subjectView, 8);
+                    int line2Width = (int) Math.max(0, w - reserve);
+
+                    if (layout.getLineCount() <= 1) {
+                        // Short / medium subject: a single line. Keep it on one line but
+                        // ensure it ends before the date by truncating to the reserved
+                        // width when necessary (matches the default single-line look).
+                        CharSequence single = TextUtils.ellipsize(
+                                original, paint, line2Width, TextUtils.TruncateAt.END);
+                        if (!TextUtils.equals(single, original))
+                            subjectView.setText(single);
+                        return;
+                    }
+
+                    // Long subject: keep line one as the full-width layout wrapped it and
+                    // re-flow the remainder onto line two, truncated to leave date room.
+                    int line1End = layout.getLineEnd(0);
+                    if (line1End <= 0 || line1End >= original.length())
+                        return; // nothing sensible to move to line two
+
+                    CharSequence line1 = original.subSequence(0, line1End).toString().trim();
+                    CharSequence rest = original.subSequence(line1End, original.length())
+                            .toString().trim();
+                    CharSequence line2 = TextUtils.ellipsize(
+                            rest, paint, line2Width, TextUtils.TruncateAt.END);
+
+                    subjectView.setText(TextUtils.concat(line1, "\n", line2));
+                }
+            });
+        }
+
+        private float dpToPx(View v, float dp) {
+            return dp * v.getResources().getDisplayMetrics().density;
         }
 
         private void ensureExpanded() {
@@ -1567,6 +1708,8 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
 
             // Line 2
             tvSubject.setText(message.subject);
+            if (twoLineNarrow)
+                applyTwoLineSubject(message.subject);
 
             // Workaround layout bug
             //tvSubject.requestLayout();
@@ -8603,6 +8746,7 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
         this.reverse_addresses = prefs.getBoolean("reverse_addresses", true);
 
         this.subject_top = prefs.getBoolean("subject_top", false);
+        this.subject_lines_narrow = prefs.getBoolean("subject_lines_narrow", false);
 
         int fz_sender = prefs.getInt("font_size_sender", -1);
         if (fz_sender != -1)
