@@ -2040,12 +2040,13 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
             else
                 tvSubject.setTypeface(typeface);
             tvCount.setTypeface(typeface);
-            // Apply user's custom font / weight on top of the bind-time setTypeface calls
-            // above. CustomFont.apply preserves the italic and bold style flags those
-            // calls just set, so sender_italic, subject_italic, and the unread-bold cue
-            // all survive. No-op when neither pref is set.
-            CustomFont.apply(context, tvFrom);
-            CustomFont.apply(context, tvSubject);
+            // Apply user's custom font / weight per role on top of the bind-time
+            // setTypeface calls above. CustomFont.apply preserves the italic and bold
+            // style flags those calls just set, so sender_italic, subject_italic, and
+            // the unread-bold cue all survive. No-op when the role has no overrides.
+            CustomFont.apply(context, tvFrom, CustomFont.ROLE_LIST_SENDER);
+            CustomFont.apply(context, tvSubject, CustomFont.ROLE_LIST_SUBJECT);
+            CustomFont.apply(context, tvPreview, CustomFont.ROLE_LIST_PREVIEW);
 
             int colorUnseen = (message.unseen > 0 ? colorUnread : colorRead);
             // Sender: always colorSender (theme colorUnread, ignoring highlight_color preference)
@@ -2772,6 +2773,7 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
             tvFromExTitle.setVisibility((froms > 1 || show_addresses) && !TextUtils.isEmpty(from) ? View.VISIBLE : View.GONE);
             tvFromEx.setVisibility((froms > 1 || show_addresses) && !TextUtils.isEmpty(from) ? View.VISIBLE : View.GONE);
             tvFromEx.setText(from);
+            CustomFont.apply(context, tvFromEx, CustomFont.ROLE_VIEW_SENDER);
 
             tvToTitle.setVisibility((!show_recipients || show_addresses) && (message.to != null && message.to.length > 0) ? View.VISIBLE : View.GONE);
             tvTo.setVisibility((!show_recipients || show_addresses) && (message.to != null && message.to.length > 0) ? View.VISIBLE : View.GONE);
@@ -2840,6 +2842,7 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
             tvSubjectEx.setTypeface(Typeface.DEFAULT,
                     (subject_italic ? Typeface.ITALIC : Typeface.NORMAL) |
                             (homoSubject ? Typeface.NORMAL : Typeface.BOLD));
+            CustomFont.apply(context, tvSubjectEx, CustomFont.ROLE_VIEW_SUBJECT);
             // Flags
             tvFlags.setVisibility(show_addresses && debug ? View.VISIBLE : View.GONE);
             tvFlags.setText(message.flags);
@@ -3169,8 +3172,8 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
                         tvBody.setTextColor(contrast ? textColorPrimary : colorRead);
                     tvBody.setTypeface(StyleHelper.getTypeface(display_font, context));
                     // Apply user's custom font / weight on top of the display_font choice,
-                    // preserving any style flags. No-op when neither font pref is set.
-                    CustomFont.apply(context, tvBody);
+                    // preserving any style flags. No-op when the role has no overrides.
+                    CustomFont.apply(context, tvBody, CustomFont.ROLE_VIEW_BODY);
 
                     tvBody.setVisibility(View.VISIBLE);
                     wvBody.setVisibility(View.GONE);
