@@ -665,6 +665,8 @@
     <string name="title_advanced_sender_ellipsize">If needed, shorten the sender</string>
 
     <string name="title_advanced_subject_top">Show subject above sender</string>
+    <string name="title_advanced_subject_lines_narrow" translatable="false">Wrap subject to two lines when folded</string>
+    <string name="title_advanced_subject_lines_narrow_hint" translatable="false">Only on narrow (folded-portrait) screens. The subject uses up to two lines and the date moves to the end of the last line, instead of clipping the subject to one line. Applies to the compact message list.</string>
     <string name="title_advanced_subject_italic">Show subject in italics</string>
     <string name="title_advanced_sender_italic" translatable="false">Show sender in italics</string>
     <string name="title_custom_colors_section" translatable="false">Custom theme colours</string>
