@@ -1558,6 +1558,29 @@
                     app:switchPadding="12dp" />
 
                 <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/swSubjectLinesNarrow"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/title_advanced_subject_lines_narrow"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/swSubjectTop"
+                    app:switchPadding="12dp" />
+
+                <TextView
+                    android:id="@+id/tvSubjectLinesNarrowHint"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="48dp"
+                    android:layout_marginEnd="48dp"
+                    android:text="@string/title_advanced_subject_lines_narrow_hint"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/swSubjectLinesNarrow" />
+
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/swSubjectItalic"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -1566,7 +1589,7 @@
                     android:text="@string/title_advanced_subject_italic"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/swSubjectTop"
+                    app:layout_constraintTop_toBottomOf="@id/tvSubjectLinesNarrowHint"
                     app:switchPadding="12dp" />
 
                 <androidx.appcompat.widget.SwitchCompat
