@@ -1,18 +1,22 @@
 /*
-    Custom font + weight overrides for message text.
+    Custom font + weight overrides for message and chrome text.
 
-    The user picks a TTF / OTF file via SAF (no permission required); the bytes are
-    copied into the app's internal files dir at pick time so the original URI is not
-    referenced again. A separate weight preference, expressed as the standard CSS
-    weight scale 100-900 with 0 meaning "use the typeface's natural weight", is
-    applied via Typeface.create(Typeface, int weight, boolean italic) on API 28+.
-    Both knobs are independent — weight applies to the default typeface when no
-    custom font is set, and a custom font renders at its natural weight when the
-    weight pref is 0.
+    Each customizable surface ("role") has independent font and weight settings.
+    Font picks cascade: a role with no picked font falls back to the Default role's
+    font; if Default is also unset, no override is applied. Weight does NOT cascade
+    — each role's weight is independent, with 0 meaning "use the typeface's natural
+    weight" and 100..900 meaning "force this CSS weight via Typeface.create on API 28+".
 
-    See CustomFont.apply(Context, TextView) for the single call site convention
-    used in AdapterMessage to keep tvFrom, tvSubject and tvBody in sync with the
-    user's choices on every view holder bind.
+    The user picks a TTF / OTF file per role via SAF; the bytes are copied into the
+    app's internal files dir under custom_fonts/<filename>, with a separate file slot
+    per role so picks don't overwrite each other. Each role's pref keys are derived
+    from its role id; the Default role keeps the legacy bare names ("custom_font_path",
+    "custom_font_name", "custom_font_weight") so existing users' picks survive.
+
+    Style preservation: CustomFont.apply reads the italic and bold flags from whatever
+    typeface the bind code just installed and routes them through to the result. Italic
+    propagates unchanged; bold is mapped onto a +300 weight boost (capped at 900) so
+    unread rows stay visually heavier than read rows at the same user-chosen base.
 */
 
 package eu.faircode.email;
@@ -34,47 +38,159 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 class CustomFont {
-    static final String PREF_PATH = "custom_font_path";
-    static final String PREF_NAME = "custom_font_name";
-    static final String PREF_WEIGHT = "custom_font_weight";
+    static final String ROLE_DEFAULT = "default";
+    static final String ROLE_LIST_SENDER = "list_sender";
+    static final String ROLE_LIST_SUBJECT = "list_subject";
+    static final String ROLE_LIST_PREVIEW = "list_preview";
+    static final String ROLE_VIEW_BODY = "view_body";
+    static final String ROLE_VIEW_SUBJECT = "view_subject";
+    static final String ROLE_VIEW_SENDER = "view_sender";
+    static final String ROLE_TOP_BAR = "top_bar";
+
+    static final String SECTION_DEFAULT = "default";
+    static final String SECTION_LIST = "list";
+    static final String SECTION_VIEW = "view";
+    static final String SECTION_CHROME = "chrome";
 
     private static final long MAX_FONT_BYTES = 20L * 1024L * 1024L; // 20 MB
     private static final String INTERNAL_DIR = "custom_fonts";
-    private static final String INTERNAL_FILE = "picked.ttf";
+    private static final String MIGRATION_KEY = "custom_font_migrated_v2";
 
-    private static volatile Typeface cachedTypeface = null;
-    private static volatile String cachedPath = null;
+    /**
+     * One entry per customizable role. Adjacent entries with the same section id
+     * render under one section header in the picker. Order here is display order.
+     */
+    static final class Entry {
+        final String role;
+        final String section;
+        final int sectionLabelRes;
+        final int labelRes;
+        final int descriptionRes;
 
+        Entry(String role, String section, int sectionLabelRes, int labelRes, int descriptionRes) {
+            this.role = role;
+            this.section = section;
+            this.sectionLabelRes = sectionLabelRes;
+            this.labelRes = labelRes;
+            this.descriptionRes = descriptionRes;
+        }
+    }
+
+    static final Entry[] ENTRIES = new Entry[]{
+            new Entry(ROLE_DEFAULT, SECTION_DEFAULT,
+                    R.string.title_custom_font_section_default,
+                    R.string.title_custom_font_default,
+                    R.string.title_custom_font_default_desc),
+
+            new Entry(ROLE_LIST_SENDER, SECTION_LIST,
+                    R.string.title_custom_font_section_list,
+                    R.string.title_custom_font_list_sender,
+                    R.string.title_custom_font_list_sender_desc),
+            new Entry(ROLE_LIST_SUBJECT, SECTION_LIST,
+                    R.string.title_custom_font_section_list,
+                    R.string.title_custom_font_list_subject,
+                    R.string.title_custom_font_list_subject_desc),
+            new Entry(ROLE_LIST_PREVIEW, SECTION_LIST,
+                    R.string.title_custom_font_section_list,
+                    R.string.title_custom_font_list_preview,
+                    R.string.title_custom_font_list_preview_desc),
+
+            new Entry(ROLE_VIEW_BODY, SECTION_VIEW,
+                    R.string.title_custom_font_section_view,
+                    R.string.title_custom_font_view_body,
+                    R.string.title_custom_font_view_body_desc),
+            new Entry(ROLE_VIEW_SUBJECT, SECTION_VIEW,
+                    R.string.title_custom_font_section_view,
+                    R.string.title_custom_font_view_subject,
+                    R.string.title_custom_font_view_subject_desc),
+            new Entry(ROLE_VIEW_SENDER, SECTION_VIEW,
+                    R.string.title_custom_font_section_view,
+                    R.string.title_custom_font_view_sender,
+                    R.string.title_custom_font_view_sender_desc),
+
+            new Entry(ROLE_TOP_BAR, SECTION_CHROME,
+                    R.string.title_custom_font_section_chrome,
+                    R.string.title_custom_font_top_bar,
+                    R.string.title_custom_font_top_bar_desc),
+    };
+
+    /** Cache keyed by file path so multiple roles pointing at the same path share state. */
+    private static final Map<String, Typeface> typefaceCache = new ConcurrentHashMap<>();
+
+    static String prefPath(String role) {
+        return ROLE_DEFAULT.equals(role) ? "custom_font_path" : "custom_font_path_" + role;
+    }
+
+    static String prefName(String role) {
+        return ROLE_DEFAULT.equals(role) ? "custom_font_name" : "custom_font_name_" + role;
+    }
+
+    static String prefWeight(String role) {
+        return ROLE_DEFAULT.equals(role) ? "custom_font_weight" : "custom_font_weight_" + role;
+    }
+
+    private static String filename(String role) {
+        return ROLE_DEFAULT.equals(role) ? "picked.ttf" : role + ".ttf";
+    }
+
+    /**
+     * Returns true for any pref key that should trigger an activity recreate when changed.
+     * Path and weight prefs trigger recreates; name prefs do not (display metadata only)
+     * for the SAF-callback lifecycle reason documented on FragmentOptionsDisplay.onFontPicked.
+     */
     static boolean isPrefKey(String key) {
-        // PREF_NAME is display-metadata only and intentionally not in this set:
-        // including it would fire onSharedPreferenceChanged twice from a single
-        // edit().putString(PATH).putString(NAME).apply() call (once per key),
-        // and each call recreates the activity, which during the SAF result
-        // callback was observed to crash. PATH and WEIGHT are the only knobs
-        // that materially change what gets rendered.
-        return PREF_PATH.equals(key) || PREF_WEIGHT.equals(key);
+        for (Entry entry : ENTRIES) {
+            if (prefPath(entry.role).equals(key)) return true;
+            if (prefWeight(entry.role).equals(key)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns true for any pref key the Display "reset" action should wipe alongside
+     * everything else. Includes name keys (since reset should clear the display label too).
+     */
+    static boolean isResetKey(String key) {
+        for (Entry entry : ENTRIES) {
+            if (prefPath(entry.role).equals(key)) return true;
+            if (prefName(entry.role).equals(key)) return true;
+            if (prefWeight(entry.role).equals(key)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Resolve the typeface to use for the given role. Cascades to the Default role's
+     * font if the role has no picked font of its own. Returns null when neither role
+     * nor Default has a picked font.
+     */
+    @Nullable
+    static Typeface getTypeface(Context context, String role) {
+        Typeface tf = loadTypefaceForRole(context, role);
+        if (tf != null) return tf;
+        if (!ROLE_DEFAULT.equals(role))
+            return loadTypefaceForRole(context, ROLE_DEFAULT);
+        return null;
     }
 
     @Nullable
-    static Typeface getTypeface(Context context) {
+    private static Typeface loadTypefaceForRole(Context context, String role) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String path = prefs.getString(PREF_PATH, null);
-        if (TextUtils.isEmpty(path)) {
-            cachedTypeface = null;
-            cachedPath = null;
-            return null;
-        }
-        if (path.equals(cachedPath) && cachedTypeface != null)
-            return cachedTypeface;
+        String path = prefs.getString(prefPath(role), null);
+        if (TextUtils.isEmpty(path)) return null;
+
+        Typeface cached = typefaceCache.get(path);
+        if (cached != null) return cached;
+
         try {
             File f = new File(path);
-            if (!f.exists())
-                return null;
+            if (!f.exists()) return null;
             Typeface tf = Typeface.createFromFile(f);
-            cachedTypeface = tf;
-            cachedPath = path;
+            if (tf != null) typefaceCache.put(path, tf);
             return tf;
         } catch (Throwable ex) {
             Log.w(ex);
@@ -82,34 +198,24 @@ class CustomFont {
         }
     }
 
-    /**
-     * Returns the user-selected weight (0 means "no override"; otherwise 100-900).
-     */
-    static int getWeight(Context context) {
+    /** Per-role weight (0..900). Does NOT cascade to Default — each role is independent. */
+    static int getWeight(Context context, String role) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        return prefs.getInt(PREF_WEIGHT, 0);
+        return prefs.getInt(prefWeight(role), 0);
     }
 
     /**
-     * Applies the user's custom font and/or weight to the given TextView while
-     * preserving the italic and bold style flags of whatever typeface is currently
-     * set on the view. Idempotent — calling this with both prefs unset leaves the
-     * TextView's typeface unchanged.
-     *
-     * Style preservation matters because the AdapterMessage bind code sets the
-     * italic flag for the sender_italic / subject_italic preferences and uses bold
-     * to mark unread messages. If we just called {@code setTypeface(customFont)}
-     * we would silently drop those distinctions. The bold flag is mapped onto a
-     * weight boost of +300 (capped at 900) when the user has set a weight, so
-     * unread items remain visually heavier than read items at the same base.
+     * Apply the custom font + weight for the given role to the view, preserving the
+     * italic and bold style flags of whatever typeface is currently set on the view.
+     * Idempotent — calling this with both prefs unset for the role (and Default, after
+     * font cascade) leaves the TextView's typeface unchanged.
      */
-    static void apply(Context context, @Nullable TextView view) {
-        if (view == null)
-            return;
-        Typeface custom = getTypeface(context);
-        int weight = getWeight(context);
-        if (custom == null && weight <= 0)
-            return; // nothing to apply
+    static void apply(Context context, @Nullable TextView view, String role) {
+        if (view == null) return;
+        Typeface custom = getTypeface(context, role);
+        int weight = getWeight(context, role);
+        if (custom == null && weight <= 0) return; // no override at all
+
         Typeface current = (view.getTypeface() != null ? view.getTypeface() : Typeface.DEFAULT);
         int currentStyle = current.getStyle();
         boolean italic = (currentStyle & Typeface.ITALIC) != 0;
@@ -120,7 +226,6 @@ class CustomFont {
             int effectiveWeight = bold ? Math.min(900, weight + 300) : weight;
             result = Typeface.create(base, effectiveWeight, italic);
         } else if (currentStyle != Typeface.NORMAL) {
-            // No weight override (or below API 28): preserve italic/bold by re-deriving
             result = Typeface.create(base, currentStyle);
         } else {
             result = base;
@@ -129,18 +234,15 @@ class CustomFont {
     }
 
     /**
-     * Copies the font bytes from {@code uri} into the app's internal storage and
-     * returns the absolute path on success. Replaces any previously-picked font.
-     * The cached Typeface is invalidated so the next {@link #getTypeface} re-reads
-     * from disk.
-     *
-     * @throws IOException on read/write failure or if the file exceeds {@link #MAX_FONT_BYTES}.
+     * Copies the font bytes from {@code uri} into the app's internal storage under the
+     * slot for {@code role} and returns the absolute path on success. The cache entry
+     * for any previous file at this role's slot is invalidated.
      */
-    static String copyToInternal(Context context, Uri uri) throws IOException {
+    static String copyToInternal(Context context, Uri uri, String role) throws IOException {
         File dir = new File(context.getFilesDir(), INTERNAL_DIR);
         if (!dir.exists() && !dir.mkdirs())
             throw new IOException("Cannot create " + dir);
-        File dest = new File(dir, INTERNAL_FILE);
+        File dest = new File(dir, filename(role));
         try (InputStream in = context.getContentResolver().openInputStream(uri);
              FileOutputStream out = new FileOutputStream(dest)) {
             if (in == null)
@@ -159,26 +261,55 @@ class CustomFont {
                 out.write(buf, 0, n);
             }
         }
-        cachedTypeface = null;
-        cachedPath = null;
+        // Invalidate cache for whatever was previously at this role's path so the next
+        // getTypeface re-reads from disk and picks up the new file's contents.
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String oldPath = prefs.getString(prefPath(role), null);
+        if (!TextUtils.isEmpty(oldPath))
+            typefaceCache.remove(oldPath);
+        typefaceCache.remove(dest.getAbsolutePath());
         return dest.getAbsolutePath();
     }
 
-    /**
-     * Removes any picked font file from internal storage and clears the cached Typeface.
-     * Callers are responsible for clearing the path and name prefs.
-     */
-    static void clearStoredFile(Context context) {
-        File dest = new File(new File(context.getFilesDir(), INTERNAL_DIR), INTERNAL_FILE);
+    /** Removes the picked font file for {@code role} and drops its cache entry. */
+    static void clearStoredFile(Context context, String role) {
+        File dest = new File(new File(context.getFilesDir(), INTERNAL_DIR), filename(role));
         if (dest.exists() && !dest.delete())
             Log.w("Could not delete font file " + dest);
-        cachedTypeface = null;
-        cachedPath = null;
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String oldPath = prefs.getString(prefPath(role), null);
+        if (!TextUtils.isEmpty(oldPath))
+            typefaceCache.remove(oldPath);
     }
 
     /**
-     * Reads the OpenableColumns.DISPLAY_NAME for a content URI. Returns null if
-     * not available (caller should fall back to a generic label).
+     * One-time migration on first launch with the role-based design. The previous
+     * iteration had a single global weight pref ("custom_font_weight") that applied
+     * to all 3 hooked views (tvFrom, tvSubject, tvBody). If the user had set that
+     * weight, copy it to each non-Default role's weight pref so their existing config
+     * keeps working — they are not silently dropped to weight=0 just because the
+     * pref key shape changed. Idempotent via the MIGRATION_KEY flag.
+     */
+    static void migrateLegacyWeightIfNeeded(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (prefs.getBoolean(MIGRATION_KEY, false)) return;
+        int legacyWeight = prefs.getInt(prefWeight(ROLE_DEFAULT), 0);
+        SharedPreferences.Editor editor = prefs.edit();
+        if (legacyWeight > 0) {
+            for (Entry entry : ENTRIES) {
+                if (ROLE_DEFAULT.equals(entry.role)) continue;
+                String key = prefWeight(entry.role);
+                if (!prefs.contains(key))
+                    editor.putInt(key, legacyWeight);
+            }
+        }
+        editor.putBoolean(MIGRATION_KEY, true);
+        editor.apply();
+    }
+
+    /**
+     * Reads the OpenableColumns.DISPLAY_NAME for a content URI. Returns null if not
+     * available (caller should fall back to a generic label).
      */
     @Nullable
     static String getDisplayName(Context context, Uri uri) {
