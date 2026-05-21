@@ -222,18 +222,16 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
     private android.widget.LinearLayout containerCustomColors;
     private final java.util.List<ViewButtonColor> customColorButtons = new java.util.ArrayList<>();
 
-    private android.widget.Button btnCustomFontPick;
-    private android.widget.Button btnCustomFontClear;
-    private TextView tvCustomFontName;
-    private TextView tvCustomFontWeightLabel;
-    private android.widget.SeekBar sbCustomFontWeight;
+    private android.widget.LinearLayout containerCustomFont;
+    private String pendingFontRole = null;
     private final androidx.activity.result.ActivityResultLauncher<String[]> fontPicker =
             registerForActivityResult(
                     new androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
                     new androidx.activity.result.ActivityResultCallback<android.net.Uri>() {
                         @Override
                         public void onActivityResult(android.net.Uri uri) {
-                            onFontPicked(uri);
+                            onFontPicked(uri, pendingFontRole);
+                            pendingFontRole = null;
                         }
                     });
 
@@ -275,9 +273,12 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
         java.util.List<String> mutable = new java.util.ArrayList<>(RESET_OPTIONS);
         for (CustomThemeColors.Entry entry : CustomThemeColors.ENTRIES)
             mutable.add(entry.prefKey);
-        mutable.add(CustomFont.PREF_PATH);
-        mutable.add(CustomFont.PREF_NAME);
-        mutable.add(CustomFont.PREF_WEIGHT);
+        // Likewise for every custom_font_*_<role> key
+        for (CustomFont.Entry entry : CustomFont.ENTRIES) {
+            mutable.add(CustomFont.prefPath(entry.role));
+            mutable.add(CustomFont.prefName(entry.role));
+            mutable.add(CustomFont.prefWeight(entry.role));
+        }
         RESET_OPTIONS = java.util.Collections.unmodifiableList(mutable);
     }
 
@@ -442,12 +443,8 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
         containerCustomColors = view.findViewById(R.id.containerCustomColors);
         populateCustomColorPicker();
 
-        btnCustomFontPick = view.findViewById(R.id.btnCustomFontPick);
-        btnCustomFontClear = view.findViewById(R.id.btnCustomFontClear);
-        tvCustomFontName = view.findViewById(R.id.tvCustomFontName);
-        tvCustomFontWeightLabel = view.findViewById(R.id.tvCustomFontWeightLabel);
-        sbCustomFontWeight = view.findViewById(R.id.sbCustomFontWeight);
-        wireCustomFontControls();
+        containerCustomFont = view.findViewById(R.id.containerCustomFont);
+        populateCustomFontPicker();
 
         List<StyleHelper.FontDescriptor> fonts = StyleHelper.getFonts(getContext());
 
@@ -2038,98 +2035,195 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
     }
 
     /**
-     * Wire the custom-font controls in the Display options screen.
-     * Pick button launches SAF; clear button removes the picked file and pref.
-     * Weight slider stores its value on touch release (not while dragging) so
-     * the activity recreate triggered by the pref change does not fire mid-drag.
+     * Build the custom-font picker rows programmatically from {@link CustomFont#ENTRIES}.
+     * For each role: section header (when section id changes from the previous entry),
+     * role label, [Pick button | Name TextView | Reset button], weight label + SeekBar,
+     * italic description. The Default role's weight slider exists for symmetry but does
+     * not directly drive any view in the current build.
      */
-    private void wireCustomFontControls() {
+    private void populateCustomFontPicker() {
         final Context context = getContext();
-        if (context == null)
+        if (context == null || containerCustomFont == null)
             return;
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-        // Initialise the name label from prefs
-        String currentName = prefs.getString(CustomFont.PREF_NAME, null);
-        tvCustomFontName.setText(TextUtils.isEmpty(currentName)
-                ? getString(R.string.title_custom_font_default)
-                : currentName);
+        final float density = context.getResources().getDisplayMetrics().density;
+        final int dp4 = Math.round(4 * density);
+        final int dp8 = Math.round(8 * density);
+        final int dp12 = Math.round(12 * density);
+        final int dp16 = Math.round(16 * density);
+        final int dp24 = Math.round(24 * density);
 
-        btnCustomFontPick.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    fontPicker.launch(new String[]{"*/*"});
-                } catch (Throwable ex) {
-                    Log.unexpectedError(getParentFragmentManager(), ex);
+        String previousSection = null;
+        for (final CustomFont.Entry entry : CustomFont.ENTRIES) {
+            // Section header when the section id changes from the previous entry
+            if (!entry.section.equals(previousSection)) {
+                previousSection = entry.section;
+                TextView header = new TextView(context);
+                header.setText(entry.sectionLabelRes);
+                header.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16);
+                header.setTypeface(header.getTypeface(), android.graphics.Typeface.BOLD);
+                LinearLayout.LayoutParams headerLp = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                headerLp.topMargin = dp24;
+                headerLp.bottomMargin = dp4;
+                header.setLayoutParams(headerLp);
+                containerCustomFont.addView(header);
+            }
+
+            // Role label
+            TextView label = new TextView(context);
+            label.setText(entry.labelRes);
+            label.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14);
+            LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            labelLp.topMargin = dp12;
+            label.setLayoutParams(labelLp);
+            containerCustomFont.addView(label);
+
+            // Pick button + Name TextView + Reset button row
+            android.widget.LinearLayout pickRow = new android.widget.LinearLayout(context);
+            pickRow.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            pickRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            LinearLayout.LayoutParams pickRowLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            pickRowLp.topMargin = dp4;
+            pickRow.setLayoutParams(pickRowLp);
+            containerCustomFont.addView(pickRow);
+
+            android.widget.Button pickBtn = new android.widget.Button(context);
+            pickBtn.setText(R.string.title_custom_font_pick);
+            pickRow.addView(pickBtn);
+
+            String currentName = prefs.getString(CustomFont.prefName(entry.role), null);
+            TextView nameTv = new TextView(context);
+            nameTv.setText(TextUtils.isEmpty(currentName)
+                    ? getString(R.string.title_custom_font_none)
+                    : currentName);
+            nameTv.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+            nameTv.setSingleLine(true);
+            LinearLayout.LayoutParams nameLp = new LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            nameLp.leftMargin = dp12;
+            nameLp.rightMargin = dp8;
+            nameTv.setLayoutParams(nameLp);
+            pickRow.addView(nameTv);
+
+            android.widget.Button resetBtn = new android.widget.Button(
+                    new android.view.ContextThemeWrapper(context,
+                            androidx.appcompat.R.style.Widget_AppCompat_Button_Borderless),
+                    null, 0);
+            resetBtn.setText(R.string.title_reset);
+            pickRow.addView(resetBtn);
+
+            // Weight label
+            final TextView weightLabel = new TextView(context);
+            weightLabel.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14);
+            LinearLayout.LayoutParams weightLabelLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            weightLabelLp.topMargin = dp8;
+            weightLabel.setLayoutParams(weightLabelLp);
+            containerCustomFont.addView(weightLabel);
+
+            // Weight slider
+            android.widget.SeekBar weightSlider = new android.widget.SeekBar(context);
+            weightSlider.setMax(9);
+            int currentWeight = prefs.getInt(CustomFont.prefWeight(entry.role), 0);
+            int sliderPos = (currentWeight <= 0
+                    ? 0
+                    : Math.min(9, Math.max(1, currentWeight / 100)));
+            weightSlider.setProgress(sliderPos);
+            weightLabel.setText(weightLabelText(context, sliderPos));
+            LinearLayout.LayoutParams sliderLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            weightSlider.setLayoutParams(sliderLp);
+            containerCustomFont.addView(weightSlider);
+
+            // Description
+            if (entry.descriptionRes != 0) {
+                TextView desc = new TextView(context);
+                desc.setText(entry.descriptionRes);
+                desc.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12);
+                desc.setTypeface(desc.getTypeface(), android.graphics.Typeface.ITALIC);
+                LinearLayout.LayoutParams descLp = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                descLp.topMargin = dp4;
+                descLp.rightMargin = dp16;
+                desc.setLayoutParams(descLp);
+                containerCustomFont.addView(desc);
+            }
+
+            // Listeners
+            pickBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        pendingFontRole = entry.role;
+                        fontPicker.launch(new String[]{"*/*"});
+                    } catch (Throwable ex) {
+                        Log.unexpectedError(getParentFragmentManager(), ex);
+                    }
                 }
-            }
-        });
+            });
 
-        btnCustomFontClear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                CustomFont.clearStoredFile(context);
-                prefs.edit()
-                        .remove(CustomFont.PREF_PATH)
-                        .remove(CustomFont.PREF_NAME)
-                        .apply();
-                // onSharedPreferenceChanged in ActivityBase will fire and recreate.
-            }
-        });
+            resetBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    CustomFont.clearStoredFile(context, entry.role);
+                    prefs.edit()
+                            .remove(CustomFont.prefPath(entry.role))
+                            .remove(CustomFont.prefName(entry.role))
+                            .apply();
+                }
+            });
 
-        // Initialise the slider position from prefs (0 = natural, 1..9 = 100..900)
-        int currentWeight = prefs.getInt(CustomFont.PREF_WEIGHT, 0);
-        int sliderPos = (currentWeight <= 0 ? 0 : Math.min(9, Math.max(1, currentWeight / 100)));
-        sbCustomFontWeight.setProgress(sliderPos);
-        updateFontWeightLabel(sliderPos);
+            weightSlider.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
+                    weightLabel.setText(weightLabelText(context, progress));
+                }
 
-        sbCustomFontWeight.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
-                updateFontWeightLabel(progress);
-            }
+                @Override
+                public void onStartTrackingTouch(android.widget.SeekBar seekBar) {
+                }
 
-            @Override
-            public void onStartTrackingTouch(android.widget.SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(android.widget.SeekBar seekBar) {
-                int weight = (seekBar.getProgress() == 0 ? 0 : seekBar.getProgress() * 100);
-                if (prefs.getInt(CustomFont.PREF_WEIGHT, 0) == weight)
-                    return; // no-op, avoid triggering recreate on touch release after a no-change drag
-                prefs.edit().putInt(CustomFont.PREF_WEIGHT, weight).apply();
-                // onSharedPreferenceChanged in ActivityBase will fire and recreate.
-            }
-        });
+                @Override
+                public void onStopTrackingTouch(android.widget.SeekBar seekBar) {
+                    int weight = (seekBar.getProgress() == 0 ? 0 : seekBar.getProgress() * 100);
+                    if (prefs.getInt(CustomFont.prefWeight(entry.role), 0) == weight)
+                        return; // no-op after drag-back-to-same
+                    prefs.edit().putInt(CustomFont.prefWeight(entry.role), weight).apply();
+                }
+            });
+        }
     }
 
-    private void updateFontWeightLabel(int sliderPos) {
-        if (tvCustomFontWeightLabel == null)
-            return;
+    private CharSequence weightLabelText(Context context, int sliderPos) {
         if (sliderPos == 0)
-            tvCustomFontWeightLabel.setText(R.string.title_custom_font_weight_natural);
-        else
-            tvCustomFontWeightLabel.setText(
-                    getString(R.string.title_custom_font_weight_label, sliderPos * 100));
+            return context.getString(R.string.title_custom_font_weight_natural);
+        return context.getString(R.string.title_custom_font_weight_label, sliderPos * 100);
     }
 
     /**
-     * Called by the {@link #fontPicker} ActivityResultLauncher when the user
-     * picks a font file. Copies the bytes into internal storage and saves the
-     * resulting path plus display name to prefs; ActivityBase's pref listener
-     * then triggers a recreate so the new typeface takes effect immediately.
+     * Called by the {@link #fontPicker} ActivityResultLauncher when the user picks
+     * a font file for {@code role}. Copies the bytes into internal storage and saves
+     * the resulting path plus display name to that role's prefs; ActivityBase's pref
+     * listener then triggers a recreate so the new typeface takes effect immediately.
      *
-     * The pref save is deferred via Handler.post because this callback fires
-     * inside super.onResume() before ActivityBase sets visible=true, and the
-     * listener only relaunches when visible is true. Without the defer, the
-     * activity finishes itself without relaunching and the app appears to die
-     * silently (preferences are still saved, but the user sees the app vanish).
+     * The pref save is deferred via Handler.post because this callback fires inside
+     * super.onResume before ActivityBase sets visible=true, and the listener only
+     * relaunches when visible is true. Without the defer, the activity finishes
+     * itself without relaunching and the app appears to vanish silently.
      */
-    private void onFontPicked(@Nullable android.net.Uri uri) {
-        if (uri == null)
-            return; // user cancelled
+    private void onFontPicked(@Nullable android.net.Uri uri, @Nullable final String role) {
+        if (uri == null || role == null)
+            return; // user cancelled or no pending role
         final Context context = getContext();
         if (context == null)
             return;
@@ -2140,27 +2234,23 @@ public class FragmentOptionsDisplay extends FragmentBase implements SharedPrefer
             if (TextUtils.isEmpty(name))
                 name = "font.ttf";
             final String fname = name;
-            final String fpath = CustomFont.copyToInternal(context, uri);
-            // Sanity check: try to load it as a typeface; if it throws, do not save.
+            final String fpath = CustomFont.copyToInternal(context, uri, role);
             android.graphics.Typeface probe = android.graphics.Typeface.createFromFile(new java.io.File(fpath));
             if (probe == null)
                 throw new java.io.IOException("Typeface.createFromFile returned null");
-            // Defer the pref save until the next main-thread cycle. See javadoc above
-            // for why. Use the application context so the post survives fragment detach.
             final Context appContext = context.getApplicationContext();
             new android.os.Handler(android.os.Looper.getMainLooper()).post(new Runnable() {
                 @Override
                 public void run() {
                     PreferenceManager.getDefaultSharedPreferences(appContext).edit()
-                            .putString(CustomFont.PREF_PATH, fpath)
-                            .putString(CustomFont.PREF_NAME, fname)
+                            .putString(CustomFont.prefPath(role), fpath)
+                            .putString(CustomFont.prefName(role), fname)
                             .apply();
-                    // onSharedPreferenceChanged in ActivityBase will fire and recreate.
                 }
             });
         } catch (Throwable ex) {
             Log.w(ex);
-            CustomFont.clearStoredFile(context);
+            CustomFont.clearStoredFile(context, role);
             android.widget.Toast.makeText(context,
                     getString(R.string.title_custom_font_error, ex.getMessage() == null ? "?" : ex.getMessage()),
                     android.widget.Toast.LENGTH_LONG).show();

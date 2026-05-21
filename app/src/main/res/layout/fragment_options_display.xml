@@ -2553,6 +2553,7 @@
             app:layout_constraintTop_toBottomOf="@id/cardCustomColors">
 
             <LinearLayout
+                android:id="@+id/containerCustomFont"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -2574,59 +2575,9 @@
                     android:textAppearance="@style/TextAppearance.AppCompat.Small"
                     android:textStyle="italic" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/btnCustomFontPick"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/title_custom_font_pick" />
-
-                    <TextView
-                        android:id="@+id/tvCustomFontName"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:ellipsize="middle"
-                        android:singleLine="true"
-                        android:text="@string/title_custom_font_default"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
-
-                    <Button
-                        android:id="@+id/btnCustomFontClear"
-                        style="@style/Widget.AppCompat.Button.Borderless"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/title_reset" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvCustomFontWeightLabel"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/title_custom_font_weight_natural"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
-
-                <SeekBar
-                    android:id="@+id/sbCustomFontWeight"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="9" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="48dp"
-                    android:text="@string/title_custom_font_weight_desc"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                    android:textStyle="italic" />
+                <!-- Section headers and per-role controls (pick / name / reset / weight)
+                     are appended here programmatically by FragmentOptionsDisplay
+                     .populateCustomFontPicker based on CustomFont.ENTRIES. -->
             </LinearLayout>
         </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
