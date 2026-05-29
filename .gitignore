@@ -27,3 +27,12 @@ app/.cxx/
 build
 captures
 gradle
+
+# Claude Code — per-user settings (Claude Code creates these)
+.claude/settings.local.json
+.claude/*.local.json
+.claude/*.*~
+
+# Claude Code — transient session files (if Claude Code ever drops them in-tree)
+.claude/sessions/
+.claude/.cache/
