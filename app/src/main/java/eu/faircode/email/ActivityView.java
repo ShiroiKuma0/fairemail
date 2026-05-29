@@ -1851,8 +1851,17 @@ public class ActivityView extends ActivityBilling implements FragmentManager.OnB
                                     if (BuildConfig.DEBUG)
                                         return info;
                                     try {
+                                        // This fork appends a build suffix to the upstream
+                                        // version name (e.g. 1.2317+1); the upstream releases
+                                        // this checks against are plain (e.g. 1.2317), so compare
+                                        // on the upstream part only, otherwise parsing the local
+                                        // version fails and every check reports a false update.
+                                        String version = BuildConfig.VERSION_NAME;
+                                        int plus = version.indexOf('+');
+                                        if (plus > 0)
+                                            version = version.substring(0, plus);
                                         if (Double.parseDouble(info.tag_name) <=
-                                                Double.parseDouble(BuildConfig.VERSION_NAME))
+                                                Double.parseDouble(version))
                                             return null;
                                         else
                                             return info;
