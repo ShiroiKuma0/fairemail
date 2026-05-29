@@ -4,6 +4,11 @@ plugins {
 }
 
 def getVersionCode = { -> return 2326 }
+// Fork build number layered on top of the current upstream version. Reset to 1
+// on every upstream rebase, bump by 1 on every subsequent local build. It is
+// folded into versionCode as getVersionCode() * 10000 + fork (e.g. 2318 -> 1 ->
+// 23180001) and rendered in versionName as "<upstream>+<fork>" (e.g. 1.2318+1).
+def getForkBuild = { -> return 1 }
 def getRevision = { -> return "a" }
 def getReleaseName = { -> return "Elopteryx" }
 // https://en.wikipedia.org/wiki/List_of_dinosaur_genera
@@ -29,8 +34,8 @@ android {
         minSdkVersion 23
         targetSdkVersion 37
         //targetSdkPreview "VanillaIceCream"
-        versionCode getVersionCode()
-        versionName "1." + getVersionCode()
+        versionCode getVersionCode() * 10000 + getForkBuild()
+        versionName "1." + getVersionCode() + "+" + getForkBuild()
 
         manifestPlaceholders = [namespace: applicationId.replace('.debug', '')]
 
