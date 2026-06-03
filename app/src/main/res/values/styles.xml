@@ -773,6 +773,7 @@
 
         <item name="colorDrawerBackground">@color/customColorBackground</item>
         <item name="colorDrawerText">@color/customColorTextPrimary</item>
+        <item name="colorDrawerScrim">@android:color/transparent</item>
         <item name="colorCardBackground">@color/customColorBackground</item>
 
         <item name="colorFabForeground">@color/customColorFabForeground</item>

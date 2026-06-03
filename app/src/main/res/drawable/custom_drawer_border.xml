@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Custom theme navigation drawer border: transparent except a 2dp yellow strip
+    pinned to the right edge (the edge that meets the content). Used as the drawer
+    foreground in ActivityView so it draws over the opaque nav rows; a background
+    border would be hidden by the child lists. Requires API 23 for item gravity.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="2dp"
+        android:gravity="right|fill_vertical">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/customColorAccent" />
+        </shape>
+    </item>
+</layer-list>
