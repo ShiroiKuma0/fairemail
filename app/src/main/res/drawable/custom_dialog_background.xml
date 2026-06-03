@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Custom theme dialog panel: black fill with a yellow border and rounded
+    corners. Used as android:windowBackground in AlertDialogCustom so the
+    Custom theme replaces the default grey colorBackgroundFloating panel.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/customColorBackground" />
+    <stroke
+        android:width="2dp"
+        android:color="@color/customColorAccent" />
+    <corners android:radius="8dp" />
+</shape>
