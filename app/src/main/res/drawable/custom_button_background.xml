@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Custom theme push-button background: black fill with a yellow border and
+    rounded corners, replacing the default grey colorButtonNormal box. Pressed
+    fills with the dim yellow accent for feedback; disabled drops the border to
+    the dim yellow so it reads as inactive. The padding insets the label from
+    the border (the default AppCompat button background carried its own).
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/customColorBackground" />
+            <stroke android:width="2dp" android:color="@color/customColorHint" />
+            <corners android:radius="8dp" />
+            <padding android:left="16dp" android:top="8dp" android:right="16dp" android:bottom="8dp" />
+        </shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/customColorHint" />
+            <stroke android:width="2dp" android:color="@color/customColorAccent" />
+            <corners android:radius="8dp" />
+            <padding android:left="16dp" android:top="8dp" android:right="16dp" android:bottom="8dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/customColorBackground" />
+            <stroke android:width="2dp" android:color="@color/customColorAccent" />
+            <corners android:radius="8dp" />
+            <padding android:left="16dp" android:top="8dp" android:right="16dp" android:bottom="8dp" />
+        </shape>
+    </item>
+</selector>
