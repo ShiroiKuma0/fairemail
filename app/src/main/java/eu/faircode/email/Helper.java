@@ -2266,6 +2266,22 @@ public class Helper {
 
     static Snackbar setSnackbarOptions(Snackbar snackbar) {
         snackbar.setGestureInsetBottomIgnored(true);
+        Context context = snackbar.getContext();
+
+        if (CustomThemeColors.isCustomTheme(context)) {
+            // Custom theme: match the themed dialogs and popup menus - a black
+            // panel with a yellow border and yellow text. Replace the Material
+            // grey surface drawable and clear its tint so our border shows.
+            View view = snackbar.getView();
+            view.setBackground(ContextCompat.getDrawable(context, R.drawable.custom_dialog_background));
+            ViewCompat.setBackgroundTintList(view, null);
+            TextView tvText = view.findViewById(com.google.android.material.R.id.snackbar_text);
+            if (tvText != null)
+                tvText.setTextColor(resolveCustomColor(context, R.color.customColorTextPrimary));
+            snackbar.setActionTextColor(resolveCustomColor(context, R.color.customColorAccent));
+            return snackbar;
+        }
+
         int colorAccent = Helper.resolveColor(snackbar.getContext(), android.R.attr.colorAccent);
         double lum = ColorUtils.calculateLuminance(colorAccent);
         if (lum < MIN_SNACKBAR_LUMINANCE) {
@@ -2273,6 +2289,13 @@ public class Helper {
             snackbar.setActionTextColor(colorAccent);
         }
         return snackbar;
+    }
+
+    // Resolve a customizable colour, honouring the user override pref when set and
+    // falling back to the compiled default otherwise (same rule the colour picker uses).
+    private static int resolveCustomColor(Context context, int colorRes) {
+        Integer override = CustomThemeColors.getOverrideForColorRes(context, colorRes);
+        return override != null ? override : ContextCompat.getColor(context, colorRes);
     }
 
     static void setSnackbarLines(Snackbar snackbar, int lines) {
