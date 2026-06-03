@@ -727,6 +727,22 @@
         <item name="android:windowBackground">@drawable/custom_dialog_background</item>
     </style>
 
+    <!-- Custom theme push buttons (for example "Set swipe actions" and the other
+         plain Buttons throughout settings and dialogs): black fill with a yellow
+         border instead of the default grey colorButtonNormal box. The label keeps
+         the theme yellow text colour; only the background is replaced. -->
+    <style name="buttonStyleCustom" parent="buttonStyle">
+        <item name="android:background">@drawable/custom_button_background</item>
+    </style>
+
+    <style name="buttonStyleSmallCustom" parent="buttonStyleSmall">
+        <item name="android:background">@drawable/custom_button_background</item>
+    </style>
+
+    <style name="buttonStyleToggleCustom" parent="buttonStyleToggle">
+        <item name="android:background">@drawable/custom_button_background</item>
+    </style>
+
     <!-- Custom theme: pure black background with yellow text and gold unread accent -->
     <style name="AppThemeCustom" parent="AppThemeBaseDark">
         <item name="themeName">black</item>
@@ -783,5 +799,8 @@
         <item name="android:dialogTheme">@style/DialogCustom</item>
         <item name="popupMenuStyle">@style/popupMenuStyleCustom</item>
         <item name="android:popupMenuStyle">@style/popupMenuStyleCustom</item>
+        <item name="android:buttonStyle">@style/buttonStyleCustom</item>
+        <item name="android:buttonStyleSmall">@style/buttonStyleSmallCustom</item>
+        <item name="android:buttonStyleToggle">@style/buttonStyleToggleCustom</item>
     </style>
 </resources>
