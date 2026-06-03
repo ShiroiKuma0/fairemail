@@ -70,7 +70,7 @@ build_apk=app/build/outputs/apk/github/release/FairEmail-v1.2318a-github-release
 version=1.2318+1                                            # versionName: 1.<upstream>+<fork> (bump <fork> each local build)
 apk_name="shiroikuma-fairemail_${version}_arm64-v8a.apk"
 cp "$build_apk" ~/tmp/$apk_name
-adb shell rm -f '/sdcard/tmp/shiroikuma-fairemail_*.apk'    # wipe stale APKs on device
+# Never wipe old APKs on the device — leave prior /sdcard/tmp/shiroikuma-fairemail_*.apk in place.
 adb push "$build_apk" /sdcard/tmp/$apk_name
 ```
 
@@ -156,6 +156,6 @@ Display toggle `subject_lines_narrow` (off by default, in Display options next t
 
 1. **Verify a push actually moved HEAD before building the next feature.** A "Push" that did not complete left HEAD unmoved while the working tree held the changes; later steps got built on a base that never landed and a `git checkout --` then reverted half of it into a non-compiling frankenstein. After any push: `git fetch origin && git log --oneline -1` and confirm the hash/subject.
 2. **Verify every newly-referenced type is imported.** When editing Java, an added reference to `TextView` etc. without the matching `import` fails the build. Quick check: for each symbol the patch uses, `grep -c "import .*\.<Symbol>;" <file>`. Run a build before claiming success.
-3. **A build can silently ship the previous APK.** Incremental Gradle no-ops, `cp` copies the old artifact under a new filename. ALWAYS verify APK mtime is current AND run the `resources.arsc` integrity probe before deploying. Wipe `/sdcard/tmp/shiroikuma-fairemail_*.apk` before pushing so the user cannot tap a stale one.
+3. **A build can silently ship the previous APK.** Incremental Gradle no-ops, `cp` copies the old artifact under a new filename. ALWAYS verify APK mtime is current AND run the `resources.arsc` integrity probe before deploying. **Never delete old APKs on the device** (per 白い熊) — leave every prior `/sdcard/tmp/shiroikuma-fairemail_*.apk` in place; the version in the filename keeps builds apart, and the mtime + integrity check already guards against shipping a stale build.
 4. **SAF / ActivityResult callbacks fire inside `super.onResume()`** before `ActivityBase` sets `visible=true`. Saving a pref there triggers `onSharedPreferenceChanged` synchronously, which calls `finish()` and skips the relaunch because `visible` is still false — the app appears to vanish. Defer any pref save from such a callback with `Handler(Looper.getMainLooper()).post(...)` (see `FragmentOptionsDisplay.onFontPicked`). In-process dialogs (e.g. the colour picker) are NOT affected.
 5. **`./gradlew clean` whenever res/strings/new-files/SDK changed**, and `./gradlew --stop` after touching `gradle.properties`.

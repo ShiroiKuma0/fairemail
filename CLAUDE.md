@@ -11,7 +11,7 @@ This is the user's personal fork of M66B's FairEmail Android email client, custo
    - Confirm APK mtime is current after `assembleGithubRelease` — incremental Gradle can silently no-op.
    - Run the integrity probe: `unzip -p "$build_apk" resources.arsc | strings | grep -c "<new-string-or-id>"` returns `> 0`.
    - On any compile error, paste the `error:` or `エラー:` lines and fix at root, do not rerun blindly.
-4. **Deploy hygiene**: copy to `~/tmp/shiroikuma-fairemail_<versionName>_arm64-v8a.apk` (versionName = `1.<upstream>+<fork>`, e.g. `1.2318+1`) AND `adb push` to `/sdcard/tmp/`. Wipe old APKs on the device first (`adb shell rm -f '/sdcard/tmp/shiroikuma-fairemail_*.apk'`) so the user cannot tap a stale one.
+4. **Deploy hygiene**: copy to `~/tmp/shiroikuma-fairemail_<versionName>_arm64-v8a.apk` (versionName = `1.<upstream>+<fork>`, e.g. `1.2318+1`) AND `adb push` to `/sdcard/tmp/`. **Never delete old APKs on the device** — leave every prior `/sdcard/tmp/shiroikuma-fairemail_*.apk` in place; the version in the filename keeps them apart, and the build-side mtime + integrity probe already guard against shipping a stale build.
 5. **Verify the push actually landed before starting the next feature**: `git fetch origin && git log --oneline -1` and confirm the new hash/subject. Building on a base that did not land has caused real damage in this project (see lessons in the fork skill).
 6. **Compile-check before claiming success**: when editing Java, every newly-referenced type needs an `import` in the file. Verify with `grep "import .*\.<Symbol>;" <file>` if unsure. Trust the compiler over assumptions.
 
