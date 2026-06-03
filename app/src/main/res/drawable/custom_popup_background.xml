@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Custom theme popup menu background: black fill with a yellow border and
+    rounded corners. Used as android:popupBackground in popupMenuStyleCustom.
+    The top/bottom padding keeps the first and last menu items clear of the
+    yellow border; horizontal item padding comes from the menu item layout.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/customColorBackground" />
+    <stroke
+        android:width="2dp"
+        android:color="@color/customColorAccent" />
+    <corners android:radius="6dp" />
+    <padding
+        android:top="4dp"
+        android:bottom="4dp" />
+</shape>
