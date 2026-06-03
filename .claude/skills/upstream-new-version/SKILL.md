@@ -139,7 +139,7 @@ apk_name="shiroikuma-fairemail_${version}_arm64-v8a.apk"
 mkdir -p ~/tmp; rm -f ~/tmp/shiroikuma-fairemail_*.apk
 cp "$build_apk" ~/tmp/"$apk_name"
 adb devices                                      # need a connected device
-adb shell rm -f '/sdcard/tmp/shiroikuma-fairemail_*.apk'   # wipe stale so the user cannot tap an old one
+# Never wipe old APKs on the device — leave prior /sdcard/tmp/shiroikuma-fairemail_*.apk in place.
 adb shell mkdir -p /sdcard/tmp
 adb push "$build_apk" /sdcard/tmp/"$apk_name"
 ```
@@ -185,7 +185,8 @@ and verify on the Mate XT — custom theme, fonts, the folded two-line subject.
 
 - **Verify the push landed** before treating the rebase as done (Step 8.3).
 - **A build can silently ship the previous APK** — always check mtime + the
-  integrity probe (Step 5); wipe `/sdcard/tmp/shiroikuma-fairemail_*.apk` first.
+  integrity probe (Step 5). **Never delete old APKs on the device** (per 白い熊);
+  leave every prior `/sdcard/tmp/shiroikuma-fairemail_*.apk` in place.
 - **`clean` after res/strings/new-files/SDK changes; `--stop` after `gradle.properties`.**
 - **Every newly referenced Java type needs its import** if reconciliation adds
   references: `grep -c "import .*\.<Symbol>;" <file>`. Trust the compiler.
