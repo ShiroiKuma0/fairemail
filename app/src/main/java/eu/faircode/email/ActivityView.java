@@ -65,6 +65,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.constraintlayout.widget.Group;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
@@ -370,6 +371,15 @@ public class ActivityView extends ActivityBilling implements FragmentManager.OnB
         drawerLayout.addDrawerListener(drawerToggle);
 
         drawerContainer = findViewById(R.id.drawer_container);
+
+        if (CustomThemeColors.isCustomTheme(this)) {
+            // Custom theme: draw a yellow right border over the drawer as a foreground.
+            // The drawer's child lists paint opaque rows, so a background border would
+            // be covered. The content is kept un-dimmed via colorDrawerScrim=transparent
+            // in AppThemeCustom (the scrim colour is re-applied at runtime in setupDrawer).
+            drawerContainer.setForeground(ContextCompat.getDrawable(this, R.drawable.custom_drawer_border));
+        }
+
         ibExpanderNav = drawerContainer.findViewById(R.id.ibExpanderNav);
         ibPin = drawerContainer.findViewById(R.id.ibPin);
         ibHide = drawerContainer.findViewById(R.id.ibHide);
