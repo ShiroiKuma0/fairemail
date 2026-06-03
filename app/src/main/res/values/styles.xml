@@ -704,6 +704,29 @@
         <item name="colorControlNormal">@color/customColorTopBarIcons</item>
     </style>
 
+    <!-- Custom theme AlertDialog: inherit the activity yellow text and accent,
+         but paint the panel black with a yellow border instead of the default
+         grey colorBackgroundFloating surface. -->
+    <style name="AlertDialogCustom" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/custom_dialog_background</item>
+    </style>
+
+    <!-- Custom theme popup menu: black background with a yellow border, replacing
+         the default grey colorBackgroundFloating surface. Wired through the
+         popupMenuStyle attribute in AppThemeCustom. -->
+    <style name="popupMenuStyleCustom" parent="popupMenuStyle">
+        <item name="android:popupBackground">@drawable/custom_popup_background</item>
+    </style>
+
+    <!-- Custom theme plain dialogs (for example the Changelog / markdown viewer,
+         which build a bare android.app.Dialog rather than an AlertDialog): paint
+         the floating window black with a yellow border. Their content is inflated
+         against the activity theme, so the yellow text comes through already and
+         only the window background needs replacing. Wired through dialogTheme. -->
+    <style name="DialogCustom" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@drawable/custom_dialog_background</item>
+    </style>
+
     <!-- Custom theme: pure black background with yellow text and gold unread accent -->
     <style name="AppThemeCustom" parent="AppThemeBaseDark">
         <item name="themeName">black</item>
@@ -754,5 +777,11 @@
         <item name="colorThumb">@color/customColorThumb</item>
 
         <item name="android:windowBackground">@drawable/background_black</item>
+
+        <item name="alertDialogTheme">@style/AlertDialogCustom</item>
+        <item name="dialogTheme">@style/DialogCustom</item>
+        <item name="android:dialogTheme">@style/DialogCustom</item>
+        <item name="popupMenuStyle">@style/popupMenuStyleCustom</item>
+        <item name="android:popupMenuStyle">@style/popupMenuStyleCustom</item>
     </style>
 </resources>
