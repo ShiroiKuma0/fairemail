@@ -11,7 +11,7 @@ This is the user's personal fork of M66B's FairEmail Android email client, custo
    - Confirm APK mtime is current after `assembleGithubRelease` — incremental Gradle can silently no-op.
    - Run the integrity probe: `unzip -p "$build_apk" resources.arsc | strings | grep -c "<new-string-or-id>"` returns `> 0`.
    - On any compile error, paste the `error:` or `エラー:` lines and fix at root, do not rerun blindly.
-4. **Deploy hygiene**: copy to `~/tmp/shiroikuma-fairemail_<versionName>_arm64-v8a.apk` (versionName = `1.<upstream>+<fork>`, e.g. `1.2318+1`) AND `adb push` to `/sdcard/tmp/`. **Never delete old APKs on the device** — leave every prior `/sdcard/tmp/shiroikuma-fairemail_*.apk` in place; the version in the filename keeps them apart, and the build-side mtime + integrity probe already guard against shipping a stale build.
+4. **Deploy hygiene**: copy to `~/tmp/shiroikuma-fairemail_<versionName>_arm64-v8a.apk` (versionName = `1.<upstream>+<fork>`, e.g. `1.2326+1`) AND `adb push` to `/sdcard/tmp/`. **Never delete old APKs on the device** — leave every prior `/sdcard/tmp/shiroikuma-fairemail_*.apk` in place; the version in the filename keeps them apart, and the build-side mtime + integrity probe already guard against shipping a stale build.
 5. **Verify the push actually landed before starting the next feature**: `git fetch origin && git log --oneline -1` and confirm the new hash/subject. Building on a base that did not land has caused real damage in this project (see lessons in the fork skill).
 6. **Compile-check before claiming success**: when editing Java, every newly-referenced type needs an `import` in the file. Verify with `grep "import .*\.<Symbol>;" <file>` if unsure. Trust the compiler over assumptions.
 
@@ -27,7 +27,7 @@ export ANDROID_HOME=$HOME/android-sdk ANDROID_SDK_ROOT=$HOME/android-sdk   # not
 
 Output APK: `app/build/outputs/apk/github/release/FairEmail-v<tag>a-github-release.apk`.
 
-**Versioning**: before each build, set the fork build number in `app/build.gradle` (`getForkBuild`): bump it +1 on every local build, and reset it to **1** right after an upstream rebase. That yields versionName `1.<upstream>+<fork>` (e.g. `1.2318+1`) and versionCode `<upstream> * 10000 + <fork>` (e.g. `23180001`). Leave `getVersionCode()` returning the bare upstream code. See the fork skill for the full rationale.
+**Versioning**: before each build, set the fork build number in `app/build.gradle` (`getForkBuild`): bump it +1 on every local build, and reset it to **1** right after an upstream rebase. That yields versionName `1.<upstream>+<fork>` (e.g. `1.2326+1`) and versionCode `<upstream> * 10000 + <fork>` (e.g. `23260001`). Leave `getVersionCode()` returning the bare upstream code. See the fork skill for the full rationale.
 
 Keystore at `~/.android-keystores/fairemail-custom.jks` (alias `fairemail`). Password is **not** stored in this repo — keep it in `~/.gradle/gradle.properties` or an env var (`KEYSTORE_PASS`), never in a tracked file. If signing config is broken, ask the user rather than guessing.
 
