@@ -14,16 +14,16 @@ This is the personal fork of **M66B/FairEmail** (open-source Android email clien
 | Upstream | `M66B/FairEmail` (git remote `upstream`) |
 | Fork | `ShiroiKuma0/fairemail`, SSH `git@github.com:ShiroiKuma0/fairemail.git` (remote `origin`) |
 | Working branch | `custom` (rebased onto an upstream tag) |
-| Current base tag | `1.2318` |
+| Current base tag | `1.2324` |
 | `namespace` | `eu.faircode.email` (unchanged from upstream; Java package stays this) |
 | `applicationId` | `shiroikuma.fairemail` (debug variant adds `.debug`) |
 | Display name | `白い熊 FairEmail` (github flavor `app_name` in `app/src/github/res/values/strings.xml`) |
-| Versioning | `versionName` = `1.<upstream>+<fork>` (e.g. `1.2318+1`); `versionCode` = `<upstream> * 10000 + <fork>` (e.g. `23180001`). The `getForkBuild` literal in `app/build.gradle` is the fork build number — reset to **1** on every upstream rebase, **+1** on every subsequent local build. `getVersionCode()` keeps returning the bare upstream code (it feeds archivesName/changelog/signature paths; do not repurpose it). |
+| Versioning | `versionName` = `1.<upstream>+<fork>` (e.g. `1.2324+1`); `versionCode` = `<upstream> * 10000 + <fork>` (e.g. `23240001`). The `getForkBuild` literal in `app/build.gradle` is the fork build number — reset to **1** on every upstream rebase, **+1** on every subsequent local build. `getVersionCode()` keeps returning the bare upstream code (it feeds archivesName/changelog/signature paths; do not repurpose it). |
 | Keystore | `~/.android-keystores/fairemail-custom.jks`, alias `fairemail`. Password is NOT in this repo — keep it in `~/.gradle/gradle.properties` or an env var. |
 | Build flavor / type | `github` / `release` → task `:app:assembleGithubRelease` |
 | Built APK path | `app/build/outputs/apk/github/release/FairEmail-v<tag>a-github-release.apk` |
-| Deployed APK names | `shiroikuma-fairemail_<versionName>_arm64-v8a.apk` (e.g. `shiroikuma-fairemail_1.2318+1_arm64-v8a.apk`), copied to `~/tmp/` AND pushed to `/sdcard/tmp/`. No datetime — matches the user's other sideloaded apps (denwa, futokxkb, simplex): `shiroikuma-<app>_<upstream>+<fork>_arm64-v8a.apk`. |
-| Toolchain (tag 1.2318) | compileSdk=37, minSdk=23, targetSdk=37, NDK `27.3.13750724` (r27d), AGP/Gradle 9.x, Java toolchain 21 (upstream bumped 17→21 at 1.2317), kotlin-android plugin REMOVED. Host build JDK is OpenJDK 21 (`JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`). SDK lives at `$HOME/android-sdk`; export `ANDROID_HOME`/`ANDROID_SDK_ROOT` for builds (set in the user's `.bashrc` but NOT in non-interactive shells, and no `local.properties` is committed). |
+| Deployed APK names | `shiroikuma-fairemail_<versionName>_arm64-v8a.apk` (e.g. `shiroikuma-fairemail_1.2324+1_arm64-v8a.apk`), copied to `~/tmp/` AND pushed to `/sdcard/tmp/`. No datetime — matches the user's other sideloaded apps (denwa, futokxkb, simplex): `shiroikuma-<app>_<upstream>+<fork>_arm64-v8a.apk`. |
+| Toolchain (tag 1.2324) | compileSdk=37, minSdk=23, targetSdk=37, NDK `27.3.13750724` (r27d), AGP/Gradle 9.x, Java toolchain 21 (upstream bumped 17→21 at 1.2317), kotlin-android plugin REMOVED. Host build JDK is OpenJDK 21 (`JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`). SDK lives at `$HOME/android-sdk`; export `ANDROID_HOME`/`ANDROID_SDK_ROOT` for builds (set in the user's `.bashrc` but NOT in non-interactive shells, and no `local.properties` is committed). |
 | Device | Huawei Mate XT tri-fold. Folded-portrait ≈ 1008×2127 px (~366 dp wide); every other fold/orientation state is ≥ ~745 dp. |
 
 ## Commit stack on origin/custom
@@ -31,26 +31,37 @@ This is the personal fork of **M66B/FairEmail** (open-source Android email clien
 Newest first (short hashes). For the authoritative current list run `git log --oneline <upstream-tag>..origin/custom`.
 
 ```
-8f19f98  kxkb: document fork versioning and label, refresh skill for 1.2318
-baa39c7  Rename the sideloaded app label to 白い熊 FairEmail
-303a3b0  Version the fork as the upstream version plus a local build number
-5171439  kxkb: add Claude Code config (CLAUDE.md + .claude/skills/)
-cb76aeb  Folded message list: optional two-line subject with trailing date
-4990568  Custom fonts: expand to independent per-role selection across eight roles
-ded5873  Custom font picker: defer pref save so the activity recreates cleanly
-b1dca59  Add custom font and weight selection for message text
-0b7ed78  Custom theme colours: route tvBody link colour through the override
-b709667  Enable Gradle configuration cache
-d75baaa  Custom theme colours: expand to 28 roles across 7 sections
-f814c9e  Pin Pro activation salt to original package id
-51599fe  Custom theme colours: refactor picker UI to be data-driven
-5e6e073  Custom theme: hook XML-resolved colours via Activity-only Resources wrap
-8e91f8b  Custom theme: hook code-resolved colours to user prefs
-9e7558c  Custom theme: scaffold the customizable colour picker UI
-bded876  Custom theme: unread accent yellow, decouple sender colour, extend font sizes
-f191c1e  Custom theme polish: swap subject/sender highlight target, never bold sender, add sender_italic toggle
-0bb7fb1  Add Custom theme: yellow-on-black with gold unread accent
-2f72678  Customize github flavor for sideloaded shiroikuma.fairemail build
+7d84029916  Custom theme: black dropdown spinners with a yellow border
+f9187a6304  skills: auto-deliver builds via /after-build (drop the transfer prompt)
+956f992eea  Make compose field hints and separators legible and tunable
+eaa381162c  docs: no attribution trailer in commits
+1da9d8ebbf  Refresh fork skill and CLAUDE docs for the 1.2324 rebase
+be12d3fd27  Custom launcher icon: black-yellow line-traced envelope
+6b8c61da82  Skill: never delete old APKs on the device when deploying
+9ddacae346  Custom theme: yellow drawer border without dimming the content
+787d60c66f  Custom theme: black push buttons with a yellow border
+7dc1be0278  Custom theme: black snackbars with a yellow border and yellow text
+7f8173632a  Custom theme: black dialogs and popup menus with a yellow border
+19aa7ae53c  Add upstream-new-version skill to drive the upstream rebase and build
+089105151b  kxkb: document fork versioning and label, refresh skill for 1.2318
+75e0062342  Rename the sideloaded app label to 白い熊 FairEmail
+b1269039d7  Version the fork as the upstream version plus a local build number
+bbc521d9c6  kxkb: add agent config (CLAUDE.md + .claude/skills/)
+7947efa981  Folded message list: optional two-line subject with trailing date
+09e61b1f67  Custom fonts: expand to independent per-role selection across eight roles
+b36f0fc2d2  Custom font picker: defer pref save so the activity recreates cleanly
+47ac3a0aac  Add custom font and weight selection for message text
+0cd7dc9487  Custom theme colours: route tvBody link colour through the override
+10cbd0da1c  Custom theme colours: expand to 28 roles across 7 sections
+080cc0b5ab  Pin Pro activation salt to original package id
+a4c50607d1  Custom theme colours: refactor picker UI to be data-driven
+aa9987ff99  Custom theme: hook XML-resolved colours via Activity-only Resources wrap
+b9b073b5ea  Custom theme: hook code-resolved colours to user prefs
+610243a214  Custom theme: scaffold the customizable colour picker UI
+f5b08f19c4  Custom theme: unread accent yellow, decouple sender colour, extend font size range
+1cdb2a9705  Custom theme polish: swap subject/sender highlight target, never bold sender, add sender_italic toggle, accent yellow
+6f2fe3eb7b  Add Custom theme: yellow-on-black with gold unread accent
+9db3151bba  Customize github flavor for sideloaded shiroikuma.fairemail build
 ```
 
 ## Build + deploy pipeline
@@ -66,8 +77,8 @@ export ANDROID_HOME=$HOME/android-sdk ANDROID_SDK_ROOT=$HOME/android-sdk   # not
 Deploy to two targets, never auto-install:
 
 ```bash
-build_apk=app/build/outputs/apk/github/release/FairEmail-v1.2318a-github-release.apk   # archivesName uses the bare upstream code
-version=1.2318+1                                            # versionName: 1.<upstream>+<fork> (bump <fork> each local build)
+build_apk=app/build/outputs/apk/github/release/FairEmail-v1.2324a-github-release.apk   # archivesName uses the bare upstream code
+version=1.2324+1                                            # versionName: 1.<upstream>+<fork> (bump <fork> each local build)
 apk_name="shiroikuma-fairemail_${version}_arm64-v8a.apk"
 cp "$build_apk" ~/tmp/$apk_name
 # Never wipe old APKs on the device — leave prior /sdcard/tmp/shiroikuma-fairemail_*.apk in place.
@@ -94,12 +105,12 @@ Before telling the user the APK is ready:
 
 ## Upstream rebase procedure
 
-Periodically rebase `custom` onto a newer upstream tag (last done 1.2317 → 1.2318):
+Periodically rebase `custom` onto a newer upstream tag (last done 1.2322 → 1.2324):
 
 1. `git fetch upstream --tags`.
 2. Create a safety branch: `git branch custom-pre-<newtag>-rebase`.
-3. `git rebase <newtag>` and resolve conflicts. Recurring spots: `app/build.gradle` (**keep** `applicationId "shiroikuma.fairemail"` and the `getForkBuild` versioning lines; **take upstream** `getVersionCode`/SDK/NDK/Java/Gradle bumps), plus `fragment_options_display.xml` and `AdapterMessage.java` when upstream reshuffles the display options or message-row bind code (1.2317 dropped the `tvSenderEllipsizeRemark`/`tvSubjectEllipsizeRemark` hints and flattened the subject single-line block — re-anchor our `swSenderItalic` switch to `spSenderEllipsize`). The 1.2317 → 1.2318 rebase was clean: the only conflict was the `getVersionCode` 2317→2318 bump in `app/build.gradle`, with no display-options or message-row churn.
-4. **Reset the fork build number**: set `getForkBuild` in `app/build.gradle` back to `1` so the first build on the new tag is `1.<newtag>+1`; bump it +1 on every subsequent local build.
+3. `git rebase <newtag>` and resolve conflicts. Recurring spots: `app/build.gradle` (**keep** `applicationId "shiroikuma.fairemail"` and the `getForkBuild` versioning lines; **take upstream** `getVersionCode`/SDK/NDK/Java/Gradle bumps), plus `fragment_options_display.xml` and `AdapterMessage.java` when upstream reshuffles the display options or message-row bind code (1.2317 dropped the `tvSenderEllipsizeRemark`/`tvSubjectEllipsizeRemark` hints and flattened the subject single-line block — re-anchor our `swSenderItalic` switch to `spSenderEllipsize`). The 1.2322 → 1.2324 rebase (25 upstream commits, skipping the 1.2323 tag) had a single real conflict, the `getVersionCode` 2322→2324 bump in `app/build.gradle`. Upstream 1.2324 added `org.gradle.configuration-cache=true` to `gradle.properties` itself, the exact line our `Enable Gradle configuration cache` commit introduced, so that fork commit was auto-skipped as an already-applied cherry-pick. `ActivityView.java`, `ActivityBase.java`, `AdapterMessage.java`, `ApplicationEx.java`, and `Helper.java` were all in the overlap set but auto-merged cleanly (verify the fork hooks survived after such an auto-merge: the `CustomFont.apply` calls, the two-line-subject logic, the `swSenderItalic` anchor, the `migrateLegacyWeightIfNeeded` call, the colour-override reads, and the `ActivityView` update-check `+<fork>` suffix strip).
+4. **Reset the fork build number**: set `getForkBuild` in `app/build.gradle` back to `1` so the first build on the new tag is `1.<newtag>+1`; bump it +1 on every subsequent local build. If the rebase replayed prior `Bump the fork build number` commits, drop them (they recorded local builds on the old tag) so the reset is clean — the versioning commit already sets `getForkBuild` to `1`.
 5. Build + verify, then `git push --force-with-lease origin custom`.
 6. Delete the safety branch once confirmed.
 
@@ -137,10 +148,10 @@ Display toggle `subject_lines_narrow` (off by default, in Display options next t
 - **Known minor:** the split lands one frame after bind, so a fast scroll may show the pre-split layout for a frame. Move to `OnPreDrawListener` if it ever bothers the user.
 
 ### Fork versioning, APK naming, and app label (`app/build.gradle`, github `strings.xml`, `ActivityView`)
-- **Versioning:** `getForkBuild` in `app/build.gradle` carries the fork build number. `versionCode = getVersionCode() * 10000 + getForkBuild()`; `versionName = "1." + getVersionCode() + "+" + getForkBuild()`. So upstream `2318` build `1` → versionName `1.2318+1`, versionCode `23180001`. Reset `getForkBuild` to 1 on each upstream rebase, +1 each subsequent local build. The scheme stays monotonic because the upstream code only increases. `getVersionCode()` is deliberately left returning the bare upstream code so archivesName, the `CHANGELOG.md` rename, the fdroid signature dirs, and `build_uuid` keep their upstream-keyed values.
+- **Versioning:** `getForkBuild` in `app/build.gradle` carries the fork build number. `versionCode = getVersionCode() * 10000 + getForkBuild()`; `versionName = "1." + getVersionCode() + "+" + getForkBuild()`. So upstream `2324` build `1` → versionName `1.2324+1`, versionCode `23240001`. Reset `getForkBuild` to 1 on each upstream rebase, +1 each subsequent local build. The scheme stays monotonic because the upstream code only increases. `getVersionCode()` is deliberately left returning the bare upstream code so archivesName, the `CHANGELOG.md` rename, the fdroid signature dirs, and `build_uuid` keep their upstream-keyed values.
 - **APK name on deploy:** `shiroikuma-fairemail_<versionName>_arm64-v8a.apk`. The built artifact under `app/build/.../FairEmail-v1.<upstream>a-github-release.apk` is unchanged (archivesName uses the bare code), so only the copied/pushed filename carries the `+<fork>`.
 - **App label:** github flavor `app_name` = `白い熊 FairEmail` in `app/src/github/res/values/strings.xml` (was `FairEmail Custom`). Only the github flavor is renamed; `app/src/main` keeps `FairEmail`.
-- **Update-check robustness (`ActivityView`):** the github update checker compares `Double.parseDouble(info.tag_name)` against `Double.parseDouble(BuildConfig.VERSION_NAME)`. `1.2318+1` is not a parseable double, so the comparison now strips the `+<fork>` suffix before parsing; otherwise every check would log an exception and falsely report an update to M66B's upstream build.
+- **Update-check robustness (`ActivityView`):** the github update checker compares `Double.parseDouble(info.tag_name)` against `Double.parseDouble(BuildConfig.VERSION_NAME)`. `1.2324+1` is not a parseable double, so the comparison now strips the `+<fork>` suffix before parsing; otherwise every check would log an exception and falsely report an update to M66B's upstream build.
 
 ## Architecture / coverage-ceiling summary
 
@@ -159,3 +170,4 @@ Display toggle `subject_lines_narrow` (off by default, in Display options next t
 3. **A build can silently ship the previous APK.** Incremental Gradle no-ops, `cp` copies the old artifact under a new filename. ALWAYS verify APK mtime is current AND run the `resources.arsc` integrity probe before deploying. **Never delete old APKs on the device** (per 白い熊) — leave every prior `/sdcard/tmp/shiroikuma-fairemail_*.apk` in place; the version in the filename keeps builds apart, and the mtime + integrity check already guards against shipping a stale build.
 4. **SAF / ActivityResult callbacks fire inside `super.onResume()`** before `ActivityBase` sets `visible=true`. Saving a pref there triggers `onSharedPreferenceChanged` synchronously, which calls `finish()` and skips the relaunch because `visible` is still false — the app appears to vanish. Defer any pref save from such a callback with `Handler(Looper.getMainLooper()).post(...)` (see `FragmentOptionsDisplay.onFontPicked`). In-process dialogs (e.g. the colour picker) are NOT affected.
 5. **`./gradlew clean` whenever res/strings/new-files/SDK changed**, and `./gradlew --stop` after touching `gradle.properties`.
+6. **A rebase or branch-switch in this repo cannot delete the harness-mounted `.claude/` files.** The session bind-mounts `.claude/settings*.json` and the `.claude/skills` tree read-only (the skill files it is executing from). Several fork commits add files there, so `git rebase <newtag>` checks out the tag (which lacks `.claude/`), then cannot remove or re-create them — `git rebase --abort` / `git reset --hard` choke the same way, stranding a detached HEAD. **Validated fix: mark them skip-worktree before any rebase/reset** so git leaves the mounted copies alone: `git update-index --skip-worktree .claude/settings.json .claude/skills/fairemail-fork/SKILL.md .claude/skills/upstream-new-version/SKILL.md`. The rebase then sails straight to the real conflicts (just `app/build.gradle`). Run the git ops with the sandbox disabled (`dangerouslyDisableSandbox`). To unstick a main repo already stranded in a detached HEAD: `git rebase --quit` then `git checkout -f <branch>` (the mounted files already match, so the forced overwrite is a no-op). A worktree outside the mounts (`git worktree add -b rebase-<newtag> ~/tmp/fe-rebase-<newtag> custom`) also works but is heavier; skip-worktree is the lighter validated path. **Caveat:** to commit edits to those doc files (e.g. this skill refresh after a rebase), the skip-worktree bit must be OFF for them — `git reset --hard` and the rebase usually clear it; if not, `git update-index --no-skip-worktree <paths>` first.
