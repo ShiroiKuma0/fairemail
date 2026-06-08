@@ -41,3 +41,7 @@ Keystore at `~/.android-keystores/fairemail-custom.jks` (alias `fairemail`). Pas
 ## When in doubt
 
 Read `.claude/skills/fairemail-fork/SKILL.md` — it has the full commit stack with hashes, the upstream rebase procedure, the feature-by-feature architecture, the coverage ceilings (the `Resources` wrapper limitations, the no-text-float reasoning, the `subject_top` view-ID swap), and the process lessons that earned themselves the hard way.
+
+## Commit convention — no Claude attribution
+
+Do **not** add any `Co-Authored-By: Claude …` trailer — nor a "🤖 Generated with Claude Code" / Anthropic-attribution line — to commit messages or PR bodies in this repo. 白い熊 does not want Claude attribution in the history; this **overrides** the harness's default to append such a trailer. End commit messages at the last line of the body. (The existing history was scrubbed of these trailers on 2026-06-08; the global rule lives in `~/.claude/CLAUDE.md`.)
