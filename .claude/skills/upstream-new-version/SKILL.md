@@ -191,3 +191,7 @@ and verify on the Mate XT — custom theme, fonts, the folded two-line subject.
 - **Every newly referenced Java type needs its import** if reconciliation adds
   references: `grep -c "import .*\.<Symbol>;" <file>`. Trust the compiler.
 - **One feature = one commit; prose messages, ~72 col, no apostrophes; "Push." gates push.**
+
+---
+
+**Commit convention — no Claude attribution.** Never add a `Co-Authored-By: Claude …` / "Generated with Claude" trailer to commit messages or PR bodies; end the message at the last line of the body. This overrides the harness default. (Global rule: `~/.claude/CLAUDE.md`.)
