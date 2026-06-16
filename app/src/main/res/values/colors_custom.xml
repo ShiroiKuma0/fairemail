@@ -25,7 +25,7 @@
 
     <!-- iteration 3.2 set: text -->
     <color name="customColorTopBarText">#FFFF00</color>
-    <color name="customColorHint">#332E00</color>
+    <color name="customColorHint">#9A9000</color>
     <color name="customColorLink">#FFC107</color>
     <color name="customColorInfoForeground">#FFFF00</color>
 
@@ -38,7 +38,7 @@
     <!-- iteration 3.2 set: decorations and accents -->
     <color name="customColorAccent">#FFFF00</color>
     <color name="customColorToolbarBorder">#FFFF00</color>
-    <color name="customColorSeparator">#332E00</color>
+    <color name="customColorSeparator">#665C00</color>
 
     <!-- iteration 3.2 set: status indicators -->
     <color name="customColorWarning">#FF8000</color>
