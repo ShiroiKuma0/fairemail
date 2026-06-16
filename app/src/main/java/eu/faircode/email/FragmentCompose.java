@@ -1576,7 +1576,37 @@ public class FragmentCompose extends FragmentBase {
 
         tvNoInternetAttachments.setVisibility(View.GONE);
 
+        applyCustomThemeFieldColors();
+
         return view;
+    }
+
+    // The Custom theme's hint and separator colours are read at layout-inflation
+    // time (android:textColorHint, ?attr/colorSeparator) through TypedArray, which
+    // bypasses ColorOverrideResources (the per-Activity getColor wrap). So a user
+    // override for the Hint or Separator swatch never reaches the compose screen,
+    // and the dim XML defaults leave the field dividers and placeholders barely
+    // legible on the black background. Reapply both from the override-aware
+    // Helper.resolveColor values so the swatches take effect here and the fields
+    // stay readable. Gated on the Custom theme so stock themes are untouched.
+    private void applyCustomThemeFieldColors() {
+        Context context = getContext();
+        if (context == null || view == null || !CustomThemeColors.isCustomTheme(context))
+            return;
+
+        int separator = Helper.resolveColor(context, R.attr.colorSeparator);
+        for (int id : new int[]{R.id.vSeparator, R.id.vSeparatorAttachments,
+                R.id.vSeparatorBody, R.id.vSeparatorSignature}) {
+            View v = view.findViewById(id);
+            if (v != null)
+                v.setBackgroundColor(separator);
+        }
+
+        int hint = Helper.resolveColor(context, android.R.attr.textColorHint);
+        TextView[] fields = new TextView[]{etExtra, etTo, etCc, etBcc, etSubject, etBody};
+        for (TextView field : fields)
+            if (field != null)
+                field.setHintTextColor(hint);
     }
 
     private void selectIdentityForEmail(String email) {
