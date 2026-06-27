@@ -138,13 +138,12 @@ version="${new}+1"                               # bump the +N for each subseque
 apk_name="shiroikuma-fairemail_${version}_arm64-v8a.apk"
 mkdir -p ~/tmp; rm -f ~/tmp/shiroikuma-fairemail_*.apk
 cp "$build_apk" ~/tmp/"$apk_name"
-adb devices                                      # need a connected device
-# Never wipe old APKs on the device — leave prior /sdcard/tmp/shiroikuma-fairemail_*.apk in place.
-adb shell mkdir -p /sdcard/tmp
-adb push "$build_apk" /sdcard/tmp/"$apk_name"
 ```
-If `adb devices` is empty: leave the `~/tmp` copy in place, tell the user, and
-push to the device once it is connected.
+Then invoke the global `/after-build` skill: it runs `/adb-check` UNSANDBOXED,
+then `/adb-push` to `/sdcard/tmp/` if the phone is connected, else `/scp` to
+skhw, and announces the filename — never prompt "is the phone connected?".
+(Old `/sdcard/tmp/shiroikuma-fairemail_*.apk` are never wiped — prior builds
+stay in place.)
 
 ## Step 7 — Device verification, then the Push gate
 
