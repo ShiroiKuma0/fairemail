@@ -80,16 +80,15 @@ export ANDROID_HOME=$HOME/android-sdk ANDROID_SDK_ROOT=$HOME/android-sdk   # not
 ./gradlew :app:assembleGithubRelease
 ```
 
-Deploy to two targets, never auto-install:
+Copy to `~/tmp/`, then deliver via `/after-build` — never auto-install:
 
 ```bash
 build_apk=app/build/outputs/apk/github/release/FairEmail-v1.2326a-github-release.apk   # archivesName uses the bare upstream code
 version=1.2326+1                                            # versionName: 1.<upstream>+<fork> (bump <fork> each local build)
 apk_name="shiroikuma-fairemail_${version}_arm64-v8a.apk"
 cp "$build_apk" ~/tmp/$apk_name
-# Never wipe old APKs on the device — leave prior /sdcard/tmp/shiroikuma-fairemail_*.apk in place.
-adb push "$build_apk" /sdcard/tmp/$apk_name
 ```
+Then invoke the global `/after-build` skill: it runs `/adb-check` UNSANDBOXED, then `/adb-push` to `/sdcard/tmp/` if the phone is connected, else `/scp` to skhw, and announces the filename — never prompt "is the phone connected?", `/adb-check` answers it. (Old `/sdcard/tmp/shiroikuma-fairemail_*.apk` are never wiped — prior builds stay in place.)
 
 ### Build verification is MANDATORY
 
