@@ -727,6 +727,20 @@
         <item name="android:windowBackground">@drawable/custom_dialog_background</item>
     </style>
 
+    <!-- Custom theme dropdown spinners (every SpinnerEx, for example the rule
+         action selector): the expanded dropdown panel is a framework Spinner
+         popup whose surface comes from android:popupBackground on the spinner
+         style, NOT from popupMenuStyle, so the popup menu override above does not
+         reach it and it kept rendering on the default grey colorBackgroundFloating
+         surface. Reuse the black-with-yellow-border popup drawable so the dropdown
+         matches the popup menus. The item text is already theme yellow, so only
+         the panel background changes. Wired through android:spinnerStyle in
+         AppThemeCustom; SpinnerEx extends the framework Spinner, which resolves
+         its popup background from that attribute. -->
+    <style name="spinnerStyleCustom" parent="@android:style/Widget.Material.Spinner">
+        <item name="android:popupBackground">@drawable/custom_popup_background</item>
+    </style>
+
     <!-- Custom theme push buttons (for example "Set swipe actions" and the other
          plain Buttons throughout settings and dialogs): black fill with a yellow
          border instead of the default grey colorButtonNormal box. The label keeps
@@ -800,6 +814,7 @@
         <item name="android:dialogTheme">@style/DialogCustom</item>
         <item name="popupMenuStyle">@style/popupMenuStyleCustom</item>
         <item name="android:popupMenuStyle">@style/popupMenuStyleCustom</item>
+        <item name="android:spinnerStyle">@style/spinnerStyleCustom</item>
         <item name="android:buttonStyle">@style/buttonStyleCustom</item>
         <item name="android:buttonStyleSmall">@style/buttonStyleSmallCustom</item>
         <item name="android:buttonStyleToggle">@style/buttonStyleToggleCustom</item>
