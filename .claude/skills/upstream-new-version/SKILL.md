@@ -86,6 +86,14 @@ Recurring spots, from the fairemail-fork rebase procedure:
   `CustomFont.apply(...)` calls, the colour-override reads) to wherever upstream
   moved the neighbouring views. The fairemail-fork **Feature inventory** lists
   what each hook attaches to and why.
+- **`CHANGELOG.md`** (and its build-copied twin `app/src/main/assets/CHANGELOG.md`)
+  — upstream prepends a new `### 1.NNNN` block on every release, so this often
+  conflicts. Our fork section lives at the very top, above upstream's
+  `## Changelog`, ended by a `---` divider. Resolution is always the same:
+  **keep our fork section above the `---`, take upstream's new block below it.**
+  Then add a fresh `### <newtag>+1` fork block at the top of our section for this
+  rebase (see Step 8). The in-app copy is regenerated from the root by the build,
+  so fixing root and re-copying (a build does it) is enough.
 
 Invariants that MUST survive any reconciliation — never let a merge revert them:
 - `applicationId "shiroikuma.fairemail"`; the Java `namespace` stays `eu.faircode.email`.
@@ -154,11 +162,21 @@ and verify on the Mate XT — custom theme, fonts, the folded two-line subject.
 
 ## Step 8 — After "Push."
 
-1. Discard build-generated noise the assemble may have stamped (the Gradle
-   changelog task rewrites the release date to today — not a fork change):
-   ```bash
-   git checkout -- app/src/main/assets/CHANGELOG.md metadata/en-US/changelogs/${new_num}.txt
-   ```
+1. Add this rebase's fork changelog block + sync the in-app copy:
+   - Prepend a `### <new>+1 — on FairEmail <new>` block to the **fork section**
+     at the top of root `CHANGELOG.md` (above the `---` divider), summarising what
+     this rebase brought (usually just "rebased onto FairEmail `<new>`" plus any
+     fork changes built this round). The fork section is the single source for the
+     GitHub release notes.
+   - The build's `copyMarkdown` task copies root `CHANGELOG.md` verbatim into
+     `app/src/main/assets/CHANGELOG.md` (the in-app Changelog screen), so after the
+     Step 5 build that twin already matches root — **do not** `git checkout` it away;
+     commit both in sync.
+   - `metadata/en-US/changelogs/${new_num}.txt` IS pure build output (the Gradle
+     `copyChangelog` task strips markdown from root) — discard that one:
+     ```bash
+     git checkout -- metadata/en-US/changelogs/${new_num}.txt
+     ```
 2. Refresh the docs to the new tag and fold them into the top skill-doc commit
    (amend keeps the curated stack a constant size across rebases):
    - `fairemail-fork/SKILL.md`: `Current base tag` to `$new`; the version
