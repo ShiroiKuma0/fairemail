@@ -1,3 +1,46 @@
+# 白い熊 FairEmail — fork changes
+
+Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
+
+### 1.2325+1 — on FairEmail 1.2325
+
+* Rebased the fork onto upstream FairEmail 1.2325 (Migadu IMAP workaround, batch importing of S/MIME public keys, shared-filename sanitising, updated public suffix list)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, and the folded two-line subject all carry over unchanged
+
+### 1.2324+1 — on FairEmail 1.2324
+
+**Major features**
+
+* Custom "black" theme: yellow text on pure black with a gold unread accent
+* Customisable colour picker in Display settings: 28 colour roles across 7 sections (backgrounds, text, icons, message-list accents, decorations, status indicators, highlights)
+* Per-role custom fonts and weights across 8 roles, with a Default cascade and an unread weight boost
+* Folded two-line message subject with a trailing date for the narrow folded-portrait Mate XT
+
+**UI and theming**
+
+* Black dialogs and popup menus with a yellow border
+* Black dropdown spinners with a yellow border
+* Black snackbars with a yellow border and yellow text
+* Black push buttons with a yellow border
+* Yellow navigation-drawer border without dimming the content
+* Legible and tunable compose-field hints and separators
+* Yellow unread accent, decoupled sender colour, sender-italic toggle, extended font-size range
+* Custom black-and-yellow line-traced envelope launcher icon
+* App label shown as 白い熊 FairEmail
+
+**Packaging and identity**
+
+* applicationId renamed to shiroikuma.fairemail for side-by-side install with the official FairEmail
+* Fork versioning: versionName 1.&lt;upstream&gt;+&lt;fork&gt;, versionCode &lt;upstream&gt; times 10000 plus fork
+* Gradle configuration cache enabled
+
+**Fixes and behavior**
+
+* Pro activation salt pinned to the original eu.faircode.email package id so Pro still validates after the rename
+* Update check strips the +&lt;fork&gt; suffix so it never falsely reports an update to the upstream build
+
+---
+
 ## Changelog
 
 &#x1F30E; [Google Translate](https://translate.google.com/translate?sl=en&u=https%3A%2F%2Fgithub.com%2FM66B%2FFairEmail%2Fblob%2Fmaster%2FCHANGELOG.md)
