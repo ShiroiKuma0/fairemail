@@ -6,11 +6,11 @@
 
 **A black-and-yellow FairEmail, tuned for the Huawei Mate XT tri-fold.**
 
-A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions**: a fully customisable black/yellow theme with a 28-role colour picker, per-role custom fonts and weights, and a folded two-line message subject.
+A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions**: a fully customisable black/yellow theme with a 28-role colour picker, per-role custom fonts and weights, a folded two-line message subject, and every Pro feature unlocked.
 
 Installs **side-by-side** with the official FairEmail (app id `shiroikuma.fairemail`).
 
-**📥 Latest release: [`1.2325+1`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
+**📥 Latest release: [`1.2325+4`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
 
 </div>
 
@@ -40,9 +40,9 @@ The theme is carried all the way into the floating and chrome surfaces that usua
 
 ---
 
-## 🧩 Side-by-side, with Pro intact
+## 🧩 Side-by-side, with every Pro feature unlocked
 
-The app id is renamed to `shiroikuma.fairemail` so it coexists with the official build, and it shows as **白い熊 FairEmail** on the home screen. Pro activation still works: the activation salt is pinned to the original package id, so a Pro unlock validates despite the rename. The fork is versioned as `1.<upstream>+<fork>` (e.g. `1.2325+1`) and the update check is taught to ignore the `+<fork>` suffix so it never falsely flags an "update" back to stock.
+The app id is renamed to `shiroikuma.fairemail` so it coexists with the official build, and it shows as **白い熊 FairEmail** on the home screen. Every Pro feature is unlocked unconditionally — the paid activation gate is removed at the source rather than worked around — and the purchase pitch is stripped from the Pro-features screen, leaving only the activated status and an export-settings shortcut. The fork is versioned as `1.<upstream>+<fork>` (e.g. `1.2325+4`) and the update check is taught to ignore the `+<fork>` suffix so it never falsely flags an "update" back to stock.
 
 ---
 
