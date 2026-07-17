@@ -216,6 +216,22 @@ public class FragmentPro extends FragmentBase implements SharedPreferences.OnSha
         btnConsume.setVisibility(ActivityBilling.isTesting(getContext()) ? View.VISIBLE : View.GONE);
         ivConnected.setVisibility(View.GONE);
 
+        // Fork: all pro features are unlocked in this personal build, so the
+        // purchase pitch is hidden: the "Developing FairEmail..." intro
+        // paragraph, and everything from "Whichever features" through the end
+        // of the page (the buy button, price, family/restore hints, support
+        // and consume buttons). Only the activated status, the export button
+        // and the list-of-pro-features link stay visible.
+        for (int id : new int[]{
+                R.id.tvInfo, R.id.tvWhichever, R.id.btnPurchase, R.id.tvPrice,
+                R.id.tvGoogle, R.id.tvNoPlay, R.id.tvDownloaded, R.id.tvHint,
+                R.id.tvPriceHint, R.id.tvFamilyHint, R.id.tvRestoreHint,
+                R.id.btnSupport, R.id.btnConsume, R.id.ivConnected}) {
+            View hide = view.findViewById(id);
+            if (hide != null)
+                hide.setVisibility(View.GONE);
+        }
+
         return view;
     }
 
