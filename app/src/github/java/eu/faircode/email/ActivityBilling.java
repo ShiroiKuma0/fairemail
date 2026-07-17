@@ -256,12 +256,12 @@ public class ActivityBilling extends ActivityBase implements
     }
 
     static boolean isPro(Context context) {
-        if (BuildConfig.DEBUG && false)
-            return true;
-        if (context == null)
-            return false;
-        return PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean("pro", false);
+        // Fork: Pro features are unlocked unconditionally. FairEmail is GPLv3
+        // and this is a personal sideloaded build, so the paid activation gate
+        // is removed and every Pro feature is always enabled. The activation
+        // challenge/response code above is left in place but no longer gates
+        // anything.
+        return true;
     }
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
