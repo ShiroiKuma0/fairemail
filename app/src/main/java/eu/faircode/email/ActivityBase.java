@@ -928,6 +928,8 @@ abstract class ActivityBase extends AppCompatActivity implements SharedPreferenc
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
         Log.i("Preference " + key + "=" + prefs.getAll().get(key));
+        if (FragmentOptionsUi.eximportApplying)
+            return; // bulk settings import: suppress the per-key finish/relaunch storm
         if ("theme".equals(key) || "beige".equals(key) || CustomThemeColors.isCustomColorPref(key) || CustomFont.isPrefKey(key)) {
             finish();
             if (visible &&
