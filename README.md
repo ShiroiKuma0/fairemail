@@ -10,7 +10,7 @@ A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions*
 
 Installs **side-by-side** with the official FairEmail (app id `shiroikuma.fairemail`).
 
-**📥 Latest release: [`1.2325+4`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
+**📥 Latest release: [`1.2326+1`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
 
 </div>
 
@@ -42,7 +42,7 @@ The theme is carried all the way into the floating and chrome surfaces that usua
 
 ## 🧩 Side-by-side, with every Pro feature unlocked
 
-The app id is renamed to `shiroikuma.fairemail` so it coexists with the official build, and it shows as **白い熊 FairEmail** on the home screen. Every Pro feature is unlocked unconditionally — the paid activation gate is removed at the source rather than worked around — and the purchase pitch is stripped from the Pro-features screen, leaving only the activated status and an export-settings shortcut. The fork is versioned as `1.<upstream>+<fork>` (e.g. `1.2325+4`) and the update check is taught to ignore the `+<fork>` suffix so it never falsely flags an "update" back to stock.
+The app id is renamed to `shiroikuma.fairemail` so it coexists with the official build, and it shows as **白い熊 FairEmail** on the home screen. Every Pro feature is unlocked unconditionally — the paid activation gate is removed at the source rather than worked around — and the purchase pitch is stripped from the Pro-features screen, leaving only the activated status and an export-settings shortcut. The fork is versioned as `1.<upstream>+<fork>` (e.g. `1.2326+1`) and the update check is taught to ignore the `+<fork>` suffix so it never falsely flags an "update" back to stock.
 
 ---
 
