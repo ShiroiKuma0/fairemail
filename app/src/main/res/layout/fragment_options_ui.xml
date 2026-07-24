@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:scrollbarStyle="outsideOverlay"
+    tools:context=".ActivitySetup">
+
+    <!-- 白い熊 UI page: kxkb-styled sections (text-wide underlined headings,
+         1px hairline separators) are built programmatically by FragmentOptionsUi
+         into this holder. Full-bleed so the hairlines run edge to edge. -->
+    <LinearLayout
+        android:id="@+id/containerUi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="4dp"
+        android:paddingBottom="24dp" />
+</ScrollView>
