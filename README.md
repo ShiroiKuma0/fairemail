@@ -6,11 +6,11 @@
 
 **A black-and-yellow FairEmail, tuned for the Huawei Mate XT tri-fold.**
 
-A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions**: a fully customisable black/yellow theme with a 28-role colour picker, per-role custom fonts and weights, a folded two-line message subject, and every Pro feature unlocked.
+A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions**: a fully customisable black/yellow theme with a 28-role colour picker, per-role custom fonts and weights, a dedicated 白い熊 FairEmail UI page with one-tap export/import of everything, a folded two-line message subject, and every Pro feature unlocked.
 
 Installs **side-by-side** with the official FairEmail (app id `shiroikuma.fairemail`).
 
-**📥 Latest release: [`1.2326+1`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
+**📥 Latest release: [`1.2326+5`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
 
 </div>
 
@@ -18,13 +18,19 @@ Installs **side-by-side** with the official FairEmail (app id `shiroikuma.fairem
 
 ## 🎨 Custom black-and-yellow theme with a 28-role colour picker
 
-A new **Custom** theme — yellow text on a pure-black background with a gold unread accent — plus a data-driven colour picker in Display settings that exposes **28 colour roles across 7 sections** (Backgrounds, Text, Icons, Message-list accents, Decorations and accents, Status indicators, Highlights). Every surface that FairEmail can reach through its theme is yours to recolour, and the picker walks a single table so the palette stays consistent across the app.
+A new **Custom** theme — yellow text on a pure-black background with a gold unread accent — plus a data-driven colour picker on the 白い熊 FairEmail UI page that exposes **28 colour roles across 7 sections** (Backgrounds, Text, Icons, Message-list accents, Decorations and accents, Status indicators, Highlights). Every surface that FairEmail can reach through its theme is yours to recolour, and the picker walks a single table so the palette stays consistent across the app.
 
 ---
 
 ## 🔤 Per-role custom fonts and weights
 
 Pick a font file and a forced weight **independently for eight roles** — a Default that cascades to the rest, plus the message-list sender, subject and preview, the message-view subject, sender and body, and the app top-bar title. Weight is a real CSS 100–900 forced through `Typeface.create`, and unread rows get an automatic weight boost so they stay heavier than read mail. Empty roles fall back to the Default font, so one pick can restyle everything.
+
+---
+
+## 📦 One page for everything: 白い熊 FairEmail UI
+
+A dedicated, kxkb-styled settings page — reachable by **long-pressing either toolbar hamburger**, left or right — gathers the whole fork under text-wide underlined headings separated by hairline rules: the colour picker, the font picker, and a **Kōjiki-style export/import of every settable item**. Pick an export directory once and the page always greets you with your latest export; the panel exports and imports by category (accounts and identities, rules, contacts, templates, searches, notification channels, app settings, UI customization) as **stock-compatible JSON that even carries the font binaries**, behind round pill buttons — Cancel left, Import and Export right — and a success flow that closes the whole chain in one tap. It replaces the stock Backup tab outright.
 
 ---
 
