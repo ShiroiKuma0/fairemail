@@ -438,6 +438,7 @@
     <string name="title_advanced_section_send">Send</string>
     <string name="title_advanced_section_connection">Connection</string>
     <string name="title_advanced_section_display">Display</string>
+    <string name="title_advanced_section_ui" translatable="false">白い熊 FairEmail UI</string>
     <string name="title_advanced_section_behavior">Behavior</string>
     <string name="title_advanced_section_privacy">Privacy</string>
     <string name="title_advanced_section_encryption">Encryption</string>
@@ -760,6 +761,37 @@
     <string name="title_custom_font_weight_natural" translatable="false">Weight: natural (font default)</string>
     <string name="title_custom_font_weight_desc" translatable="false">0 = use the font\'s natural weight. 400 = normal, 700 = bold. Variable-weight fonts honour any value in 100–900; fixed-weight fonts will render at the closest available match. Bold from unread state adds +300 (capped at 900).</string>
     <string name="title_custom_font_error" translatable="false">Could not load font: %1$s</string>
+
+    <!-- 白い熊: UI page export/import (Kōjiki-style) -->
+    <string name="title_ui_eim_row" translatable="false">Export / import</string>
+    <string name="title_ui_eim_title" translatable="false">Export / Import — 白い熊 FairEmail</string>
+    <string name="title_ui_eim_desc" translatable="false">Save or load every settable item — accounts, rules, templates, app settings, UI customization — as selectable categories.</string>
+    <string name="title_ui_eim_dir" translatable="false">Export directory (tap to choose)</string>
+    <string name="title_ui_eim_dir_unset" translatable="false">Not set — tap to choose a directory</string>
+    <string name="title_ui_eim_warn_nodir" translatable="false">No directory set yet — pick one to enable one-tap export.</string>
+    <string name="title_ui_eim_warn_none" translatable="false">No export in this directory yet.</string>
+    <string name="title_ui_eim_last" translatable="false">Last export: %1$s</string>
+    <string name="title_ui_eim_select_all" translatable="false">Select all</string>
+    <string name="title_ui_eim_cat_accounts" translatable="false">Accounts and identities</string>
+    <string name="title_ui_eim_cat_rules" translatable="false">Filter rules</string>
+    <string name="title_ui_eim_cat_contacts" translatable="false">Local contacts</string>
+    <string name="title_ui_eim_cat_answers" translatable="false">Answer templates</string>
+    <string name="title_ui_eim_cat_searches" translatable="false">Saved searches</string>
+    <string name="title_ui_eim_cat_channels" translatable="false">Notification channels</string>
+    <string name="title_ui_eim_cat_settings" translatable="false">App settings</string>
+    <string name="title_ui_eim_cat_ui" translatable="false">UI customization (colours · fonts)</string>
+    <string name="title_ui_eim_export" translatable="false">Export</string>
+    <string name="title_ui_eim_import" translatable="false">Import</string>
+    <string name="title_ui_eim_none_selected" translatable="false">No categories selected.</string>
+    <string name="title_ui_eim_export_done_title" translatable="false">Export finished</string>
+    <string name="title_ui_eim_export_ok" translatable="false">Exported: %1$s</string>
+    <string name="title_ui_eim_export_fail" translatable="false">Export failed: %1$s</string>
+    <string name="title_ui_eim_import_done_title" translatable="false">Import finished</string>
+    <string name="title_ui_eim_import_done_body" translatable="false">Restored:\n\n%1$s\n\nRestart to apply everything.</string>
+    <string name="title_ui_eim_import_fail" translatable="false">Import failed: %1$s</string>
+    <string name="title_ui_eim_invalid" translatable="false">Not an unencrypted FairEmail export — for encrypted backups use the Backup tab.</string>
+    <string name="title_ui_eim_restart_now" translatable="false">Restart now</string>
+    <string name="title_ui_eim_restart_later" translatable="false">Later</string>
 
     <!-- Section headers -->
     <string name="title_custom_font_section_default" translatable="false">Default</string>
