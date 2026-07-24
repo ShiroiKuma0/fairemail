@@ -1177,6 +1177,51 @@ public class ActivityView extends ActivityBilling implements FragmentManager.OnB
 
         setupDrawer();
         drawerToggle.syncState();
+
+        // 白い熊: long-pressing either toolbar hamburger opens the UI settings
+        // page directly — the drawer toggle at the left (the only ImageButton
+        // that is a direct child of the toolbar) and the overflow (three-dot)
+        // button at the right (the only plain ImageView child of the
+        // ActionMenuView; action items are ActionMenuItemViews, which extend
+        // TextView). The overflow button is recreated every time the options
+        // menu is invalidated (each fragment change), so reattach on every
+        // toolbar layout pass.
+        final View.OnLongClickListener openUiSettings = new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                startActivity(new Intent(ActivityView.this, ActivitySetup.class)
+                        .putExtra("tab", "ui"));
+                return true;
+            }
+        };
+        final androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar != null)
+            toolbar.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                @Override
+                public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                                           int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                    try {
+                        for (int i = 0; i < toolbar.getChildCount(); i++) {
+                            View child = toolbar.getChildAt(i);
+                            if (child instanceof ImageButton) {
+                                if (!child.hasOnLongClickListeners())
+                                    child.setOnLongClickListener(openUiSettings);
+                            } else if (child instanceof androidx.appcompat.widget.ActionMenuView) {
+                                androidx.appcompat.widget.ActionMenuView amv =
+                                        (androidx.appcompat.widget.ActionMenuView) child;
+                                for (int j = 0; j < amv.getChildCount(); j++) {
+                                    View item = amv.getChildAt(j);
+                                    if (item instanceof android.widget.ImageView &&
+                                            !item.hasOnLongClickListeners())
+                                        item.setOnLongClickListener(openUiSettings);
+                                }
+                            }
+                        }
+                    } catch (Throwable ex) {
+                        Log.e(ex);
+                    }
+                }
+            });
     }
 
     @Override
