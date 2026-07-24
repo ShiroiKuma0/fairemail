@@ -2,6 +2,17 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2326+1 — on FairEmail 1.2326
+
+* Rebased the fork onto upstream FairEmail 1.2326 (updated S/MIME root certificates, refreshed public suffix list, inline local network permission requests with a warning, crash and NPE fixes, markdown improvements, AndroidX updates)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, and the unconditional Pro unlock all carry over unchanged
+
+### 1.2325+4 — on FairEmail 1.2325
+
+* Unlocked every Pro feature unconditionally: isPro now always returns true, so all convenience and advanced features are enabled without an activation code (FairEmail is GPLv3 and this is a personal build)
+* Removed the Pro activation salt pin, which is no longer needed now that Pro is unlocked directly rather than through a validated activation response
+* Hid the purchase section on the Pro features screen: the supporting-development intro, the buy button and price, the family and restore hints, and the support and consume buttons are gone, leaving the activated status, the export settings button, and the list of Pro features
+
 ### 1.2325+1 — on FairEmail 1.2325
 
 * Rebased the fork onto upstream FairEmail 1.2325 (Migadu IMAP workaround, batch importing of S/MIME public keys, shared-filename sanitising, updated public suffix list)
