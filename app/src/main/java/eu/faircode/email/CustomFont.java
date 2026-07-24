@@ -271,6 +271,15 @@ class CustomFont {
         return dest.getAbsolutePath();
     }
 
+    /**
+     * The internal-storage slot for {@code role}'s picked font file. Used by the
+     * UI page export/import to carry the font binaries across devices; the file
+     * may or may not exist.
+     */
+    static File storedFile(Context context, String role) {
+        return new File(new File(context.getFilesDir(), INTERNAL_DIR), filename(role));
+    }
+
     /** Removes the picked font file for {@code role} and drops its cache entry. */
     static void clearStoredFile(Context context, String role) {
         File dest = new File(new File(context.getFilesDir(), INTERNAL_DIR), filename(role));
