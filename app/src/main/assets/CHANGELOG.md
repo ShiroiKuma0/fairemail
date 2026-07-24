@@ -2,6 +2,25 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2326+5 — on FairEmail 1.2326
+
+**Major features**
+
+* New 白い熊 FairEmail UI settings page (a dedicated tab after Display), styled after the futokxkb UI page: bold accent section headings underlined exactly as wide as their text, 1px hairline separators between sections, and a stepped indent ladder; the 28-role colour picker and the per-role font picker moved here from the bottom of the Display tab
+* Kōjiki-style export/import of every settable item as the first section of the UI page: a settable export directory (SAF tree, permission persisted, stored outside the exported preferences), queried on every page open for the newest export; per-category checkboxes — accounts and identities, filter rules, local contacts, answer templates, saved searches, notification channels, app settings, UI customization — with Select all; ArcaneChat-style round pill buttons, Cancel alone on the left, Import and Export on the right
+* Exports are stock-format JSON, interchangeable with upstream FairEmail backups, plus a ui_fonts extension carrying the custom font binaries base64-encoded so imported font paths never dangle; import merges — accounts are matched by UUID and never duplicated, and settings outside the selected categories stay untouched
+* Long-pressing either toolbar hamburger in the main view — the drawer toggle on the left or the three-dot overflow button on the right — opens the UI page directly
+* The Backup tab is removed; the UI page export/import covers everything it exported (exports are unencrypted JSON, so encrypted old backups can no longer be imported in-app)
+
+**UI and theming**
+
+* Export/import completion dialogs carry the yellow border; acknowledging a successful export, or "Later" after a successful import, closes the info dialog, the panel, and the settings page in one chain, "Restart now" restarts the app, and failures leave the panel open
+* The toolbar overflow (three-dot) menu is now black with a yellow border under the Custom theme — its surface resolves from actionOverflowMenuStyle, which the earlier popup-menu theming never reached
+
+**Fixes and behavior**
+
+* During a bulk settings import the per-key activity relaunch is suppressed, so importing dozens of theme, colour, and font keys no longer tears the settings screen down mid-flow
+
 ### 1.2326+1 — on FairEmail 1.2326
 
 * Rebased the fork onto upstream FairEmail 1.2326 (updated S/MIME root certificates, refreshed public suffix list, inline local network permission requests with a warning, crash and NPE fixes, markdown improvements, AndroidX updates)
