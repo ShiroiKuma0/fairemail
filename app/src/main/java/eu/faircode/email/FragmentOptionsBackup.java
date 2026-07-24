@@ -1321,7 +1321,7 @@ public class FragmentOptionsBackup extends FragmentBase implements SharedPrefere
         }.setHandler(tvLog.getHandler()).execute(this, args, "setup:import");
     }
 
-    private static boolean skipOption(String key) {
+    static boolean skipOption(String key) {
         if ("pro".equals(key) && !BuildConfig.DEBUG)
             return true;
         if ("iab_json".equals(key) || "iab_signature".equals(key))
