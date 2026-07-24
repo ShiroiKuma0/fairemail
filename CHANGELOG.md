@@ -2,6 +2,11 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2326+1 — on FairEmail 1.2326
+
+* Rebased the fork onto upstream FairEmail 1.2326 (updated S/MIME root certificates, refreshed public suffix list, inline local network permission requests with a warning, crash and NPE fixes, markdown improvements, AndroidX updates)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, and the unconditional Pro unlock all carry over unchanged
+
 ### 1.2325+4 — on FairEmail 1.2325
 
 * Unlocked every Pro feature unconditionally: isPro now always returns true, so all convenience and advanced features are enabled without an activation code (FairEmail is GPLv3 and this is a personal build)
