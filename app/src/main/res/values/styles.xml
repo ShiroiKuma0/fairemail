@@ -718,6 +718,14 @@
         <item name="android:popupBackground">@drawable/custom_popup_background</item>
     </style>
 
+    <!-- Custom theme toolbar overflow menu (the three-dot menu): its surface is
+         resolved from actionOverflowMenuStyle, NOT from popupMenuStyle, so the
+         popup menu override above never reached it and it kept the default grey
+         background. Reuse the black-with-yellow-border popup drawable. -->
+    <style name="actionOverflowMenuStyleCustom" parent="Widget.AppCompat.PopupMenu.Overflow">
+        <item name="android:popupBackground">@drawable/custom_popup_background</item>
+    </style>
+
     <!-- Custom theme plain dialogs (for example the Changelog / markdown viewer,
          which build a bare android.app.Dialog rather than an AlertDialog): paint
          the floating window black with a yellow border. Their content is inflated
@@ -814,6 +822,8 @@
         <item name="android:dialogTheme">@style/DialogCustom</item>
         <item name="popupMenuStyle">@style/popupMenuStyleCustom</item>
         <item name="android:popupMenuStyle">@style/popupMenuStyleCustom</item>
+        <item name="actionOverflowMenuStyle">@style/actionOverflowMenuStyleCustom</item>
+        <item name="android:actionOverflowMenuStyle">@style/actionOverflowMenuStyleCustom</item>
         <item name="android:spinnerStyle">@style/spinnerStyleCustom</item>
         <item name="android:buttonStyle">@style/buttonStyleCustom</item>
         <item name="android:buttonStyleSmall">@style/buttonStyleSmallCustom</item>
