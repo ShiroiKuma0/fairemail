@@ -81,13 +81,13 @@ public class FragmentOptions extends FragmentBase {
             R.layout.fragment_options_send,
             R.layout.fragment_options_connection,
             R.layout.fragment_options_display,
+            R.layout.fragment_options_ui,
             R.layout.fragment_options_behavior,
             R.layout.fragment_options_privacy,
             R.layout.fragment_options_encryption,
             R.layout.fragment_options_notifications,
             R.layout.fragment_options_integrations,
-            R.layout.fragment_options_misc,
-            R.layout.fragment_options_backup
+            R.layout.fragment_options_misc
     };
 
     static final int[] PAGE_TITLES = {
@@ -96,13 +96,13 @@ public class FragmentOptions extends FragmentBase {
             R.string.title_advanced_section_send,
             R.string.title_advanced_section_connection,
             R.string.title_advanced_section_display,
+            R.string.title_advanced_section_ui,
             R.string.title_advanced_section_behavior,
             R.string.title_advanced_section_privacy,
             R.string.title_advanced_section_encryption,
             R.string.title_advanced_section_notifications,
             R.string.title_advanced_caption_integrations,
-            R.string.title_advanced_section_misc,
-            R.string.title_advanced_section_backup
+            R.string.title_advanced_section_misc
     };
 
     static final int[] PAGE_ICONS = {
@@ -111,13 +111,13 @@ public class FragmentOptions extends FragmentBase {
             R.drawable.twotone_send_24,
             R.drawable.twotone_cloud_24,
             R.drawable.twotone_monitor_24,
+            R.drawable.twotone_palette_24,
             R.drawable.twotone_psychology_24,
             R.drawable.twotone_account_circle_24,
             R.drawable.twotone_lock_24,
             R.drawable.twotone_notifications_24,
             R.drawable.twotone_extension_24,
-            R.drawable.twotone_more_24,
-            R.drawable.twotone_save_alt_24
+            R.drawable.twotone_more_24
     };
 
     static final List<String> TAB_LABELS = Collections.unmodifiableList(Arrays.asList(
@@ -126,13 +126,13 @@ public class FragmentOptions extends FragmentBase {
             "send",
             "connection",
             "display",
+            "ui",
             "behavior",
             "privacy",
             "encryption",
             "notifications",
             "integrations",
-            "misc",
-            "backup"
+            "misc"
     ));
 
     static String[] OPTIONS_RESTART = new String[]{
@@ -552,19 +552,19 @@ public class FragmentOptions extends FragmentBase {
                 case 4:
                     return new FragmentOptionsDisplay();
                 case 5:
-                    return new FragmentOptionsBehavior();
+                    return new FragmentOptionsUi();
                 case 6:
-                    return new FragmentOptionsPrivacy();
+                    return new FragmentOptionsBehavior();
                 case 7:
-                    return new FragmentOptionsEncryption();
+                    return new FragmentOptionsPrivacy();
                 case 8:
-                    return new FragmentOptionsNotifications();
+                    return new FragmentOptionsEncryption();
                 case 9:
-                    return new FragmentOptionsIntegrations();
+                    return new FragmentOptionsNotifications();
                 case 10:
-                    return new FragmentOptionsMisc();
+                    return new FragmentOptionsIntegrations();
                 case 11:
-                    return new FragmentOptionsBackup();
+                    return new FragmentOptionsMisc();
                 default:
                     throw new IllegalArgumentException();
             }
