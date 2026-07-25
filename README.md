@@ -6,11 +6,11 @@
 
 **A black-and-yellow FairEmail, tuned for the Huawei Mate XT tri-fold.**
 
-A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions**: a fully customisable black/yellow theme with a 28-role colour picker, per-role custom fonts and weights, a dedicated 白い熊 FairEmail UI page with one-tap export/import of everything, a folded two-line message subject, and every Pro feature unlocked.
+A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions**: a fully customisable black/yellow theme with a 28-role colour picker, per-role custom fonts and weights, a dedicated 白い熊 FairEmail UI page with one-tap export/import of everything including the mail store, a headless token-gated automation export, a folded two-line message subject, and every Pro feature unlocked.
 
 Installs **side-by-side** with the official FairEmail (app id `shiroikuma.fairemail`).
 
-**📥 Latest release: [`1.2326+5`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
+**📥 Latest release: [`1.2326+7`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
 
 </div>
 
@@ -30,7 +30,15 @@ Pick a font file and a forced weight **independently for eight roles** — a Def
 
 ## 📦 One page for everything: 白い熊 FairEmail UI
 
-A dedicated, kxkb-styled settings page — reachable by **long-pressing either toolbar hamburger**, left or right — gathers the whole fork under text-wide underlined headings separated by hairline rules: the colour picker, the font picker, and a **Kōjiki-style export/import of every settable item**. Pick an export directory once and the page always greets you with your latest export; the panel exports and imports by category (accounts and identities, rules, contacts, templates, searches, notification channels, app settings, UI customization) as **stock-compatible JSON that even carries the font binaries**, behind round pill buttons — Cancel left, Import and Export right — and a success flow that closes the whole chain in one tap. It replaces the stock Backup tab outright.
+A dedicated, kxkb-styled settings page — reachable by **long-pressing either toolbar hamburger**, left or right — gathers the whole fork under text-wide underlined headings separated by hairline rules: the colour picker, the font picker, and a **Kōjiki-style export/import of every settable item**. Pick an export directory once and the page always greets you with your latest export; the panel exports and imports by category (accounts and identities, rules, contacts, local emails, templates, searches, notification channels, app settings, UI customization) behind round pill buttons — Cancel left, Import and Export right — and a success flow that closes the whole chain in one tap. It replaces the stock Backup tab outright.
+
+A backup is **one ZIP**, `shiroikuma-fairemail_<timestamp>.zip`, and inside it the export is still **stock-format JSON that even carries the font binaries** — so an unzipped backup remains importable by the official FairEmail, and the importer takes the ZIP, an older bare-JSON export, or a stock upstream backup alike. Ticking **local emails** (off by default, since a mail store can run to gigabytes) folds the whole message store into that same single file: bodies, raw MIME where it was downloaded, and every attachment payload. Restores match by account UUID and folder name, so mail lands on accounts that already exist, and a message already present is skipped rather than duplicated.
+
+---
+
+## 🤖 Headless automation export
+
+The app answers a **token-gated intent contract** shared by 白い熊's sister apps, so one automation task can back the whole family up in a single run. An exported receiver takes `EXPORT_STATE` and `LIST_CATEGORIES`, runs the export with no Activity and no interaction, streams **progress with real counts** (`メール 1234/8942`, never a percentage), and replies with the path it wrote, the true byte length, a human-readable size and the category count. Nothing is reachable until you turn the **Automation export** switch on — it ships off — and every request must carry the 24-byte token, which lives outside the exported preferences so it can never travel inside a backup.
 
 ---
 
