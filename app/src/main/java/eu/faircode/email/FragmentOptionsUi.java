@@ -754,12 +754,14 @@ public class FragmentOptionsUi extends FragmentBase {
         divider.setLayoutParams(dvlp);
         root.addView(divider);
 
-        // Select all + one checkbox per category, everything ticked by default
+        // Select all + one checkbox per category, ticked except the opt-in heavy ones
         eximChecks.clear();
         CheckBox selectAll = new CheckBox(context);
         selectAll.setText(R.string.title_ui_eim_select_all);
         selectAll.setTypeface(Typeface.DEFAULT_BOLD);
-        selectAll.setChecked(true);
+        // Unticked to start with: the local mail store is opt-in, so not everything is
+        // selected. Tapping it is still the plain tick-everything / untick-everything toggle.
+        selectAll.setChecked(false);
         LinearLayout.LayoutParams salp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         salp.topMargin = dp(8);
@@ -769,7 +771,7 @@ public class FragmentOptionsUi extends FragmentBase {
         for (int i = 0; i < StateExport.CAT_IDS.length; i++) {
             CheckBox cb = new CheckBox(context);
             cb.setText(StateExport.CAT_LABELS[i]);
-            cb.setChecked(true);
+            cb.setChecked(!StateExport.isDefaultOff(StateExport.CAT_IDS[i]));
             root.addView(cb);
             eximChecks.put(StateExport.CAT_IDS[i], cb);
         }

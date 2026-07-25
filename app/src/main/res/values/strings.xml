@@ -775,6 +775,7 @@
     <string name="title_ui_eim_cat_accounts" translatable="false">Accounts and identities</string>
     <string name="title_ui_eim_cat_rules" translatable="false">Filter rules</string>
     <string name="title_ui_eim_cat_contacts" translatable="false">Local contacts</string>
+    <string name="title_ui_eim_cat_messages" translatable="false">Local emails (bodies · attachments)</string>
     <string name="title_ui_eim_cat_answers" translatable="false">Answer templates</string>
     <string name="title_ui_eim_cat_searches" translatable="false">Saved searches</string>
     <string name="title_ui_eim_cat_channels" translatable="false">Notification channels</string>
