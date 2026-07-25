@@ -2,6 +2,47 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+1.2326+7 — on FairEmail 1.2326
+
+**Major features**
+
+* Backups are now **one ZIP per backup**, named by the sister-app family convention `shiroikuma-fairemail_<yyyy-MM-dd_HH-mm-ss>.zip` — the English repo basename, the timestamp, nothing else, so every 白い熊 app's backups sort and read uniformly in one directory
+* The archive holds `manifest.json` (format, version, app, appVersion, createdTs, categories) plus `fairemail-export.json`, which is still the stock unencrypted export, so an unzipped backup stays importable by upstream FairEmail; import sniffs the ZIP magic and accepts the archive, an older bare-JSON fork export, and a stock upstream backup alike
+* New **local emails** export category (unticked by default, since a mail store can run to gigabytes): the whole local message store — bodies, raw MIME where downloaded, and attachment payloads — rides in the same single ZIP as `messages/index.jsonl` plus `messages/<n>/body.html`, `raw.eml` and `att-<k>`
+* Messages restore by account UUID and folder name, so they land on existing accounts as well as freshly imported ones; row-id references are dropped rather than carried across as stale ids, full-text indexing is reset, and a message already in that folder with the same message id is skipped, so the import merges instead of duplicating
+* New **automation export** surface answering 自由作業盤's 保存復元 contract: the exported receiver takes `EXPORT_STATE` and `LIST_CATEGORIES` on `shiroikuma.fairemail.action`, runs the export headlessly with no Activity, and replies with the written path, the real byte count, a human size, and the category count
+* An **Automation export** switch (off by default) and an **Automation token** row sit inside the Export / Import section of the UI page, directly below the existing export rows; the token row shows the token abbreviated, copies it whole to the clipboard on tap, and carries a Regenerate action
+
+**UI and theming**
+
+* The export/import panel starts with everything ticked except local emails, and Select all starts unticked with it, so a routine settings backup never silently drags the mail store along
+
+**Fixes and behavior**
+
+* The automation switch and token live in their own preferences file, outside the store the exporter serialises, so the token can never travel inside a backup ZIP and toggling it never trips the settings-activity restart listener
+* The automation gate reports "automation disabled" and "bad token" as distinct errors, refuses a request naming an unknown category without writing a file, and fires exactly one reply per request, guarded so an async success and a synchronous error can never both arrive
+* Progress is broadcast with real counts, never a percentage — `メール 1234/8942` through the mail store, `区分 6/9 — App settings` through the categories — throttled to one every 500 ms with a forced final one
+* All files access is declared (github flavor only) so the headless export can write into the directory a sister-app task names; without it the export falls back to the configured export directory, and turning the automation switch on offers to open the system setting
+
+1.2326+5 — on FairEmail 1.2326
+
+**Major features**
+
+* New 白い熊 FairEmail UI settings page (a dedicated tab after Display), styled after the futokxkb UI page: bold accent section headings underlined exactly as wide as their text, 1px hairline separators between sections, and a stepped indent ladder; the 28-role colour picker and the per-role font picker moved here from the bottom of the Display tab
+* Kōjiki-style export/import of every settable item as the first section of the UI page: a settable export directory (SAF tree, permission persisted, stored outside the exported preferences), queried on every page open for the newest export; per-category checkboxes — accounts and identities, filter rules, local contacts, answer templates, saved searches, notification channels, app settings, UI customization — with Select all; ArcaneChat-style round pill buttons, Cancel alone on the left, Import and Export on the right
+* Exports are stock-format JSON, interchangeable with upstream FairEmail backups, plus a ui_fonts extension carrying the custom font binaries base64-encoded so imported font paths never dangle; import merges — accounts are matched by UUID and never duplicated, and settings outside the selected categories stay untouched
+* Long-pressing either toolbar hamburger in the main view — the drawer toggle on the left or the three-dot overflow button on the right — opens the UI page directly
+* The Backup tab is removed; the UI page export/import covers everything it exported (exports are unencrypted JSON, so encrypted old backups can no longer be imported in-app)
+
+**UI and theming**
+
+* Export/import completion dialogs carry the yellow border; acknowledging a successful export, or "Later" after a successful import, closes the info dialog, the panel, and the settings page in one chain, "Restart now" restarts the app, and failures leave the panel open
+* The toolbar overflow (three-dot) menu is now black with a yellow border under the Custom theme — its surface resolves from actionOverflowMenuStyle, which the earlier popup-menu theming never reached
+
+**Fixes and behavior**
+
+* During a bulk settings import the per-key activity relaunch is suppressed, so importing dozens of theme, colour, and font keys no longer tears the settings screen down mid-flow
+
 1.2326+1 — on FairEmail 1.2326
 
 * Rebased the fork onto upstream FairEmail 1.2326 (updated S/MIME root certificates, refreshed public suffix list, inline local network permission requests with a warning, crash and NPE fixes, markdown improvements, AndroidX updates)
