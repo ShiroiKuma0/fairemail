@@ -794,6 +794,16 @@
     <string name="title_ui_eim_restart_now" translatable="false">Restart now</string>
     <string name="title_ui_eim_restart_later" translatable="false">Later</string>
 
+    <!-- 白い熊: automation export (the sister-app state-export contract) -->
+    <string name="title_ui_automation_switch" translatable="false">Automation export</string>
+    <string name="title_ui_automation_switch_desc" translatable="false">Let sister-app tasks run this export headlessly through the token-gated intent, so 保存復元 can back this app up together with every other one. Off by default.</string>
+    <string name="title_ui_automation_token" translatable="false">Automation token</string>
+    <string name="title_ui_automation_copied" translatable="false">Automation token copied to the clipboard</string>
+    <string name="title_ui_automation_regenerate" translatable="false">Regenerate</string>
+    <string name="title_ui_automation_regenerate_warn" translatable="false">A new token is generated and copied to the clipboard. Every task that already holds the old one stops working until you paste the new one into it.</string>
+    <string name="title_ui_automation_allfiles_title" translatable="false">All files access</string>
+    <string name="title_ui_automation_allfiles_body" translatable="false">Without All files access the headless export can only write to the export directory above, and the directory a sister-app task asks for is ignored. Open the system setting now?</string>
+
     <!-- Section headers -->
     <string name="title_custom_font_section_default" translatable="false">Default</string>
     <string name="title_custom_font_section_list" translatable="false">Message list</string>
