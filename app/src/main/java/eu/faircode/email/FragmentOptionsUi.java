@@ -2,6 +2,8 @@ package eu.faircode.email;
 
 import static android.app.Activity.RESULT_OK;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,7 +17,9 @@ import android.graphics.drawable.RippleDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.DocumentsContract;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -33,6 +37,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.preference.PreferenceManager;
@@ -102,6 +107,7 @@ public class FragmentOptionsUi extends FragmentBase {
     static volatile boolean eximportApplying = false;
 
     private TextView tvEximStatus;
+    private TextView tvAutomationToken;
     private AlertDialog eximDialog;
     private TextView dlgDirValue;
     private TextView dlgStatus;
@@ -311,6 +317,10 @@ public class FragmentOptionsUi extends FragmentBase {
         });
         containerUi.addView(row);
 
+        // The automation controls belong to the Export/Import section itself — this is a
+        // backup feature, so it sits where backup lives, the same in every sister app.
+        addAutomationRows(containerUi);
+
         // --- Custom theme colours (hidden unless theme=custom) ---
         colorsSection = new LinearLayout(context);
         colorsSection.setOrientation(LinearLayout.VERTICAL);
@@ -326,6 +336,179 @@ public class FragmentOptionsUi extends FragmentBase {
         addSectionHeader(containerUi, R.string.title_custom_font_section, false);
         addRemark(containerUi, R.string.title_custom_font_remark);
         populateCustomFontPicker(containerUi);
+    }
+
+    /**
+     * The two automation rows, appended directly below the Export / import row: a master
+     * switch (default OFF) and the token row, which copies the full token on tap and
+     * carries Regenerate on the right. This is the shared 白い熊 automation surface —
+     * {@link StateExportReceiver} answers a sister-app task only once the switch is on and
+     * the token matches, so 自由作業盤's 保存復元 can back this app up in the same run as
+     * every other one.
+     */
+    private void addAutomationRows(LinearLayout parent) {
+        final Context context = parent.getContext();
+
+        final SwitchCompat swAutomation = new SwitchCompat(context);
+        swAutomation.setText(R.string.title_ui_automation_switch);
+        swAutomation.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        swAutomation.setTextColor(colorText);
+        swAutomation.setLayoutParams(rowParams(ViewGroup.LayoutParams.MATCH_PARENT, 12));
+        swAutomation.setChecked(AutomationAuth.enabled(context));
+        parent.addView(swAutomation);
+
+        TextView swDesc = new TextView(context);
+        swDesc.setText(R.string.title_ui_automation_switch_desc);
+        swDesc.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        swDesc.setTypeface(swDesc.getTypeface(), Typeface.ITALIC);
+        swDesc.setAlpha(0.85f);
+        swDesc.setLayoutParams(rowParams(ViewGroup.LayoutParams.MATCH_PARENT, 2));
+        parent.addView(swDesc);
+
+        swAutomation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                // The automation preferences live in their own file, so writing them here
+                // never trips the settings activity's default-prefs restart listener.
+                AutomationAuth.setEnabled(context, isChecked);
+                if (isChecked)
+                    checkAllFilesAccess();
+            }
+        });
+
+        // The token row: tap to copy, Regenerate on the right
+        LinearLayout tokenRow = new LinearLayout(context);
+        tokenRow.setOrientation(LinearLayout.HORIZONTAL);
+        tokenRow.setGravity(Gravity.CENTER_VERTICAL);
+        tokenRow.setLayoutParams(rowParams(ViewGroup.LayoutParams.MATCH_PARENT, 14));
+
+        LinearLayout tokenText = new LinearLayout(context);
+        tokenText.setOrientation(LinearLayout.VERTICAL);
+        tokenText.setLayoutParams(new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        tokenText.setPadding(0, dp(6), dp(8), dp(6));
+        TypedValue tv = new TypedValue();
+        context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, tv, true);
+        tokenText.setBackgroundResource(tv.resourceId);
+        tokenText.setClickable(true);
+
+        TextView tokenCaption = new TextView(context);
+        tokenCaption.setText(R.string.title_ui_automation_token);
+        tokenCaption.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        tokenCaption.setTextColor(colorText);
+        tokenText.addView(tokenCaption);
+
+        tvAutomationToken = new TextView(context);
+        tvAutomationToken.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        tvAutomationToken.setTypeface(Typeface.MONOSPACE);
+        tvAutomationToken.setTextColor(colorAccent);
+        tvAutomationToken.setText(AutomationAuth.abbreviate(AutomationAuth.token(context)));
+        tokenText.addView(tvAutomationToken);
+
+        tokenText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                copyAutomationToken();
+            }
+        });
+        tokenRow.addView(tokenText);
+
+        Button btnRegenerate = new Button(context, null, android.R.attr.borderlessButtonStyle);
+        btnRegenerate.setText(R.string.title_ui_automation_regenerate);
+        btnRegenerate.setAllCaps(false);
+        btnRegenerate.setTextColor(colorAccent);
+        btnRegenerate.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        GradientDrawable pill = new GradientDrawable();
+        pill.setColor(0xFF000000);
+        pill.setCornerRadius(50 * density);
+        pill.setStroke(dp(1.5f), colorAccent);
+        btnRegenerate.setBackground(new RippleDrawable(
+                ColorStateList.valueOf((colorAccent & 0x00FFFFFF) | 0x33000000), pill, null));
+        btnRegenerate.setPadding(dp(16), dp(4), dp(16), dp(4));
+        btnRegenerate.setMinWidth(0);
+        btnRegenerate.setMinimumWidth(0);
+        btnRegenerate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                confirmRegenerateToken();
+            }
+        });
+        tokenRow.addView(btnRegenerate);
+
+        parent.addView(tokenRow);
+    }
+
+    private void copyAutomationToken() {
+        Context context = getContext();
+        if (context == null)
+            return;
+        try {
+            ClipboardManager cbm = Helper.getSystemService(context, ClipboardManager.class);
+            cbm.setPrimaryClip(ClipData.newPlainText(
+                    context.getString(R.string.title_ui_automation_token),
+                    AutomationAuth.token(context)));
+            ToastEx.makeText(context, R.string.title_ui_automation_copied, Toast.LENGTH_LONG).show();
+        } catch (Throwable ex) {
+            Log.unexpectedError(getParentFragmentManager(), ex);
+        }
+    }
+
+    private void confirmRegenerateToken() {
+        final Context context = getContext();
+        if (context == null)
+            return;
+        AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle(R.string.title_ui_automation_regenerate)
+                .setMessage(R.string.title_ui_automation_regenerate_warn)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int which) {
+                        String token = AutomationAuth.regenerateToken(context);
+                        if (tvAutomationToken != null)
+                            tvAutomationToken.setText(AutomationAuth.abbreviate(token));
+                        copyAutomationToken();
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+        styleEximDialog(dialog);
+    }
+
+    /**
+     * Writing the backup to the directory the sister-app task names needs All files
+     * access; without it the headless export can only use the SAF directory above.
+     */
+    private void checkAllFilesAccess() {
+        final Context context = getContext();
+        if (context == null)
+            return;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || Environment.isExternalStorageManager())
+            return;
+
+        AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle(R.string.title_ui_automation_allfiles_title)
+                .setMessage(R.string.title_ui_automation_allfiles_body)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int which) {
+                        try {
+                            Intent intent = new Intent(
+                                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                                    Uri.parse("package:" + BuildConfig.APPLICATION_ID));
+                            startActivity(intent);
+                        } catch (Throwable ex) {
+                            Log.w(ex);
+                            try {
+                                startActivity(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
+                            } catch (Throwable ignored) {
+                                Log.unexpectedError(getParentFragmentManager(), ex);
+                            }
+                        }
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+        styleEximDialog(dialog);
     }
 
     /**
