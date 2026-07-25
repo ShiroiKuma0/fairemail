@@ -2,6 +2,28 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2326+7 — on FairEmail 1.2326
+
+**Major features**
+
+* Backups are now **one ZIP per backup**, named by the sister-app family convention `shiroikuma-fairemail_<yyyy-MM-dd_HH-mm-ss>.zip` — the English repo basename, the timestamp, nothing else, so every 白い熊 app's backups sort and read uniformly in one directory
+* The archive holds `manifest.json` (format, version, app, appVersion, createdTs, categories) plus `fairemail-export.json`, which is still the stock unencrypted export, so an unzipped backup stays importable by upstream FairEmail; import sniffs the ZIP magic and accepts the archive, an older bare-JSON fork export, and a stock upstream backup alike
+* New **local emails** export category (unticked by default, since a mail store can run to gigabytes): the whole local message store — bodies, raw MIME where downloaded, and attachment payloads — rides in the same single ZIP as `messages/index.jsonl` plus `messages/<n>/body.html`, `raw.eml` and `att-<k>`
+* Messages restore by account UUID and folder name, so they land on existing accounts as well as freshly imported ones; row-id references are dropped rather than carried across as stale ids, full-text indexing is reset, and a message already in that folder with the same message id is skipped, so the import merges instead of duplicating
+* New **automation export** surface answering 自由作業盤's 保存復元 contract: the exported receiver takes `EXPORT_STATE` and `LIST_CATEGORIES` on `shiroikuma.fairemail.action`, runs the export headlessly with no Activity, and replies with the written path, the real byte count, a human size, and the category count
+* An **Automation export** switch (off by default) and an **Automation token** row sit inside the Export / Import section of the UI page, directly below the existing export rows; the token row shows the token abbreviated, copies it whole to the clipboard on tap, and carries a Regenerate action
+
+**UI and theming**
+
+* The export/import panel starts with everything ticked except local emails, and Select all starts unticked with it, so a routine settings backup never silently drags the mail store along
+
+**Fixes and behavior**
+
+* The automation switch and token live in their own preferences file, outside the store the exporter serialises, so the token can never travel inside a backup ZIP and toggling it never trips the settings-activity restart listener
+* The automation gate reports "automation disabled" and "bad token" as distinct errors, refuses a request naming an unknown category without writing a file, and fires exactly one reply per request, guarded so an async success and a synchronous error can never both arrive
+* Progress is broadcast with real counts, never a percentage — `メール 1234/8942` through the mail store, `区分 6/9 — App settings` through the categories — throttled to one every 500 ms with a forced final one
+* All files access is declared (github flavor only) so the headless export can write into the directory a sister-app task names; without it the export falls back to the configured export directory, and turning the automation switch on offers to open the system setting
+
 ### 1.2326+5 — on FairEmail 1.2326
 
 **Major features**
