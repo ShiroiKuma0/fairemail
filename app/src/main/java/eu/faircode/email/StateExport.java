@@ -22,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,21 +30,28 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
+import javax.mail.Address;
 
 /**
  * The headless export/import core of the 白い熊 UI page, shared by the panel in
@@ -83,9 +91,20 @@ public class StateExport {
     static final String ENTRY_MANIFEST = "manifest.json";
     static final String ENTRY_EXPORT = "fairemail-export.json";
 
+    /**
+     * The locally stored mail rides in the same ZIP: one JSON-Lines record per message in
+     * {@link #ENTRY_MESSAGES_INDEX} (written FIRST, because the importer walks the archive
+     * once and must insert a message row before its payload entries arrive), then
+     * {@code messages/<n>/body.html}, {@code raw.eml} and {@code att-<n>} for each.
+     * JSON Lines rather than one array so neither side ever holds the whole index in memory.
+     */
+    static final String ENTRY_MESSAGES = "messages/";
+    static final String ENTRY_MESSAGES_INDEX = "messages/index.jsonl";
+
     static final String CAT_ACCOUNTS = "accounts";
     static final String CAT_RULES = "rules";
     static final String CAT_CONTACTS = "contacts";
+    static final String CAT_MESSAGES = "messages";
     static final String CAT_ANSWERS = "answers";
     static final String CAT_SEARCHES = "searches";
     static final String CAT_CHANNELS = "channels";
@@ -93,7 +112,7 @@ public class StateExport {
     static final String CAT_UI = "ui";
 
     static final String[] CAT_IDS = {
-            CAT_ACCOUNTS, CAT_RULES, CAT_CONTACTS, CAT_ANSWERS,
+            CAT_ACCOUNTS, CAT_RULES, CAT_CONTACTS, CAT_MESSAGES, CAT_ANSWERS,
             CAT_SEARCHES, CAT_CHANNELS, CAT_SETTINGS, CAT_UI
     };
 
@@ -101,6 +120,7 @@ public class StateExport {
             R.string.title_ui_eim_cat_accounts,
             R.string.title_ui_eim_cat_rules,
             R.string.title_ui_eim_cat_contacts,
+            R.string.title_ui_eim_cat_messages,
             R.string.title_ui_eim_cat_answers,
             R.string.title_ui_eim_cat_searches,
             R.string.title_ui_eim_cat_channels,
@@ -108,9 +128,24 @@ public class StateExport {
             R.string.title_ui_eim_cat_ui
     };
 
+    /**
+     * Categories the panel leaves unticked: the local mail store can run to gigabytes, so
+     * it is opt-in per export rather than part of the usual settings backup.
+     */
+    static boolean isDefaultOff(String id) {
+        return CAT_MESSAGES.equals(id);
+    }
+
     /** Progress units — numbers first, never a percentage (the automation contract). */
     private static final String UNIT_CATEGORY = "区分";
     private static final String UNIT_ACCOUNT = "アカウント";
+    private static final String UNIT_MESSAGE = "メール";
+
+    /** Id references are remapped on import, never carried across as raw row ids. */
+    private static final Set<String> MESSAGE_SKIP = new HashSet<>(Arrays.asList(
+            "id", "account", "folder", "identity", "replying", "forwarding"));
+    private static final Set<String> ATTACHMENT_SKIP = new HashSet<>(Arrays.asList(
+            "id", "message", "selected"));
 
     /**
      * Export progress sink. Callers get real counts ({@code current}/{@code total} of
@@ -226,6 +261,9 @@ public class StateExport {
         zos.putNextEntry(new ZipEntry(ENTRY_EXPORT));
         zos.write(jexport.toString(2).getBytes(StandardCharsets.UTF_8));
         zos.closeEntry();
+
+        if (cats.contains(CAT_MESSAGES))
+            exportMessages(context, zos, cats, progress, done);
 
         zos.finish();
         zos.flush();
@@ -473,8 +511,177 @@ public class StateExport {
         return jexport;
     }
 
-    // --- import ---
+    // --- export: the local mail store ---
 
+    /** Where a message lives, in terms that survive a restore onto fresh row ids. */
+    private static class MessageRef {
+        final long id;
+        final String account;
+        final String folder;
+
+        MessageRef(long id, String account, String folder) {
+            this.id = id;
+            this.account = account;
+            this.folder = folder;
+        }
+    }
+
+    /**
+     * Stream the locally stored mail into the same ZIP: the JSON-Lines index first, then
+     * each message's body, raw MIME and attachment payloads. Two passes over the id list
+     * rather than one, because a ZIP can only hold one entry open at a time and the index
+     * has to precede the payloads it names.
+     */
+    private static void exportMessages(Context context, ZipOutputStream zos, List<String> cats,
+                                       @Nullable Progress progress, int[] done) throws Throwable {
+        DB db = DB.getInstance(context);
+
+        List<MessageRef> refs = new ArrayList<>();
+        for (EntityAccount account : db.account().getAccounts())
+            for (EntityFolder folder : db.folder().getFolders(account.id, false, true))
+                for (Long id : db.message().getMessageByFolder(folder.id))
+                    if (id != null)
+                        refs.add(new MessageRef(id, account.uuid, folder.name));
+
+        int total = refs.size();
+
+        zos.putNextEntry(new ZipEntry(ENTRY_MESSAGES_INDEX));
+        for (int i = 0; i < total; i++) {
+            MessageRef ref = refs.get(i);
+            EntityMessage message = db.message().getMessage(ref.id);
+            if (message == null)
+                continue;
+
+            JSONObject jrecord = new JSONObject();
+            jrecord.put("index", i);
+            jrecord.put("account", ref.account);
+            jrecord.put("folder", ref.folder);
+            jrecord.put("message", entityToJSON(message, MESSAGE_SKIP));
+
+            JSONArray jattachments = new JSONArray();
+            List<EntityAttachment> attachments = db.attachment().getAttachments(message.id);
+            for (int a = 0; a < attachments.size(); a++) {
+                JSONObject jattachment = entityToJSON(attachments.get(a), ATTACHMENT_SKIP);
+                jattachment.put("file", "att-" + a);
+                jattachments.put(jattachment);
+            }
+            jrecord.put("attachments", jattachments);
+
+            zos.write(jrecord.toString().getBytes(StandardCharsets.UTF_8));
+            zos.write('\n');
+
+            if (progress != null)
+                progress.report(i + 1, total, UNIT_MESSAGE,
+                        UNIT_MESSAGE + " 目録 " + (i + 1) + "/" + total);
+        }
+        zos.closeEntry();
+
+        for (int i = 0; i < total; i++) {
+            MessageRef ref = refs.get(i);
+            EntityMessage message = db.message().getMessage(ref.id);
+            if (message == null)
+                continue;
+
+            String base = ENTRY_MESSAGES + i + "/";
+
+            File body = message.getFile(context);
+            if (body.exists())
+                copyEntry(zos, base + "body.html", body);
+
+            File raw = message.getRawFile(context);
+            if (raw.exists())
+                copyEntry(zos, base + "raw.eml", raw);
+
+            List<EntityAttachment> attachments = db.attachment().getAttachments(message.id);
+            for (int a = 0; a < attachments.size(); a++) {
+                File file = attachments.get(a).getFile(context);
+                if (file.exists())
+                    copyEntry(zos, base + "att-" + a, file);
+            }
+
+            if (progress != null)
+                progress.report(i + 1, total, UNIT_MESSAGE,
+                        UNIT_MESSAGE + " " + (i + 1) + "/" + total);
+        }
+
+        step(context, progress, cats, done, CAT_MESSAGES);
+    }
+
+    private static void copyEntry(ZipOutputStream zos, String name, File file) throws IOException {
+        zos.putNextEntry(new ZipEntry(name));
+        try (FileInputStream in = new FileInputStream(file)) {
+            copy(in, zos);
+        }
+        zos.closeEntry();
+    }
+
+    private static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[8192];
+        int n;
+        while ((n = in.read(buffer)) > 0)
+            out.write(buffer, 0, n);
+    }
+
+    /**
+     * Serialize a Room entity by reflection rather than by a hand-written field list:
+     * EntityMessage alone has over a hundred columns, and upstream adds to it. Null fields
+     * are omitted; the two array types go through the same converters Room itself uses.
+     * Safe under R8 because proguard-rules.pro keeps every eu.faircode.email member.
+     */
+    private static JSONObject entityToJSON(Object entity, Set<String> skip) throws Throwable {
+        JSONObject jentity = new JSONObject();
+        for (Field field : entity.getClass().getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers()) || field.isSynthetic())
+                continue;
+            String name = field.getName();
+            if (skip.contains(name))
+                continue;
+            field.setAccessible(true);
+            Object value = field.get(entity);
+            if (value == null)
+                continue;
+            Class<?> type = field.getType();
+            if (Address[].class.equals(type))
+                jentity.put(name, DB.Converters.encodeAddresses((Address[]) value));
+            else if (String[].class.equals(type))
+                jentity.put(name, DB.Converters.fromStringArray((String[]) value));
+            else if (value instanceof Boolean || value instanceof Integer ||
+                    value instanceof Long || value instanceof String)
+                jentity.put(name, value);
+        }
+        return jentity;
+    }
+
+    private static void jsonToEntity(JSONObject jentity, Object entity) throws Throwable {
+        for (Field field : entity.getClass().getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers()) || field.isSynthetic())
+                continue;
+            String name = field.getName();
+            if (!jentity.has(name) || jentity.isNull(name))
+                continue;
+            field.setAccessible(true);
+            Class<?> type = field.getType();
+            try {
+                if (Address[].class.equals(type))
+                    field.set(entity, DB.Converters.decodeAddresses(jentity.getString(name)));
+                else if (String[].class.equals(type))
+                    field.set(entity, DB.Converters.toStringArray(jentity.getString(name)));
+                else if (Boolean.class.equals(type) || boolean.class.equals(type))
+                    field.set(entity, jentity.getBoolean(name));
+                else if (Integer.class.equals(type) || int.class.equals(type))
+                    field.set(entity, jentity.getInt(name));
+                else if (Long.class.equals(type) || long.class.equals(type))
+                    field.set(entity, jentity.getLong(name));
+                else if (String.class.equals(type))
+                    field.set(entity, jentity.getString(name));
+            } catch (Throwable ex) {
+                // An upstream column that changed type is not worth losing the message over
+                Log.w(ex);
+            }
+        }
+    }
+
+    // --- import ---
 
     /**
      * Read the export JSON out of a backup: the {@link #ENTRY_EXPORT} entry of a
@@ -542,6 +749,7 @@ public class StateExport {
         boolean catAccounts = cats.contains(CAT_ACCOUNTS);
         boolean catRules = cats.contains(CAT_RULES);
         boolean catContacts = cats.contains(CAT_CONTACTS);
+        boolean catMessages = cats.contains(CAT_MESSAGES);
         boolean catAnswers = cats.contains(CAT_ANSWERS);
         boolean catSearches = cats.contains(CAT_SEARCHES);
         boolean catChannels = cats.contains(CAT_CHANNELS);
@@ -976,6 +1184,10 @@ public class StateExport {
             db.endTransaction();
         }
 
+        // Outside the transaction: restoring the mail store writes thousands of rows and
+        // their payload files, and it needs the folders the transaction above committed.
+        int nMessages = (catMessages ? importMessages(context, uri) : 0);
+
         EntityLog.log(context, "UI import done");
 
         StringBuilder summary = new StringBuilder();
@@ -985,6 +1197,8 @@ public class StateExport {
             summary.append(context.getString(R.string.title_ui_eim_cat_rules)).append(": ").append(nRules).append('\n');
         if (catContacts)
             summary.append(context.getString(R.string.title_ui_eim_cat_contacts)).append(": ").append(nContacts).append('\n');
+        if (catMessages)
+            summary.append(context.getString(R.string.title_ui_eim_cat_messages)).append(": ").append(nMessages).append('\n');
         if (catAnswers)
             summary.append(context.getString(R.string.title_ui_eim_cat_answers)).append(": ").append(nAnswers).append('\n');
         if (catSearches)
@@ -999,5 +1213,136 @@ public class StateExport {
             summary.setLength(summary.length() - 1);
 
         return summary.toString();
+    }
+
+    /**
+     * Restore the local mail store in a second, single pass over the ZIP: the index is the
+     * first messages entry, so every message row and attachment row exists by the time its
+     * payload entry comes past, and each payload streams straight to its destination file.
+     * Messages whose account (by UUID) or folder (by name) is not present are skipped, as
+     * are ones already in that folder with the same message id — the import merges, it
+     * never duplicates. A backup written without this category simply has no such entries.
+     */
+    private static int importMessages(Context context, Uri uri) throws Throwable {
+        DB db = DB.getInstance(context);
+        ContentResolver resolver = context.getContentResolver();
+
+        Map<String, EntityAccount> accounts = new HashMap<>();
+        Map<String, EntityFolder> folders = new HashMap<>();
+        Map<String, File> targets = new HashMap<>();
+        int imported = 0;
+        int skipped = 0;
+
+        InputStream is = resolver.openInputStream(uri);
+        if (is == null)
+            throw new FileNotFoundException(uri.toString());
+
+        try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                String name = entry.getName();
+                if (name == null || entry.isDirectory())
+                    continue;
+
+                if (ENTRY_MESSAGES_INDEX.equals(name)) {
+                    BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(zis, StandardCharsets.UTF_8));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        line = line.trim();
+                        if (line.isEmpty())
+                            continue;
+                        try {
+                            if (importMessage(context, db, new JSONObject(line),
+                                    accounts, folders, targets))
+                                imported++;
+                            else
+                                skipped++;
+                        } catch (Throwable ex) {
+                            Log.w(ex);
+                            skipped++;
+                        }
+                    }
+                } else if (name.startsWith(ENTRY_MESSAGES)) {
+                    File target = targets.get(name);
+                    if (target == null)
+                        continue;
+                    File dir = target.getParentFile();
+                    if (dir != null && !dir.exists() && !dir.mkdirs())
+                        throw new IOException("Cannot create " + dir);
+                    try (FileOutputStream out = new FileOutputStream(target)) {
+                        copy(zis, out);
+                    }
+                }
+            }
+        }
+
+        EntityLog.log(context, "UI import messages=" + imported + " skipped=" + skipped);
+        return imported;
+    }
+
+    /** One index record: insert the message and its attachments, and register their files. */
+    private static boolean importMessage(Context context, DB db, JSONObject jrecord,
+                                         Map<String, EntityAccount> accounts,
+                                         Map<String, EntityFolder> folders,
+                                         Map<String, File> targets) throws Throwable {
+        String uuid = jrecord.optString("account", null);
+        String folderName = jrecord.optString("folder", null);
+        if (uuid == null || folderName == null || !jrecord.has("message"))
+            return false;
+
+        EntityAccount account = accounts.get(uuid);
+        if (account == null) {
+            account = db.account().getAccountByUUID(uuid);
+            if (account == null)
+                return false;
+            accounts.put(uuid, account);
+        }
+
+        String folderKey = uuid + "\n" + folderName;
+        EntityFolder folder = folders.get(folderKey);
+        if (folder == null) {
+            folder = db.folder().getFolderByName(account.id, folderName);
+            if (folder == null)
+                return false;
+            folders.put(folderKey, folder);
+        }
+
+        EntityMessage message = new EntityMessage();
+        jsonToEntity(jrecord.getJSONObject("message"), message);
+        message.id = null;
+        message.account = account.id;
+        message.folder = folder.id;
+        message.identity = null;
+        message.replying = null;
+        message.forwarding = null;
+        message.fts = false;
+
+        if (!TextUtils.isEmpty(message.msgid))
+            for (EntityMessage other : db.message().getMessagesByMsgId(account.id, message.msgid))
+                if (Objects.equals(other.folder, folder.id))
+                    return false;
+
+        message.id = db.message().insertMessage(message);
+
+        String base = ENTRY_MESSAGES + jrecord.optInt("index", -1) + "/";
+        targets.put(base + "body.html", message.getFile(context));
+        targets.put(base + "raw.eml", message.getRawFile(context));
+
+        JSONArray jattachments = jrecord.optJSONArray("attachments");
+        for (int a = 0; jattachments != null && a < jattachments.length(); a++) {
+            JSONObject jattachment = jattachments.getJSONObject(a);
+            EntityAttachment attachment = new EntityAttachment();
+            jsonToEntity(jattachment, attachment);
+            attachment.id = null;
+            attachment.message = message.id;
+            attachment.id = db.attachment().insertAttachment(attachment);
+
+            String file = jattachment.optString("file", null);
+            if (file != null)
+                targets.put(base + file, attachment.getFile(context));
+        }
+
+        return true;
     }
 }
