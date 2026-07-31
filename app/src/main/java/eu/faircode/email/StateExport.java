@@ -47,6 +47,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -178,6 +179,24 @@ public class StateExport {
         void report(long current, long total, String unit, String text);
     }
 
+    /**
+     * Thrown out of the export when a cancel arrives. The cancel signal is an
+     * {@link AtomicBoolean} the caller flips from another thread and the export tests at
+     * entry and file boundaries only — never mid-{@code write()}, and never by interrupting
+     * or killing anything. Whoever started the export unwinds, deletes the partial file and
+     * reports it: the run ends leaving the backup directory exactly as it found it.
+     */
+    static class CancelledException extends IOException {
+        CancelledException() {
+            super("cancelled");
+        }
+    }
+
+    private static void checkCancelled(@Nullable AtomicBoolean cancel) throws CancelledException {
+        if (cancel != null && cancel.get())
+            throw new CancelledException();
+    }
+
     static boolean isKnownCat(String id) {
         for (String cat : CAT_IDS)
             if (cat.equals(id))
@@ -263,13 +282,82 @@ public class StateExport {
     // --- export ---
 
     /**
+     * A backup is written under {@code <final-name>.part} and renamed only once the archive
+     * is closed and complete, so nothing half-written is ever left looking like a backup —
+     * 白い熊 keeps every app's backups in one directory sorted by date, where a truncated ZIP
+     * would silently become "the latest one". The part file is created as octet-stream so
+     * the SAF provider keeps the name given instead of appending another {@code .zip}.
+     */
+    static final String PART_SUFFIX = ".part";
+    private static final String PART_MIME = "application/octet-stream";
+
+    /**
+     * Write one backup into a plain directory, atomically: on any failure — a cancel
+     * included — the part file goes and the directory is left as it was found.
+     */
+    static File exportToDir(Context context, List<String> cats, File dir, String name,
+                            @Nullable Progress progress, @Nullable AtomicBoolean cancel) throws Throwable {
+        if (!dir.exists() && !dir.mkdirs())
+            throw new IOException("cannot create " + dir.getAbsolutePath());
+        if (!dir.isDirectory())
+            throw new IOException("not a directory: " + dir.getAbsolutePath());
+
+        File part = new File(dir, name + PART_SUFFIX);
+        File file = new File(dir, name);
+        boolean complete = false;
+        try {
+            try (OutputStream out = new FileOutputStream(part)) {
+                export(context, cats, out, progress, cancel);
+            }
+            if (!part.renameTo(file))
+                throw new IOException("cannot rename " + part.getName() + " to " + name);
+            complete = true;
+            return file;
+        } finally {
+            if (!complete && part.exists() && !part.delete())
+                Log.w("Cannot delete " + part.getAbsolutePath());
+        }
+    }
+
+    /** The same atomic write through a SAF tree, for when there is no All files access. */
+    static DocumentFile exportToDir(Context context, List<String> cats, DocumentFile dir, String name,
+                                    @Nullable Progress progress, @Nullable AtomicBoolean cancel) throws Throwable {
+        DocumentFile part = dir.createFile(PART_MIME, name + PART_SUFFIX);
+        if (part == null)
+            throw new IOException("cannot create " + name + PART_SUFFIX + " in the export directory");
+
+        boolean complete = false;
+        try {
+            try (OutputStream out = context.getContentResolver().openOutputStream(part.getUri())) {
+                if (out == null)
+                    throw new IOException("cannot open " + name + PART_SUFFIX + " for writing");
+                export(context, cats, out, progress, cancel);
+            }
+            // renameTo repoints the DocumentFile itself, so this is the finished backup
+            if (!part.renameTo(name))
+                throw new IOException("cannot rename " + name + PART_SUFFIX + " to " + name);
+            complete = true;
+            return part;
+        } finally {
+            if (!complete)
+                try {
+                    part.delete();
+                } catch (Throwable ex) {
+                    Log.w(ex);
+                }
+        }
+    }
+
+    /**
      * Write ONE backup ZIP of the selected categories to {@code out}. The caller owns
-     * the stream and closes it; this only finishes the ZIP central directory.
+     * the stream and closes it; this only finishes the ZIP central directory. Prefer
+     * {@link #exportToDir(Context, List, File, String, Progress, AtomicBoolean)} — a caller
+     * writing the stream itself owns deleting what it wrote when this throws.
      */
     static void export(Context context, List<String> cats, OutputStream out,
-                       @Nullable Progress progress) throws Throwable {
+                       @Nullable Progress progress, @Nullable AtomicBoolean cancel) throws Throwable {
         int[] done = {0};
-        JSONObject jexport = buildExport(context, cats, progress, done);
+        JSONObject jexport = buildExport(context, cats, progress, done, cancel);
 
         JSONObject jmanifest = new JSONObject();
         jmanifest.put("format", FORMAT);
@@ -294,7 +382,10 @@ public class StateExport {
         zos.closeEntry();
 
         if (cats.contains(CAT_MESSAGES))
-            exportMessages(context, zos, cats, progress, done);
+            exportMessages(context, zos, cats, progress, done, cancel);
+
+        // Last boundary: a cancel arriving here still leaves no finished archive behind
+        checkCancelled(cancel);
 
         zos.finish();
         zos.flush();
@@ -318,7 +409,10 @@ public class StateExport {
      * Fork extension: "ui_fonts" carries the custom font binaries base64-encoded.
      */
     static JSONObject buildExport(Context context, List<String> cats,
-                                  @Nullable Progress progress, int[] done) throws Throwable {
+                                  @Nullable Progress progress, int[] done,
+                                  @Nullable AtomicBoolean cancel) throws Throwable {
+        checkCancelled(cancel);
+
         boolean catAccounts = cats.contains(CAT_ACCOUNTS);
         boolean catRules = cats.contains(CAT_RULES);
         boolean catContacts = cats.contains(CAT_CONTACTS);
@@ -338,6 +432,7 @@ public class StateExport {
             int total = (accounts == null ? 0 : accounts.size());
             int index = 0;
             for (EntityAccount account : accounts) {
+                checkCancelled(cancel);
                 index++;
                 if (progress != null)
                     progress.report(index, total, UNIT_ACCOUNT,
@@ -361,6 +456,7 @@ public class StateExport {
 
                 JSONArray jfolders = new JSONArray();
                 for (EntityFolder folder : db.folder().getFolders(account.id, false, true)) {
+                    checkCancelled(cancel);
                     JSONObject jfolder = folder.toJSON();
 
                     if (catChannels && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -564,7 +660,8 @@ public class StateExport {
      * has to precede the payloads it names.
      */
     private static void exportMessages(Context context, ZipOutputStream zos, List<String> cats,
-                                       @Nullable Progress progress, int[] done) throws Throwable {
+                                       @Nullable Progress progress, int[] done,
+                                       @Nullable AtomicBoolean cancel) throws Throwable {
         DB db = DB.getInstance(context);
 
         List<MessageRef> refs = new ArrayList<>();
@@ -578,6 +675,7 @@ public class StateExport {
 
         zos.putNextEntry(new ZipEntry(ENTRY_MESSAGES_INDEX));
         for (int i = 0; i < total; i++) {
+            checkCancelled(cancel);
             MessageRef ref = refs.get(i);
             EntityMessage message = db.message().getMessage(ref.id);
             if (message == null)
@@ -608,6 +706,7 @@ public class StateExport {
         zos.closeEntry();
 
         for (int i = 0; i < total; i++) {
+            checkCancelled(cancel);
             MessageRef ref = refs.get(i);
             EntityMessage message = db.message().getMessage(ref.id);
             if (message == null)
@@ -617,17 +716,17 @@ public class StateExport {
 
             File body = message.getFile(context);
             if (body.exists())
-                copyEntry(zos, base + "body.html", body);
+                copyEntry(zos, base + "body.html", body, cancel);
 
             File raw = message.getRawFile(context);
             if (raw.exists())
-                copyEntry(zos, base + "raw.eml", raw);
+                copyEntry(zos, base + "raw.eml", raw, cancel);
 
             List<EntityAttachment> attachments = db.attachment().getAttachments(message.id);
             for (int a = 0; a < attachments.size(); a++) {
                 File file = attachments.get(a).getFile(context);
                 if (file.exists())
-                    copyEntry(zos, base + "att-" + a, file);
+                    copyEntry(zos, base + "att-" + a, file, cancel);
             }
 
             if (progress != null)
@@ -638,19 +737,28 @@ public class StateExport {
         step(context, progress, cats, done, CAT_MESSAGES);
     }
 
-    private static void copyEntry(ZipOutputStream zos, String name, File file) throws IOException {
+    private static void copyEntry(ZipOutputStream zos, String name, File file,
+                                  @Nullable AtomicBoolean cancel) throws IOException {
         zos.putNextEntry(new ZipEntry(name));
         try (FileInputStream in = new FileInputStream(file)) {
-            copy(in, zos);
+            copy(in, zos, cancel);
         }
         zos.closeEntry();
     }
 
     private static void copy(InputStream in, OutputStream out) throws IOException {
+        copy(in, out, null);
+    }
+
+    /** Block boundaries are cancel boundaries too: one attachment can be very large. */
+    private static void copy(InputStream in, OutputStream out,
+                             @Nullable AtomicBoolean cancel) throws IOException {
         byte[] buffer = new byte[8192];
         int n;
-        while ((n = in.read(buffer)) > 0)
+        while ((n = in.read(buffer)) > 0) {
+            checkCancelled(cancel);
             out.write(buffer, 0, n);
+        }
     }
 
     /**
