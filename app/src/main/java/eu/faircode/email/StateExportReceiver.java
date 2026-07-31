@@ -12,13 +12,11 @@ import android.text.TextUtils;
 import androidx.documentfile.provider.DocumentFile;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The sister-app <b>state-export automation contract</b>, implemented by this fork — the
@@ -33,10 +31,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * {@code items} (optional comma list of category ids; absent/empty = the default set, which
  * is the categories flagged on in {@link StateExport#CAT_DEFAULTS}, not everything),
  * {@code progress_action} (optional), plus the reply trio {@code reply_action} /
- * {@code reply_package} / {@code reply_id}.</li>
+ * {@code reply_package} / {@code reply_id}. One export at a time — the guard is what makes a
+ * cancel without a {@code reply_id} unambiguous.</li>
  * <li>{@link #ACTION_LIST_CATEGORIES}: token-gated category enumeration for the caller's
  * item picker, one {@code id<TAB>label<TAB>parent<TAB>on|off} line each. This app's
  * categories are flat, so the parent field is always empty.</li>
+ * <li>{@link #ACTION_CANCEL_EXPORT}: stop the running export. Extras: {@code token} and an
+ * optional {@code reply_id}. Fire-and-forget — it is never answered, not even when it
+ * arrives with nothing running or with a bad token, and the export it stops sends
+ * {@code ERROR:cancelled} as its own terminal reply.</li>
  * </ul>
  *
  * <p>Reply: a FRESH broadcast to {@code reply_package} with action {@code reply_action},
@@ -55,6 +58,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class StateExportReceiver extends BroadcastReceiver {
     static final String ACTION_EXPORT_STATE = BuildConfig.APPLICATION_ID + ".action.EXPORT_STATE";
     static final String ACTION_LIST_CATEGORIES = BuildConfig.APPLICATION_ID + ".action.LIST_CATEGORIES";
+    static final String ACTION_CANCEL_EXPORT = BuildConfig.APPLICATION_ID + ".action.CANCEL_EXPORT";
 
     // Contract extras — deliberately bare names, shared verbatim by every sister app
     private static final String EXTRA_TOKEN = "token";
@@ -72,6 +76,23 @@ public class StateExportReceiver extends BroadcastReceiver {
     private static final String EXTRA_PROGRESS_UNIT = "unit";
 
     private static final long PROGRESS_INTERVAL = 500L; // ms, at most one broadcast per
+
+    /**
+     * The export running right now, if any: the cancel target, and the guard against two at
+     * once. Process-local and released in a {@code finally} — never persisted, because a
+     * stored "in progress" flag survives a crash and wedges every later export for good.
+     */
+    private static final AtomicReference<Run> running = new AtomicReference<>();
+
+    /** One export request: what a cancel names it by, and the flag that stops it. */
+    private static class Run {
+        private final String id;
+        private final AtomicBoolean cancel = new AtomicBoolean(false);
+
+        Run(String id) {
+            this.id = id;
+        }
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -92,6 +113,20 @@ public class StateExportReceiver extends BroadcastReceiver {
 
         EntityLog.log(app, "State export request action=" + action + " id=" + replyId +
                 " from=" + replyPackage);
+
+        // The cancel answers nobody, so even a refused one is silent - and it is safe to send
+        // at any time: with nothing running, or after the export already finished, it is a
+        // no-op rather than an error. The reply belongs to the export it stops, not to it.
+        if (ACTION_CANCEL_EXPORT.equals(action)) {
+            if (AutomationAuth.enabled(app) && AutomationAuth.isTokenValid(app, token)) {
+                Run run = running.get();
+                if (run != null && (TextUtils.isEmpty(replyId) || replyId.equals(run.id))) {
+                    run.cancel.set(true);
+                    EntityLog.log(app, "State export cancelling id=" + run.id);
+                }
+            }
+            return;
+        }
 
         // Gate first, and report "disabled" and "bad token" distinctly (they debug differently)
         if (!AutomationAuth.enabled(app)) {
@@ -150,6 +185,14 @@ public class StateExportReceiver extends BroadcastReceiver {
         final ProgressEmitter progress = new ProgressEmitter(
                 app, progressAction, replyPackage, replyId, appLabel(app));
 
+        // One export at a time, which is what lets a cancel name the running one by leaving
+        // reply_id out. The guard is process-local and released in the finally below.
+        final Run run = new Run(replyId);
+        if (!running.compareAndSet(null, run)) {
+            replier.reply("ERROR:export already running");
+            return;
+        }
+
         // The export walks the database and writes a ZIP — hold the broadcast open and
         // finish from a background thread.
         final PendingResult pending = goAsync();
@@ -167,15 +210,8 @@ public class StateExportReceiver extends BroadcastReceiver {
                     if (!TextUtils.isEmpty(pathOverride) && allFiles) {
                         // Absolute-directory override (MANAGE_EXTERNAL_STORAGE) — the normal
                         // automation route, so every sister app lands in one directory.
-                        File dir = new File(pathOverride);
-                        if (!dir.exists() && !dir.mkdirs())
-                            throw new IOException("cannot create " + pathOverride);
-                        if (!dir.isDirectory())
-                            throw new IOException("not a directory: " + pathOverride);
-                        File file = new File(dir, name);
-                        try (OutputStream out = new FileOutputStream(file)) {
-                            StateExport.export(app, cats, out, progress);
-                        }
+                        File file = StateExport.exportToDir(app, cats, new File(pathOverride),
+                                name, progress, run.cancel);
                         bytes = file.length();
                         shownPath = file.getAbsolutePath();
                     } else {
@@ -186,14 +222,8 @@ public class StateExportReceiver extends BroadcastReceiver {
                         if (dir == null)
                             throw new IllegalStateException(
                                     TextUtils.isEmpty(pathOverride) ? "no-directory" : "no-storage-access");
-                        DocumentFile file = dir.createFile(StateExport.EXPORT_MIME, name);
-                        if (file == null)
-                            throw new IOException("cannot create " + name + " in the export directory");
-                        try (OutputStream out = app.getContentResolver().openOutputStream(file.getUri())) {
-                            if (out == null)
-                                throw new IOException("cannot open " + name + " for writing");
-                            StateExport.export(app, cats, out, progress);
-                        }
+                        DocumentFile file = StateExport.exportToDir(app, cats, dir,
+                                name, progress, run.cancel);
                         bytes = file.length();
                         shownPath = dirPath(dir) + "/" + (file.getName() == null ? name : file.getName());
                     }
@@ -205,13 +235,23 @@ public class StateExportReceiver extends BroadcastReceiver {
                     EntityLog.log(app, "State export " + result);
                     replier.reply(result);
                 } catch (Throwable ex) {
-                    Log.w(ex);
-                    String message = ex.getMessage();
-                    if (TextUtils.isEmpty(message))
-                        message = ex.getClass().getSimpleName();
-                    EntityLog.log(app, "State export ERROR:" + message);
-                    replier.reply("ERROR:" + message);
+                    if (run.cancel.get() || ex instanceof StateExport.CancelledException) {
+                        // The partial file went with the unwind, so the directory is as it
+                        // was found. This is the stopped run's one terminal reply, sent even
+                        // though the caller stopped listening the moment it asked to stop:
+                        // it is what proves the export ended rather than carried on unseen.
+                        EntityLog.log(app, "State export ERROR:cancelled id=" + replyId);
+                        replier.reply("ERROR:cancelled");
+                    } else {
+                        Log.w(ex);
+                        String message = ex.getMessage();
+                        if (TextUtils.isEmpty(message))
+                            message = ex.getClass().getSimpleName();
+                        EntityLog.log(app, "State export ERROR:" + message);
+                        replier.reply("ERROR:" + message);
+                    }
                 } finally {
+                    running.compareAndSet(run, null);
                     pending.finish();
                 }
             }
