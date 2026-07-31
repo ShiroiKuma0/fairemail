@@ -116,6 +116,25 @@ public class StateExport {
             CAT_SEARCHES, CAT_CHANNELS, CAT_SETTINGS, CAT_UI
     };
 
+    /**
+     * Whether a category starts ticked, in {@link #CAT_IDS} order — one answer behind three
+     * surfaces: the panel's checkboxes, the fourth field of the automation contract's
+     * LIST_CATEGORIES reply, and what an export takes when the caller names no items.
+     * Off is for what is large and re-obtainable from what the backup already carries.
+     */
+    static final boolean[] CAT_DEFAULTS = {
+            true,   // accounts
+            true,   // rules
+            true,   // contacts
+            false,  // messages: the local mail store is the largest thing here and re-syncs
+                    // from the server using the account definitions in accounts, which is on
+            true,   // answers
+            true,   // searches
+            true,   // channels
+            true,   // settings
+            true    // ui
+    };
+
     static final int[] CAT_LABELS = {
             R.string.title_ui_eim_cat_accounts,
             R.string.title_ui_eim_cat_rules,
@@ -129,11 +148,14 @@ public class StateExport {
     };
 
     /**
-     * Categories the panel leaves unticked: the local mail store can run to gigabytes, so
+     * Categories the pickers leave unticked: the local mail store can run to gigabytes, so
      * it is opt-in per export rather than part of the usual settings backup.
      */
     static boolean isDefaultOff(String id) {
-        return CAT_MESSAGES.equals(id);
+        for (int i = 0; i < CAT_IDS.length; i++)
+            if (CAT_IDS[i].equals(id))
+                return !CAT_DEFAULTS[i];
+        return false;
     }
 
     /** Progress units — numbers first, never a percentage (the automation contract). */
@@ -171,8 +193,17 @@ public class StateExport {
         return R.string.title_ui_eim_cat_settings;
     }
 
-    static List<String> allCats() {
-        return new ArrayList<>(Arrays.asList(CAT_IDS));
+    /**
+     * The set an export takes when the caller names no items: the categories flagged on in
+     * {@link #CAT_DEFAULTS}. The automation contract reads an absent items extra as "your
+     * default set", which is what this app recommends, never its whole footprint.
+     */
+    static List<String> defaultCats() {
+        List<String> cats = new ArrayList<>();
+        for (int i = 0; i < CAT_IDS.length; i++)
+            if (CAT_DEFAULTS[i])
+                cats.add(CAT_IDS[i]);
+        return cats;
     }
 
     /**
