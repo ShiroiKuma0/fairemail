@@ -14,16 +14,16 @@ This is the personal fork of **M66B/FairEmail** (open-source Android email clien
 | Upstream | `M66B/FairEmail` (git remote `upstream`) |
 | Fork | `ShiroiKuma0/fairemail`, SSH `git@github.com:ShiroiKuma0/fairemail.git` (remote `origin`) |
 | Working branch | `custom` (rebased onto an upstream tag) |
-| Current base tag | `1.2326` |
+| Current base tag | `1.2327` |
 | `namespace` | `eu.faircode.email` (unchanged from upstream; Java package stays this) |
 | `applicationId` | `shiroikuma.fairemail` (debug variant adds `.debug`) |
 | Display name | `白い熊 FairEmail` (github flavor `app_name` in `app/src/github/res/values/strings.xml`) |
-| Versioning | `versionName` = `1.<upstream>+<fork>` (e.g. `1.2326+1`); `versionCode` = `<upstream> * 10000 + <fork>` (e.g. `23260001`). The `getForkBuild` literal in `app/build.gradle` is the fork build number — reset to **1** on every upstream rebase, **+1** on every subsequent local build. `getVersionCode()` keeps returning the bare upstream code (it feeds archivesName/changelog/signature paths; do not repurpose it). |
+| Versioning | `versionName` = `1.<upstream>+<fork>` (e.g. `1.2327+1`); `versionCode` = `<upstream> * 10000 + <fork>` (e.g. `23270001`). The `getForkBuild` literal in `app/build.gradle` is the fork build number — reset to **1** on every upstream rebase, **+1** on every subsequent local build. `getVersionCode()` keeps returning the bare upstream code (it feeds archivesName/changelog/signature paths; do not repurpose it). |
 | Keystore | `~/.android-keystores/fairemail-custom.jks`, alias `fairemail`. Password is NOT in this repo — keep it in `~/.gradle/gradle.properties` or an env var. |
 | Build flavor / type | `github` / `release` → task `:app:assembleGithubRelease` |
 | Built APK path | `app/build/outputs/apk/github/release/FairEmail-v<tag>a-github-release.apk` |
-| Deployed APK names | `shiroikuma-fairemail_<versionName>_arm64-v8a.apk` (e.g. `shiroikuma-fairemail_1.2326+1_arm64-v8a.apk`), copied to `~/tmp/` AND pushed to `/sdcard/tmp/`. No datetime — matches the user's other sideloaded apps (denwa, futokxkb, simplex): `shiroikuma-<app>_<upstream>+<fork>_arm64-v8a.apk`. |
-| Toolchain (tag 1.2326) | compileSdk=37, minSdk=23, targetSdk=37, NDK `27.3.13750724` (r27d), AGP/Gradle 9.x, Java toolchain 21 (upstream bumped 17→21 at 1.2317), kotlin-android plugin REMOVED. Host build JDK is OpenJDK 21 (`JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`). SDK lives at `$HOME/android-sdk`; export `ANDROID_HOME`/`ANDROID_SDK_ROOT` for builds (set in the user's `.bashrc` but NOT in non-interactive shells, and no `local.properties` is committed). |
+| Deployed APK names | `shiroikuma-fairemail_<versionName>_arm64-v8a.apk` (e.g. `shiroikuma-fairemail_1.2327+1_arm64-v8a.apk`), copied to `~/tmp/` AND pushed to `/sdcard/tmp/`. No datetime — matches the user's other sideloaded apps (denwa, futokxkb, simplex): `shiroikuma-<app>_<upstream>+<fork>_arm64-v8a.apk`. |
+| Toolchain (tag 1.2327) | compileSdk=37, minSdk=23, targetSdk=37, NDK `27.3.13750724` (r27d), AGP/Gradle 9.x, Java toolchain 21 (upstream bumped 17→21 at 1.2317), kotlin-android plugin REMOVED. Host build JDK is OpenJDK 21 (`JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`). SDK lives at `$HOME/android-sdk`; export `ANDROID_HOME`/`ANDROID_SDK_ROOT` for builds (set in the user's `.bashrc` but NOT in non-interactive shells, and no `local.properties` is committed). |
 | Device | Huawei Mate XT tri-fold. Folded-portrait ≈ 1008×2127 px (~366 dp wide); every other fold/orientation state is ≥ ~745 dp. |
 
 ## Commit stack on origin/custom
@@ -31,43 +31,60 @@ This is the personal fork of **M66B/FairEmail** (open-source Android email clien
 Newest first (short hashes). For the authoritative current list run `git log --oneline <upstream-tag>..origin/custom`.
 
 ```
-1b534fea95  Publish 1.2326+1: refresh changelog and README for the 1.2326 rebase
-df833fabe2  Publish 1.2325+4: refresh README and changelog for the pro unlock
-f352a045df  Hide the purchase section on the pro features screen
-8311961712  Unlock all pro features unconditionally
-5b7fa8192f  skills: document the merged changelog workflow
-929339bd28  Add a merged fork changelog to CHANGELOG.md
-c458f44fb9  Add a fork README for the GitHub release
-d8f51b409b  Custom theme: black dropdown spinners with a yellow border
-ad3a1c67c4  skills: auto-deliver builds via /after-build (drop the transfer prompt)
-38c144cc1f  Make compose field hints and separators legible and tunable
-1c3866931e  docs: no attribution trailer in commits
-357e187d5b  Refresh fork skill and CLAUDE docs for the 1.2326 rebase
-53a94d11c9  Custom launcher icon: black-yellow line-traced envelope
-da658763c7  Skill: never delete old APKs on the device when deploying
-b6a24a87e1  Custom theme: yellow drawer border without dimming the content
-563cb4c02d  Custom theme: black push buttons with a yellow border
-b5a98b7160  Custom theme: black snackbars with a yellow border and yellow text
-7b71a879c1  Custom theme: black dialogs and popup menus with a yellow border
-7498664edc  Add upstream-new-version skill to drive the upstream rebase and build
-f1f911e4e2  kxkb: document fork versioning and label, refresh skill for 1.2318
-da7c0082a7  Rename the sideloaded app label to 白い熊 FairEmail
-dfb598982d  Version the fork as the upstream version plus a local build number
-778bf7ad96  kxkb: add agent config (CLAUDE.md + .claude/skills/)
-15c94c9108  Folded message list: optional two-line subject with trailing date
-2eb273e526  Custom fonts: expand to independent per-role selection across eight roles
-d589036c37  Custom font picker: defer pref save so the activity recreates cleanly
-0a13e6ceee  Add custom font and weight selection for message text
-9f1cf08683  Custom theme colours: route tvBody link colour through the override
-a3eb0523d2  Custom theme colours: expand to 28 roles across 7 sections
-88d88568be  Custom theme colours: refactor picker UI to be data-driven
-87642123cb  Custom theme: hook XML-resolved colours via Activity-only Resources wrap
-e365e787fd  Custom theme: hook code-resolved colours to user prefs
-9c0bd0b0da  Custom theme: scaffold the customizable colour picker UI
-6c6083c8c4  Custom theme: unread accent yellow, decouple sender colour, extend font size range
-dc12d12f97  Custom theme polish: swap subject/sender highlight target, never bold sender, add sender_italic toggle, accent yellow
-1bf4ba8d4a  Add Custom theme: yellow-on-black with gold unread accent
-283f807251  Customize github flavor for sideloaded shiroikuma.fairemail build
+7cdec2cbf7  Publish 1.2327+1: refresh changelog and README for the 1.2327 rebase
+9e86b1806b  Reset the fork build number for the 1.2327 rebase
+d975cf0437  Publish 1.2326+8: refresh changelog and README for the cancel work
+91eb0489b7  Bump the fork build number to 8
+d64e747583  Stop a running export, leaving no partial file behind
+c13187abfe  Say which backup categories start ticked
+3276f4d481  Publish 1.2326+7: refresh changelog and README for the backup work
+b83868a4bf  Bump the fork build number to 7
+6c68320278  Answer the sister app state export automation contract
+81dfdf4f39  Add the automation token gate and its Export Import rows
+cee7d83d93  Export the local mail store as an opt-in backup category
+5de0733957  Write backups as one ZIP named by the sister-app convention
+e5d91ef22a  Publish 1.2326+5: refresh changelog and README for the UI page
+5adfc42be6  Bump the fork build number to 5
+d7b40b41de  Custom theme: black toolbar overflow menu with a yellow border
+8e2d031fee  Open the UI page by long-pressing the toolbar hamburger buttons
+14e6f248d1  Add the 白い熊 FairEmail UI page with export/import replacing Backup
+aab7aa6a67  Publish 1.2326+1: refresh changelog and README for the 1.2326 rebase
+4385f0f64d  Publish 1.2325+4: refresh README and changelog for the pro unlock
+fbb11e4162  Hide the purchase section on the pro features screen
+9a2e1c05c8  Unlock all pro features unconditionally
+2f28082029  skills: document the merged changelog workflow
+6def147bae  Add a merged fork changelog to CHANGELOG.md
+e8d84bb5f6  Add a fork README for the GitHub release
+aef215f865  Custom theme: black dropdown spinners with a yellow border
+dd4790e61d  skills: auto-deliver builds via /after-build (drop the transfer prompt)
+da986b6094  Make compose field hints and separators legible and tunable
+f7a557fcef  docs: no attribution trailer in commits
+a07da52e2a  Refresh fork skill and CLAUDE docs for the 1.2326 rebase
+ebb9a9ff8d  Custom launcher icon: black-yellow line-traced envelope
+6d74027537  Skill: never delete old APKs on the device when deploying
+14f90ccb16  Custom theme: yellow drawer border without dimming the content
+7949a450f5  Custom theme: black push buttons with a yellow border
+dd6bca2970  Custom theme: black snackbars with a yellow border and yellow text
+1a40584626  Custom theme: black dialogs and popup menus with a yellow border
+242d28f4a4  Add upstream-new-version skill to drive the upstream rebase and build
+5df5f71991  kxkb: document fork versioning and label, refresh skill for 1.2318
+c87fa65ff2  Rename the sideloaded app label to 白い熊 FairEmail
+7dd9c8b289  Version the fork as the upstream version plus a local build number
+ddf2d60c89  kxkb: add agent config (CLAUDE.md + .claude/skills/)
+8bc26b2399  Folded message list: optional two-line subject with trailing date
+1fe3f64b83  Custom fonts: expand to independent per-role selection across eight roles
+43cea469a9  Custom font picker: defer pref save so the activity recreates cleanly
+65f36d4612  Add custom font and weight selection for message text
+807d3e89ec  Custom theme colours: route tvBody link colour through the override
+44abba5395  Custom theme colours: expand to 28 roles across 7 sections
+66b650b95b  Custom theme colours: refactor picker UI to be data-driven
+25701a0c53  Custom theme: hook XML-resolved colours via Activity-only Resources wrap
+23e74373c3  Custom theme: hook code-resolved colours to user prefs
+f6059b534d  Custom theme: scaffold the customizable colour picker UI
+e5f03d8f83  Custom theme: unread accent yellow, decouple sender colour, extend font size range
+9ae16a1eca  Custom theme polish: swap subject/sender highlight target, never bold sender, add sender_italic toggle, accent yellow
+67b59b1cab  Add Custom theme: yellow-on-black with gold unread accent
+5b2168e95e  Customize github flavor for sideloaded shiroikuma.fairemail build
 ```
 
 ## Build + deploy pipeline
@@ -83,8 +100,8 @@ export ANDROID_HOME=$HOME/android-sdk ANDROID_SDK_ROOT=$HOME/android-sdk   # not
 Copy to `~/tmp/`, then deliver via `/after-build` — never auto-install:
 
 ```bash
-build_apk=app/build/outputs/apk/github/release/FairEmail-v1.2326a-github-release.apk   # archivesName uses the bare upstream code
-version=1.2326+1                                            # versionName: 1.<upstream>+<fork> (bump <fork> each local build)
+build_apk=app/build/outputs/apk/github/release/FairEmail-v1.2327a-github-release.apk   # archivesName uses the bare upstream code
+version=1.2327+1                                            # versionName: 1.<upstream>+<fork> (bump <fork> each local build)
 apk_name="shiroikuma-fairemail_${version}_arm64-v8a.apk"
 cp "$build_apk" ~/tmp/$apk_name
 ```
@@ -110,7 +127,7 @@ Before telling the user the APK is ready:
 
 ## Upstream rebase procedure
 
-Periodically rebase `custom` onto a newer upstream tag (last done 1.2325 → 1.2326):
+Periodically rebase `custom` onto a newer upstream tag (last done 1.2326 → 1.2327):
 
 1. `git fetch upstream --tags`.
 2. Create a safety branch: `git branch custom-pre-<newtag>-rebase`.
@@ -153,10 +170,10 @@ Display toggle `subject_lines_narrow` (off by default, in Display options next t
 - **Known minor:** the split lands one frame after bind, so a fast scroll may show the pre-split layout for a frame. Move to `OnPreDrawListener` if it ever bothers the user.
 
 ### Fork versioning, APK naming, and app label (`app/build.gradle`, github `strings.xml`, `ActivityView`)
-- **Versioning:** `getForkBuild` in `app/build.gradle` carries the fork build number. `versionCode = getVersionCode() * 10000 + getForkBuild()`; `versionName = "1." + getVersionCode() + "+" + getForkBuild()`. So upstream `2326` build `1` → versionName `1.2326+1`, versionCode `23260001`. Reset `getForkBuild` to 1 on each upstream rebase, +1 each subsequent local build. The scheme stays monotonic because the upstream code only increases. `getVersionCode()` is deliberately left returning the bare upstream code so archivesName, the `CHANGELOG.md` rename, the fdroid signature dirs, and `build_uuid` keep their upstream-keyed values.
+- **Versioning:** `getForkBuild` in `app/build.gradle` carries the fork build number. `versionCode = getVersionCode() * 10000 + getForkBuild()`; `versionName = "1." + getVersionCode() + "+" + getForkBuild()`. So upstream `2327` build `1` → versionName `1.2327+1`, versionCode `23270001`. Reset `getForkBuild` to 1 on each upstream rebase, +1 each subsequent local build. The scheme stays monotonic because the upstream code only increases. `getVersionCode()` is deliberately left returning the bare upstream code so archivesName, the `CHANGELOG.md` rename, the fdroid signature dirs, and `build_uuid` keep their upstream-keyed values.
 - **APK name on deploy:** `shiroikuma-fairemail_<versionName>_arm64-v8a.apk`. The built artifact under `app/build/.../FairEmail-v1.<upstream>a-github-release.apk` is unchanged (archivesName uses the bare code), so only the copied/pushed filename carries the `+<fork>`.
 - **App label:** github flavor `app_name` = `白い熊 FairEmail` in `app/src/github/res/values/strings.xml` (was `FairEmail Custom`). Only the github flavor is renamed; `app/src/main` keeps `FairEmail`.
-- **Update-check robustness (`ActivityView`):** the github update checker compares `Double.parseDouble(info.tag_name)` against `Double.parseDouble(BuildConfig.VERSION_NAME)`. `1.2326+1` is not a parseable double, so the comparison now strips the `+<fork>` suffix before parsing; otherwise every check would log an exception and falsely report an update to M66B's upstream build.
+- **Update-check robustness (`ActivityView`):** the github update checker compares `Double.parseDouble(info.tag_name)` against `Double.parseDouble(BuildConfig.VERSION_NAME)`. `1.2327+1` is not a parseable double, so the comparison now strips the `+<fork>` suffix before parsing; otherwise every check would log an exception and falsely report an update to M66B's upstream build.
 
 ### Merged changelog (`CHANGELOG.md`, in-app + GitHub)
 The fork keeps a **single merged changelog**: a fork section at the very top of `CHANGELOG.md` (a `# 白い熊 FairEmail — fork changes` heading with one `### 1.NNNN+F` block per fork release, newest first), then a `---` divider, then upstream's verbatim `## Changelog`. Editing **only the root `CHANGELOG.md`** is enough — the Gradle `copyMarkdown` task (a `preBuild` dependency) copies it verbatim into `app/src/main/assets/CHANGELOG.md`, so the in-app Changelog screen shows the fork section too; commit both files in sync (a build re-copies). The `copyChangelog` task also derives `metadata/en-US/changelogs/<code>.txt` from it (markdown stripped) — that one is build output, leave it to regenerate.
