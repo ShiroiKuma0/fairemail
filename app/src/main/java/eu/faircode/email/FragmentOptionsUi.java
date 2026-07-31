@@ -1216,24 +1216,41 @@ public class FragmentOptionsUi extends FragmentBase {
 
                 String name;
                 if (uri == null) {
+                    // Into the configured directory: written as a part file and renamed only
+                    // when the archive is complete, so a failure leaves nothing that looks
+                    // like a backup (see StateExport.exportToDir)
                     DocumentFile dir = StateExport.exportDir(context);
                     if (dir == null)
                         throw new FileNotFoundException("Export directory not accessible");
                     name = StateExport.exportFileName();
-                    DocumentFile file = dir.createFile(StateExport.EXPORT_MIME, name);
-                    if (file == null)
-                        throw new FileNotFoundException("Could not create " + name);
-                    uri = file.getUri();
-                } else {
-                    DocumentFile file = DocumentFile.fromSingleUri(context, uri);
-                    name = (file == null || file.getName() == null ? uri.toString() : file.getName());
+                    DocumentFile file = StateExport.exportToDir(context, cats, dir, name, null, null);
+                    if (file.getName() != null)
+                        name = file.getName();
+                    EntityLog.log(context, "UI export done uri=" + file.getUri());
+                    return name;
                 }
 
+                // Save-as: the picker created the file before we ever saw it, so the most we
+                // can do is take it away again when the export does not finish
+                DocumentFile file = DocumentFile.fromSingleUri(context, uri);
+                name = (file == null || file.getName() == null ? uri.toString() : file.getName());
+
                 ContentResolver resolver = context.getContentResolver();
-                try (OutputStream raw = resolver.openOutputStream(uri)) {
-                    if (raw == null)
-                        throw new FileNotFoundException(uri.toString());
-                    StateExport.export(context, cats, raw, null);
+                boolean complete = false;
+                try {
+                    try (OutputStream raw = resolver.openOutputStream(uri)) {
+                        if (raw == null)
+                            throw new FileNotFoundException(uri.toString());
+                        StateExport.export(context, cats, raw, null, null);
+                    }
+                    complete = true;
+                } finally {
+                    if (!complete)
+                        try {
+                            DocumentsContract.deleteDocument(resolver, uri);
+                        } catch (Throwable ex) {
+                            Log.w(ex);
+                        }
                 }
 
                 EntityLog.log(context, "UI export done uri=" + uri);
