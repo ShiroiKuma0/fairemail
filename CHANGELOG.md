@@ -2,6 +2,11 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2327+1 — on FairEmail 1.2327
+
+* Rebased the fork onto upstream FairEmail 1.2327 (collapsed inline attachments in the message editor, a "Sort on synchronized" option in the folder list, send-service and unified-widget fixes, refreshed translations, updated build tools — Android Gradle plugin 9.3.1)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
 ### 1.2326+8 — on FairEmail 1.2326
 
 **Major features**
