@@ -30,11 +30,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <li>{@link #ACTION_EXPORT_STATE}: run the UI page's export ({@link StateExport}) without
  * any Activity. Extras (all String): {@code token} (required — {@link AutomationAuth}),
  * {@code path} (optional absolute directory, wins over the configured SAF directory),
- * {@code items} (optional comma list of category ids; absent/empty = all),
+ * {@code items} (optional comma list of category ids; absent/empty = the default set, which
+ * is the categories flagged on in {@link StateExport#CAT_DEFAULTS}, not everything),
  * {@code progress_action} (optional), plus the reply trio {@code reply_action} /
  * {@code reply_package} / {@code reply_id}.</li>
  * <li>{@link #ACTION_LIST_CATEGORIES}: token-gated category enumeration for the caller's
- * item picker.</li>
+ * item picker, one {@code id<TAB>label<TAB>parent<TAB>on|off} line each. This app's
+ * categories are flat, so the parent field is always empty.</li>
  * </ul>
  *
  * <p>Reply: a FRESH broadcast to {@code reply_package} with action {@code reply_action},
@@ -102,12 +104,17 @@ public class StateExportReceiver extends BroadcastReceiver {
         }
 
         if (ACTION_LIST_CATEGORIES.equals(action)) {
+            // id TAB label TAB parent TAB on|off - the parent field stays empty because this
+            // app's categories are flat, and the fourth one is how the caller's picker learns
+            // which of them start ticked (it is drawn fresh from this reply every time).
             StringBuilder sb = new StringBuilder("OK:");
             for (int i = 0; i < StateExport.CAT_IDS.length; i++) {
                 if (i > 0)
                     sb.append('\n');
                 sb.append(StateExport.CAT_IDS[i]).append('\t')
-                        .append(app.getString(StateExport.CAT_LABELS[i]));
+                        .append(app.getString(StateExport.CAT_LABELS[i])).append('\t')
+                        .append('\t')
+                        .append(StateExport.CAT_DEFAULTS[i] ? "on" : "off");
             }
             replier.reply(sb.toString());
             return;
@@ -118,9 +125,11 @@ public class StateExportReceiver extends BroadcastReceiver {
             return;
         }
 
+        // No items named means "your default set" - what this app recommends backing up,
+        // never its whole footprint, which is why the heavy mail store is flagged off.
         final List<String> cats;
         if (TextUtils.isEmpty(items))
-            cats = StateExport.allCats();
+            cats = StateExport.defaultCats();
         else {
             cats = new ArrayList<>();
             for (String id : items.split(",")) {
@@ -135,7 +144,7 @@ public class StateExportReceiver extends BroadcastReceiver {
                     cats.add(id);
             }
             if (cats.isEmpty())
-                cats.addAll(StateExport.allCats());
+                cats.addAll(StateExport.defaultCats());
         }
 
         final ProgressEmitter progress = new ProgressEmitter(
