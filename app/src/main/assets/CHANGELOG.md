@@ -2,6 +2,29 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2327+1 — on FairEmail 1.2327
+
+* Rebased the fork onto upstream FairEmail 1.2327 (collapsed inline attachments in the message editor, a "Sort on synchronized" option in the folder list, send-service and unified-widget fixes, refreshed translations, updated build tools — Android Gradle plugin 9.3.1)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
+### 1.2326+8 — on FairEmail 1.2326
+
+**Major features**
+
+* The automation category list now carries the contract's **fourth `default` field** — every `LIST_CATEGORIES` line goes out as `id⇥label⇥parent⇥on|off`, with the parent field empty because these categories are flat — so the sister app's item picker, which is drawn fresh from this reply each time it is opened, starts with **local emails unticked** and everything else ticked
+* An `EXPORT_STATE` request that names no `items` now takes **that same default set** instead of everything, which is what the contract means by "your default set": a headless backup no longer drags the gigabyte-scale mail store along unasked
+* New **`CANCEL_EXPORT`** action on the same exported receiver (`token`, plus an optional `reply_id` naming the run): it flips a flag the export tests at entry, account, folder, message and 8 KB-block boundaries, so a run unwinds at the next boundary rather than being torn down mid-write, nothing is interrupted or killed, and the stopped export sends `ERROR:cancelled` as its own terminal reply through the existing single-fire guard
+* The cancel **answers nobody** — a bad token, automation switched off, an export that already finished, or nothing running at all are all silent no-ops, so it is safe to fire at any time
+* Backups are now written to **`<name>.part` and renamed only once the archive is closed and complete**, through one helper shared by the automation receiver and the in-app panel, on the plain-file route and the SAF route alike
+
+**Fixes and behavior**
+
+* Anything that ends an export early — a cancel, an error, a full disk — deletes the part file in the same `finally`, so the backup directory is left exactly as it was found; previously a failed export left its half-written archive behind under the final name, indistinguishable from a real backup until a restore tried to read it, and silently the newest one in the directory every app in the family shares
+* The SAF part file is created as `application/octet-stream`, because a zip mime type makes the document provider append a second extension to a name that already ends in `.part`
+* Only one automation export runs at a time (`ERROR:export already running`), which is what lets a cancel name the running one by leaving `reply_id` out; the guard is process-local and released in a `finally`, never persisted, so a crash can never wedge exporting for good
+* The in-app Export/Import panel deletes the document the save-as picker created when the export does not finish
+* The panel checkboxes, the automation reply and the no-items export all read one array, so the in-app sheet and the sister app's picker cannot drift apart
+
 ### 1.2326+7 — on FairEmail 1.2326
 
 **Major features**
