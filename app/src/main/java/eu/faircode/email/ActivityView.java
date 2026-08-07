@@ -1907,7 +1907,7 @@ public class ActivityView extends ActivityBilling implements FragmentManager.OnB
                                         return info;
                                     try {
                                         // This fork appends a build suffix to the upstream
-                                        // version name (e.g. 1.2317+1); the upstream releases
+                                        // version name (e.g. 1.2328+002); the upstream releases
                                         // this checks against are plain (e.g. 1.2317), so compare
                                         // on the upstream part only, otherwise parsing the local
                                         // version fails and every check reports a false update.
