@@ -91,17 +91,21 @@ Recurring spots, from the fairemail-fork rebase procedure:
   conflicts. Our fork section lives at the very top, above upstream's
   `## Changelog`, ended by a `---` divider. Resolution is always the same:
   **keep our fork section above the `---`, take upstream's new block below it.**
-  Then add a fresh `### <newtag>+1` fork block at the top of our section for this
+  Then add a fresh `### <newtag>+001` fork block at the top of our section for this
   rebase (see Step 8). The in-app copy is regenerated from the root by the build,
   so fixing root and re-copying (a build does it) is enough.
 
 Invariants that MUST survive any reconciliation — never let a merge revert them:
 - `applicationId "shiroikuma.fairemail"`; the Java `namespace` stays `eu.faircode.email`.
-- The Pro-salt pin in `app/src/github/java/eu/faircode/email/ActivityBilling.java`:
-  `return Helper.sha256("eu.faircode.email" + getChallenge(context));` (comment at the site explains why).
+- The unconditional Pro unlock in `app/src/github/java/eu/faircode/email/ActivityBilling.java`:
+  `isPro()` returns `true` (comment at the site explains why). NOTE: the older
+  Pro-salt pin (`Helper.sha256("eu.faircode.email" + getChallenge(context))`) no
+  longer exists — the unlock superseded it, so `getResponse()` reads the upstream
+  `BuildConfig.APPLICATION_ID` line and the challenge code gates nothing. Grepping
+  for the pin correctly finds nothing; do not "restore" it.
 - The github `app_name` = `白い熊 FairEmail` in `app/src/github/res/values/strings.xml`.
 - The `ActivityView` update-check `+<fork>` suffix strip (`version.indexOf('+')`),
-  so `1.NNNN+F` parses and does not falsely report an upstream update.
+  so `1.NNNN+NNN` parses and does not falsely report an upstream update.
 
 After resolving, confirm no markers remain:
 ```bash
@@ -110,7 +114,9 @@ git grep -nE '^(<<<<<<<|=======|>>>>>>>)' -- '*.gradle' '*.java' '*.xml' || echo
 
 ## Step 4 — Reset the fork build number
 
-Per fork versioning, the first build on a new tag is `1.<new>+1`. In
+Per fork versioning, the first build on a new tag is `1.<new>+001` (the fork
+number is a bare int in the gradle literal and zero padded to three digits only
+where it is rendered into the versionName). In
 `app/build.gradle` set `getForkBuild` back to **1**, and confirm `getVersionCode`
 now returns the new bare number (the merge in Step 3 should already have taken it):
 ```bash
@@ -142,16 +148,18 @@ is a false negative; the `aapt2` application-label line is authoritative, trust 
 ## Step 6 — Deploy (never auto-install)
 
 ```bash
-version="${new}+1"                               # bump the +N for each subsequent local build
+version="${new}+001"                             # bump the +NNN for each subsequent local build, always 3 digits
 apk_name="shiroikuma-fairemail_${version}_arm64-v8a.apk"
-mkdir -p ~/tmp; rm -f ~/tmp/shiroikuma-fairemail_*.apk
+mkdir -p ~/tmp
 cp "$build_apk" ~/tmp/"$apk_name"
 ```
 Then invoke the global `/after-build` skill: it runs `/adb-check` UNSANDBOXED,
 then `/adb-push` to `/sdcard/tmp/` if the phone is connected, else `/scp` to
 skhw, and announces the filename — never prompt "is the phone connected?".
-(Old `/sdcard/tmp/shiroikuma-fairemail_*.apk` are never wiped — prior builds
-stay in place.)
+Prior builds are never wiped, in `~/tmp/` or in `/sdcard/tmp/`: the zero padded
+fork number keeps them apart and sorts them in build order, which is the whole
+point of the padding, and the build-side mtime plus integrity probe already
+guard against shipping a stale APK.
 
 ## Step 7 — Device verification, then the Push gate
 
@@ -180,10 +188,10 @@ and verify on the Mate XT — custom theme, fonts, the folded two-line subject.
 2. Refresh the docs to the new tag and fold them into the top skill-doc commit
    (amend keeps the curated stack a constant size across rebases):
    - `fairemail-fork/SKILL.md`: `Current base tag` to `$new`; the version
-     examples (`1.<num>+1`, `<num>0001`); the `Toolchain (tag ...)` header;
+     examples (`1.<num>+001`, `<num>0001`); the `Toolchain (tag ...)` header;
      the build-pipeline APK path; the rebase line `last done <base> → <new>`;
      and regenerate the commit-stack listing from `git log --oneline ${new}..custom`.
-   - `CLAUDE.md`: the `1.<num>+1` / `<num>0001` version examples.
+   - `CLAUDE.md`: the `1.<num>+001` / `<num>0001` version examples.
    - Stage ONLY the doc files by path, then `git commit --amend -F <msgfile>`
      (subject "...refresh skill for $new"). Never `git add -A` (build artifacts
      may be untracked).
