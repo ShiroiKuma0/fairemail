@@ -2,6 +2,12 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2328+002 — on FairEmail 1.2328
+
+* Rebased the fork onto upstream FairEmail 1.2328 (an inset for the display cutout and medium list spacing by default, a VPN list button, the Thundermail provider, a corrected default Gemini model name, refreshed S/MIME root certificates, PSL and Brave debounce list, an NPE guard, and refreshed translations)
+* The fork build number is now **zero padded to three digits** in the version name, so this build reads `1.2328+002` rather than `1.2328+2`. Build lists and APK file names in the directories shared with the other sideloaded apps now sort in build order instead of lexically, where build 10 would otherwise land ahead of build 2. The padding is confined to the version name; the version code arithmetic is unchanged, and the update check still ignores everything after the plus sign
+* No other fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
 ### 1.2327+1 — on FairEmail 1.2327
 
 * Rebased the fork onto upstream FairEmail 1.2327 (collapsed inline attachments in the message editor, a "Sort on synchronized" option in the folder list, send-service and unified-widget fixes, refreshed translations, updated build tools — Android Gradle plugin 9.3.1)
