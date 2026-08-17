@@ -10,7 +10,7 @@ def getVersionCode = { -> return 2332 }
 // 23180001) and rendered in versionName as "<upstream>+<fork>", where the fork
 // number is zero padded to three digits (e.g. 1.2318+001) so that build lists
 // and APK file names sort in build order rather than lexically.
-def getForkBuild = { -> return 2 }
+def getForkBuild = { -> return 1 }
 def getRevision = { -> return "a" }
 def getReleaseName = { -> return "Elopteryx" }
 // https://en.wikipedia.org/wiki/List_of_dinosaur_genera
