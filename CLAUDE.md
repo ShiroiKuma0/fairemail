@@ -11,7 +11,7 @@ This is the user's personal fork of M66B's FairEmail Android email client, custo
    - Confirm APK mtime is current after `assembleGithubRelease` — incremental Gradle can silently no-op.
    - Run the integrity probe: `unzip -p "$build_apk" resources.arsc | strings | grep -c "<new-string-or-id>"` returns `> 0`.
    - On any compile error, paste the `error:` or `エラー:` lines and fix at root, do not rerun blindly.
-4. **Deploy hygiene**: copy to `~/tmp/shiroikuma-fairemail_<versionName>_arm64-v8a.apk` (versionName = `1.<upstream>+<fork>`, e.g. `1.2327+1`) AND `adb push` to `/sdcard/tmp/`. **Never delete old APKs on the device** — leave every prior `/sdcard/tmp/shiroikuma-fairemail_*.apk` in place; the version in the filename keeps them apart, and the build-side mtime + integrity probe already guard against shipping a stale build.
+4. **Deploy hygiene**: copy to `~/tmp/shiroikuma-fairemail_<versionName>_arm64-v8a.apk` (versionName = `1.<upstream>+<fork>` with the fork number zero padded to three digits, e.g. `1.2331+001`) AND `adb push` to `/sdcard/tmp/`. **Never delete old APKs on the device** — leave every prior `/sdcard/tmp/shiroikuma-fairemail_*.apk` in place; the version in the filename keeps them apart, and the build-side mtime + integrity probe already guard against shipping a stale build.
 5. **Verify the push actually landed before starting the next feature**: `git fetch origin && git log --oneline -1` and confirm the new hash/subject. Building on a base that did not land has caused real damage in this project (see lessons in the fork skill).
 6. **Compile-check before claiming success**: when editing Java, every newly-referenced type needs an `import` in the file. Verify with `grep "import .*\.<Symbol>;" <file>` if unsure. Trust the compiler over assumptions.
 
@@ -27,14 +27,14 @@ export ANDROID_HOME=$HOME/android-sdk ANDROID_SDK_ROOT=$HOME/android-sdk   # not
 
 Output APK: `app/build/outputs/apk/github/release/FairEmail-v<tag>a-github-release.apk`.
 
-**Versioning**: before each build, set the fork build number in `app/build.gradle` (`getForkBuild`): bump it +1 on every local build, and reset it to **1** right after an upstream rebase. That yields versionName `1.<upstream>+<fork>` (e.g. `1.2327+1`) and versionCode `<upstream> * 10000 + <fork>` (e.g. `23270001`). Leave `getVersionCode()` returning the bare upstream code. See the fork skill for the full rationale.
+**Versioning**: before each build, set the fork build number in `app/build.gradle` (`getForkBuild`): bump it +1 on every local build, and reset it to **1** right after an upstream rebase. That yields versionName `1.<upstream>+<fork>` with the fork number zero padded to three digits (e.g. `1.2331+001`) and versionCode `<upstream> * 10000 + <fork>` (e.g. `23310001`). The padding is cosmetic and lives only in the versionName, so build lists and APK file names sort in build order; the versionCode arithmetic is unchanged. Leave `getVersionCode()` returning the bare upstream code. See the fork skill for the full rationale.
 
 Keystore at `~/.android-keystores/fairemail-custom.jks` (alias `fairemail`). Password is **not** stored in this repo — keep it in `~/.gradle/gradle.properties` or an env var (`KEYSTORE_PASS`), never in a tracked file. If signing config is broken, ask the user rather than guessing.
 
 ## Don't
 
 - Don't reformat unrelated code or "fix" upstream style.
-- Don't touch the Pro activation salt fix in `ActivityBilling` — it pins to `"eu.faircode.email"` on purpose; the comment at the site explains.
+- Don't touch the unconditional Pro unlock in the github `ActivityBilling` — `isPro()` returns `true` on purpose; the comment at the site explains. (The older salt pin to `"eu.faircode.email"` is gone: the unlock superseded it, so `getResponse()` is back to the upstream line and the challenge code no longer gates anything. Do not "restore" the pin on a rebase.)
 - Don't suggest reverting the namespace fix or the `applicationId` to upstream values.
 - Don't commit `.android-keystores/`, build outputs, `.gradle/`, `local.properties`, or anything in `~/tmp/`.
 
