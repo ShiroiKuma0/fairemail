@@ -2,6 +2,11 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2330+001 — on FairEmail 1.2330
+
+* Rebased the fork onto upstream FairEmail 1.2330 (the message language is now available as an expression condition in rules, rule regular expressions are validated before they are saved, and the bundled libraries were refreshed: Jsoup 1.23.1, EvalEx 3.7.0, BouncyCastle 1.85, ez-vcard 0.12.2, MiniDNS 1.1.1, JsonPath 3.0.0 and core library desugaring 2.1.5)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
 ### 1.2329+001 — on FairEmail 1.2329
 
 * Rebased the fork onto upstream FairEmail 1.2329 (message rendering now ignores CSS colour schemes and the `prefers-color-scheme: dark` rule, so a sender stylesheet can no longer drag its own dark palette across the custom theme, and CSS media-list results are cached while a message is styled, which cuts the repeated matching on style-heavy mail; a settings button on the notification-permission dialog; a guard against reading a contact-picker cursor that returns no columns; refreshed public suffix list, Brave debounce list, AndroidX libraries and translations)
