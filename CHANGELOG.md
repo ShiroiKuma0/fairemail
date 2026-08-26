@@ -2,6 +2,11 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2332+001 — on FairEmail 1.2332
+
+* Rebased the fork onto upstream FairEmail 1.2332 (a Jsoup crash in the reformatted message view is prevented on Android 6, where the ICU charset decoder threw `IllegalArgumentException: Bad position` part way through a streamed parse, by reading the stream into memory and parsing the string instead; Rackspace is recognised as a provider; the Android Gradle plugin moves to 9.3.2; refreshed FAQ and translations)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
 ### 1.2331+001 — on FairEmail 1.2331
 
 * Rebased the fork onto upstream FairEmail 1.2331 (support for PGPony; the real submitter is decoded from `@mozmail.com` masked addresses, so Firefox Relay mail shows who actually sent it; an address that looks suspicious is now shown in the personal field, and the earlier behaviour of showing the email address whenever the display name contained one was reverted; relaxed qmail and nullmailer checks; debug code removed; refreshed public suffix list, FAQ and translations)
