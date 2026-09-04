@@ -54,6 +54,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * result either — EMUI severs that channel between third-party apps. The plain reply
  * broadcast with {@link Intent#FLAG_INCLUDE_STOPPED_PACKAGES} is the only working path
  * (verified on the Mate XT, 2026-07-23); without the flag a stopped caller never hears us.
+ *
+ * <p>This receiver is the <b>unauthenticated</b> half of the automation surface, and that
+ * is deliberate: it only ever writes where it was told to and reports what it did. Anything
+ * that moves data through a descriptor the caller supplied lives behind
+ * {@link AutomationProvider}, which knows who is calling — which is also why {@code import}
+ * exists there and has no action here. An import over an exported receiver with no
+ * permission would let any app on the phone wipe this one.
  */
 public class StateExportReceiver extends BroadcastReceiver {
     static final String ACTION_EXPORT_STATE = BuildConfig.APPLICATION_ID + ".action.EXPORT_STATE";

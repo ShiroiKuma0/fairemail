@@ -5,7 +5,6 @@ import static eu.faircode.email.ServiceAuthenticator.AUTH_TYPE_GMAIL;
 import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -177,6 +176,19 @@ public class StateExport {
      */
     interface Progress {
         void report(long current, long total, String unit, String text);
+    }
+
+    /**
+     * A backup this app can open, more than once.
+     *
+     * <p>The import needs two passes — the export JSON, then the mail store, whose index entry
+     * has to be read before the payload entries it names — so it cannot be given a plain
+     * stream. A {@link Uri} covers what 白い熊 picks by hand; the automation data door is
+     * handed a descriptor its caller opened, which may be a pipe and is in any case not
+     * seekable twice, so it spools a private copy and opens that.
+     */
+    interface Source {
+        InputStream open() throws IOException;
     }
 
     /**
@@ -822,18 +834,68 @@ public class StateExport {
 
     // --- import ---
 
+    /** The panel's route: whatever the content resolver can open, opened afresh each pass. */
+    static Source sourceOf(Context context, Uri uri) {
+        return new Source() {
+            @Override
+            public InputStream open() throws IOException {
+                InputStream is = context.getContentResolver().openInputStream(uri);
+                if (is == null)
+                    throw new FileNotFoundException(uri.toString());
+                return is;
+            }
+        };
+    }
+
+    /** A file this app wrote itself, for a descriptor that could not be read twice. */
+    static Source sourceOf(File file) {
+        return new Source() {
+            @Override
+            public InputStream open() throws IOException {
+                return new FileInputStream(file);
+            }
+        };
+    }
+
+    /**
+     * The categories a backup actually carries, read from its {@link #ENTRY_MANIFEST}.
+     *
+     * <p>Restoring what is present rather than what was asked for is what keeps an import from
+     * reporting success over nothing. A backup with no manifest — an older bare fork export or
+     * a stock upstream one — carries no such list, so every category is offered and the import
+     * skips the ones the JSON does not have.
+     */
+    static List<String> categoriesIn(Source source) {
+        try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(source.open()))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.isDirectory() || !ENTRY_MANIFEST.equals(entry.getName()))
+                    continue;
+                JSONObject jmanifest = new JSONObject(readAll(zis));
+                JSONArray jcats = jmanifest.optJSONArray("categories");
+                if (jcats == null)
+                    break;
+                List<String> cats = new ArrayList<>();
+                for (int i = 0; i < jcats.length(); i++) {
+                    String cat = jcats.optString(i, null);
+                    if (isKnownCat(cat) && !cats.contains(cat))
+                        cats.add(cat);
+                }
+                return cats;
+            }
+        } catch (Throwable ex) {
+            Log.w(ex);
+        }
+        return Arrays.asList(CAT_IDS);
+    }
+
     /**
      * Read the export JSON out of a backup: the {@link #ENTRY_EXPORT} entry of a
      * family-convention ZIP, or the whole file when it is a bare JSON export (an
      * older fork backup or a stock unencrypted upstream one).
      */
-    private static String readExportJson(Context context, Uri uri) throws Throwable {
-        ContentResolver resolver = context.getContentResolver();
-        InputStream is = resolver.openInputStream(uri);
-        if (is == null)
-            throw new FileNotFoundException(uri.toString());
-
-        try (BufferedInputStream bis = new BufferedInputStream(is)) {
+    private static String readExportJson(Context context, Source source) throws Throwable {
+        try (BufferedInputStream bis = new BufferedInputStream(source.open())) {
             bis.mark(4);
             byte[] magic = new byte[4];
             int read = 0;
@@ -885,6 +947,23 @@ public class StateExport {
      * are untouched.
      */
     static String performImport(Context context, List<String> cats, Uri uri) throws Throwable {
+        // The Uri route is the one 白い熊 drives by hand from the panel, and the only one that
+        // can be handed a file it may not read - so the friendly check belongs here rather
+        // than in the body, which also serves descriptors this app opened itself.
+        NoStreamException.check(uri, context);
+        return performImport(context, cats, sourceOf(context, uri), uri.toString());
+    }
+
+    /**
+     * The same import over anything that can be opened twice — the second pass is what
+     * restores the mail store, whose index has to be read before its payload entries. The
+     * automation data door supplies a spooled copy of the descriptor its caller opened, which
+     * is why this cannot simply take a {@link Uri}.
+     *
+     * @param label what the log should call the source; a Uri, or a descriptor's job.
+     */
+    static String performImport(Context context, List<String> cats, Source source, String label)
+            throws Throwable {
         boolean catAccounts = cats.contains(CAT_ACCOUNTS);
         boolean catRules = cats.contains(CAT_RULES);
         boolean catContacts = cats.contains(CAT_CONTACTS);
@@ -895,11 +974,9 @@ public class StateExport {
         boolean catSettings = cats.contains(CAT_SETTINGS);
         boolean catUi = cats.contains(CAT_UI);
 
-        EntityLog.log(context, "UI import " + uri + " cats=" + TextUtils.join(",", cats));
+        EntityLog.log(context, "UI import " + label + " cats=" + TextUtils.join(",", cats));
 
-        NoStreamException.check(uri, context);
-
-        String json = readExportJson(context, uri).trim();
+        String json = readExportJson(context, source).trim();
         if (!json.startsWith("{") || !json.endsWith("}"))
             throw new IllegalArgumentException(context.getString(R.string.title_ui_eim_invalid));
 
@@ -1297,7 +1374,14 @@ public class StateExport {
                     }
                 }
 
-                editor.apply();
+                // commit(), not apply(): the automation door replies success and 応用管理 then
+                // force-stops this app with a SIGKILL, so an asynchronous write still in flight
+                // is simply lost - the restore reports success over data that is gone, and it is
+                // invisible in testing because a hand-run import is followed by a normal
+                // lifecycle that flushes properly. Free on both callers: the panel imports
+                // inside SimpleTask.onExecute and the door on a parallel executor, so neither
+                // path is on the main thread and neither trades a truncated restore for an ANR.
+                editor.commit();
                 ApplicationEx.upgrade(context);
             }
 
@@ -1325,7 +1409,13 @@ public class StateExport {
 
         // Outside the transaction: restoring the mail store writes thousands of rows and
         // their payload files, and it needs the folders the transaction above committed.
-        int nMessages = (catMessages ? importMessages(context, uri) : 0);
+        int nMessages = (catMessages ? importMessages(context, source) : 0);
+
+        // And flush what this app does not own the editor for. ApplicationEx.upgrade writes
+        // with apply() behind our back, which our own edit() cannot reach; an empty commit()
+        // blocks on that file's write lock until everything already published into its
+        // in-memory map has been written, so there is no need to track which keys were pending.
+        PreferenceManager.getDefaultSharedPreferences(context).edit().commit();
 
         EntityLog.log(context, "UI import done");
 
@@ -1362,9 +1452,8 @@ public class StateExport {
      * are ones already in that folder with the same message id — the import merges, it
      * never duplicates. A backup written without this category simply has no such entries.
      */
-    private static int importMessages(Context context, Uri uri) throws Throwable {
+    private static int importMessages(Context context, Source source) throws Throwable {
         DB db = DB.getInstance(context);
-        ContentResolver resolver = context.getContentResolver();
 
         Map<String, EntityAccount> accounts = new HashMap<>();
         Map<String, EntityFolder> folders = new HashMap<>();
@@ -1372,11 +1461,7 @@ public class StateExport {
         int imported = 0;
         int skipped = 0;
 
-        InputStream is = resolver.openInputStream(uri);
-        if (is == null)
-            throw new FileNotFoundException(uri.toString());
-
-        try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is))) {
+        try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(source.open()))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 String name = entry.getName();
