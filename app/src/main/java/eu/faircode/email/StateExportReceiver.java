@@ -26,20 +26,21 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * <ul>
  * <li>{@link #ACTION_EXPORT_STATE}: run the UI page's export ({@link StateExport}) without
- * any Activity. Extras (all String): {@code token} (required — {@link AutomationAuth}),
+ * any Activity. Extras (all String): {@code token} (optional — checked only when this
+ * app asks for one, see {@link AutomationAuth}),
  * {@code path} (optional absolute directory, wins over the configured SAF directory),
  * {@code items} (optional comma list of category ids; absent/empty = the default set, which
  * is the categories flagged on in {@link StateExport#CAT_DEFAULTS}, not everything),
  * {@code progress_action} (optional), plus the reply trio {@code reply_action} /
  * {@code reply_package} / {@code reply_id}. One export at a time — the guard is what makes a
  * cancel without a {@code reply_id} unambiguous.</li>
- * <li>{@link #ACTION_LIST_CATEGORIES}: token-gated category enumeration for the caller's
+ * <li>{@link #ACTION_LIST_CATEGORIES}: gated category enumeration for the caller's
  * item picker, one {@code id<TAB>label<TAB>parent<TAB>on|off} line each. This app's
  * categories are flat, so the parent field is always empty.</li>
- * <li>{@link #ACTION_CANCEL_EXPORT}: stop the running export. Extras: {@code token} and an
- * optional {@code reply_id}. Fire-and-forget — it is never answered, not even when it
- * arrives with nothing running or with a bad token, and the export it stops sends
- * {@code ERROR:cancelled} as its own terminal reply.</li>
+ * <li>{@link #ACTION_CANCEL_EXPORT}: stop the running export. Extras: an optional
+ * {@code token} and an optional {@code reply_id}. Fire-and-forget — it is never answered,
+ * not even when it arrives with nothing running or with a bad token, and the export it
+ * stops sends {@code ERROR:cancelled} as its own terminal reply.</li>
  * </ul>
  *
  * <p>Reply: a FRESH broadcast to {@code reply_package} with action {@code reply_action},
@@ -118,7 +119,7 @@ public class StateExportReceiver extends BroadcastReceiver {
         // at any time: with nothing running, or after the export already finished, it is a
         // no-op rather than an error. The reply belongs to the export it stops, not to it.
         if (ACTION_CANCEL_EXPORT.equals(action)) {
-            if (AutomationAuth.enabled(app) && AutomationAuth.isTokenValid(app, token)) {
+            if (AutomationAuth.refuse(app, token) == null) {
                 Run run = running.get();
                 if (run != null && (TextUtils.isEmpty(replyId) || replyId.equals(run.id))) {
                     run.cancel.set(true);
@@ -128,13 +129,12 @@ public class StateExportReceiver extends BroadcastReceiver {
             return;
         }
 
-        // Gate first, and report "disabled" and "bad token" distinctly (they debug differently)
-        if (!AutomationAuth.enabled(app)) {
-            replier.reply("ERROR:automation disabled");
-            return;
-        }
-        if (!AutomationAuth.isTokenValid(app, token)) {
-            replier.reply("ERROR:bad token");
+        // Gate first, in one place: the switch, and the token only when this app asks for
+        // one. A token sent to an app that does not want one is ignored, never refused - see
+        // AutomationAuth for why that is required rather than merely tolerant.
+        String refused = AutomationAuth.refuse(app, token);
+        if (refused != null) {
+            replier.reply(refused);
             return;
         }
 

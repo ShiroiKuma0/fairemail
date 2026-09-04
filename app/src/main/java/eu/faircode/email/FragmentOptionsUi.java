@@ -108,6 +108,7 @@ public class FragmentOptionsUi extends FragmentBase {
 
     private TextView tvEximStatus;
     private TextView tvAutomationToken;
+    private View vAutomationToken;
     private AlertDialog eximDialog;
     private TextView dlgDirValue;
     private TextView dlgStatus;
@@ -339,12 +340,21 @@ public class FragmentOptionsUi extends FragmentBase {
     }
 
     /**
-     * The two automation rows, appended directly below the Export / import row: a master
-     * switch (default OFF) and the token row, which copies the full token on tap and
-     * carries Regenerate on the right. This is the shared 白い熊 automation surface —
-     * {@link StateExportReceiver} answers a sister-app task only once the switch is on and
-     * the token matches, so 自由作業盤's 保存復元 can back this app up in the same run as
-     * every other one.
+     * The three automation rows, appended directly below the Export / import row: a master
+     * switch (default ON), a 「Use authorization token?」 switch (default OFF), and the token
+     * row — shown only when the token is being asked for, because a 48-character secret
+     * sitting under an off switch invites 白い熊 to paste it somewhere it will do nothing.
+     * The token row copies the full token on tap and carries Regenerate on the right.
+     *
+     * <p>This is the shared 白い熊 automation surface. {@link StateExportReceiver} answers a
+     * sister-app task whenever the switch is on, so 自由作業盤's 保存復元 backs this app up in
+     * the same run as every other one, and {@link AutomationProvider} lets 応用管理 take this
+     * app's data with it — that one identifies its caller by name, uid and signing
+     * certificate whatever these switches say.
+     *
+     * <p>The switch ships ON deliberately: the case this exists for is a phone that has just
+     * been wiped, where nothing has been configured and nobody has pasted anything. It stays
+     * a switch because closing one app off has to remain possible.
      */
     private void addAutomationRows(LinearLayout parent) {
         final Context context = parent.getContext();
@@ -373,6 +383,31 @@ public class FragmentOptionsUi extends FragmentBase {
                 AutomationAuth.setEnabled(context, isChecked);
                 if (isChecked)
                     checkAllFilesAccess();
+            }
+        });
+
+        final SwitchCompat swRequireToken = new SwitchCompat(context);
+        swRequireToken.setText(R.string.title_ui_automation_require_token);
+        swRequireToken.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        swRequireToken.setTextColor(colorText);
+        swRequireToken.setLayoutParams(rowParams(ViewGroup.LayoutParams.MATCH_PARENT, 12));
+        swRequireToken.setChecked(AutomationAuth.requireToken(context));
+        parent.addView(swRequireToken);
+
+        TextView tokenDesc = new TextView(context);
+        tokenDesc.setText(R.string.title_ui_automation_require_token_desc);
+        tokenDesc.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        tokenDesc.setTypeface(tokenDesc.getTypeface(), Typeface.ITALIC);
+        tokenDesc.setAlpha(0.85f);
+        tokenDesc.setLayoutParams(rowParams(ViewGroup.LayoutParams.MATCH_PARENT, 2));
+        parent.addView(tokenDesc);
+
+        swRequireToken.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                AutomationAuth.setRequireToken(context, isChecked);
+                if (vAutomationToken != null)
+                    vAutomationToken.setVisibility(isChecked ? View.VISIBLE : View.GONE);
             }
         });
 
@@ -435,6 +470,9 @@ public class FragmentOptionsUi extends FragmentBase {
         });
         tokenRow.addView(btnRegenerate);
 
+        // Hidden until the token is actually being asked for - see the method comment.
+        vAutomationToken = tokenRow;
+        tokenRow.setVisibility(AutomationAuth.requireToken(context) ? View.VISIBLE : View.GONE);
         parent.addView(tokenRow);
     }
 

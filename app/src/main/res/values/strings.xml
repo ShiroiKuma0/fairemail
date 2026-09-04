@@ -799,7 +799,9 @@
 
     <!-- 白い熊: automation export (the sister-app state-export contract) -->
     <string name="title_ui_automation_switch" translatable="false">Automation export</string>
-    <string name="title_ui_automation_switch_desc" translatable="false">Let sister-app tasks run this export headlessly through the token-gated intent, so 保存復元 can back this app up together with every other one. Off by default.</string>
+    <string name="title_ui_automation_switch_desc" translatable="false">Let sister-app tasks run this export headlessly, and let 応用管理 back this app up together with its data, so 保存復元 can save this app in the same run as every other one. On by default; turn it off to close this app off entirely.</string>
+    <string name="title_ui_automation_require_token" translatable="false">Use authorization token?</string>
+    <string name="title_ui_automation_require_token_desc" translatable="false">Off: any sister app may drive the automation. On: a caller must also present the token below. Either way the data door checks the calling app name, its uid and its signing certificate.</string>
     <string name="title_ui_automation_token" translatable="false">Automation token</string>
     <string name="title_ui_automation_copied" translatable="false">Automation token copied to the clipboard</string>
     <string name="title_ui_automation_regenerate" translatable="false">Regenerate</string>
