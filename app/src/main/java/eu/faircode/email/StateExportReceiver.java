@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Environment;
-import android.os.SystemClock;
 import android.provider.DocumentsContract;
 import android.text.TextUtils;
 
@@ -70,13 +69,6 @@ public class StateExportReceiver extends BroadcastReceiver {
     private static final String EXTRA_REPLY_PACKAGE = "reply_package";
     private static final String EXTRA_REPLY_ID = "reply_id";
     private static final String EXTRA_RESULT = "result";
-    private static final String EXTRA_PROGRESS_APP = "app";
-    private static final String EXTRA_PROGRESS_TEXT = "text";
-    private static final String EXTRA_PROGRESS_CURRENT = "current";
-    private static final String EXTRA_PROGRESS_TOTAL = "total";
-    private static final String EXTRA_PROGRESS_UNIT = "unit";
-
-    private static final long PROGRESS_INTERVAL = 500L; // ms, at most one broadcast per
 
     /**
      * The export running right now, if any: the cancel target, and the guard against two at
@@ -182,7 +174,11 @@ public class StateExportReceiver extends BroadcastReceiver {
                 cats.addAll(StateExport.defaultCats());
         }
 
-        final ProgressEmitter progress = new ProgressEmitter(
+        // One progress sender for both doors - see AutomationProgress. The §1 path writes to a
+        // local file and can only be as slow as this app is, so it takes the throttle without
+        // the heartbeat; the data door starts the heartbeat because its descriptor may be a
+        // pipe that blocks on the caller.
+        final AutomationProgress progress = new AutomationProgress(
                 app, progressAction, replyPackage, replyId, appLabel(app));
 
         // One export at a time, which is what lets a cancel name the running one by leaving
@@ -334,60 +330,4 @@ public class StateExportReceiver extends BroadcastReceiver {
         }
     }
 
-    /**
-     * Progress broadcasts with real counts — never a percentage. Throttled to at most one
-     * every {@link #PROGRESS_INTERVAL} ms, with a forced final one at completion.
-     */
-    private static class ProgressEmitter implements StateExport.Progress {
-        private final Context context;
-        private final String action;
-        private final String pkg;
-        private final String id;
-        private final String label;
-        private long last = 0;
-        private String lastUnit = "";
-        private long lastTotal = 0;
-
-        ProgressEmitter(Context context, String action, String pkg, String id, String label) {
-            this.context = context;
-            this.action = action;
-            this.pkg = pkg;
-            this.id = id;
-            this.label = label;
-        }
-
-        @Override
-        public void report(long current, long total, String unit, String text) {
-            lastUnit = unit;
-            lastTotal = total;
-            send(current, total, unit, text, false);
-        }
-
-        /** The mandatory final broadcast: the export is done, counts are complete. */
-        void finish(int categories) {
-            String unit = (TextUtils.isEmpty(lastUnit) ? "区分" : lastUnit);
-            long total = (lastTotal > 0 ? lastTotal : categories);
-            send(total, total, unit, unit + " " + total + "/" + total, true);
-        }
-
-        private void send(long current, long total, String unit, String text, boolean force) {
-            if (TextUtils.isEmpty(action) || TextUtils.isEmpty(pkg))
-                return;
-            long now = SystemClock.elapsedRealtime();
-            if (!force && now - last < PROGRESS_INTERVAL)
-                return;
-            last = now;
-
-            Intent intent = new Intent(action);
-            intent.setPackage(pkg);
-            intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-            intent.putExtra(EXTRA_REPLY_ID, id);
-            intent.putExtra(EXTRA_PROGRESS_APP, label);
-            intent.putExtra(EXTRA_PROGRESS_TEXT, text);
-            intent.putExtra(EXTRA_PROGRESS_CURRENT, current);
-            intent.putExtra(EXTRA_PROGRESS_TOTAL, total);
-            intent.putExtra(EXTRA_PROGRESS_UNIT, unit);
-            context.sendBroadcast(intent);
-        }
-    }
 }
