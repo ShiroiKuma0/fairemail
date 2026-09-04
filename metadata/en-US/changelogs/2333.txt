@@ -1,3 +1,170 @@
+# 白い熊 FairEmail — fork changes
+
+Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
+
+1.2333+004 — on FairEmail 1.2333
+
+* Implemented **v2 of the sister-app backup automation contract**: the headless export becomes a door a backup app can also pull this app **through**, taking it away with its data and putting it back on a phone that has just been wiped
+* The **Automation export** switch now defaults **on** and the authorization token became optional (new `automation_require_token`, default off). A pasted secret cannot survive a wipe, and the restore case runs on a phone where nothing has been configured, so the token is now an extra a caller may be asked for rather than the gate
+* A token sent to an app that does not require one is **ignored rather than refused**, so one switch being off can never turn into half a batch failing for no visible reason
+* Both checks moved into a single `AutomationAuth.refuse`, which answers either nothing or the exact `ERROR:` line to reply with, so "automation disabled" and "bad token" cannot drift apart between entry points
+* The Export/Import section gained a 「Use authorization token?」 switch, and the token row is now **hidden unless the token is actually being asked for** — a secret sitting under an off switch only invites pasting it somewhere it will do nothing
+* New **data door**: a `ContentProvider` at `shiroikuma.fairemail.automation`, exported without a permission, answering `describe`, `export`, `import` and `cancel`. `import` exists **only** here and has no intent action, because an import overwrites every account and message while the export receiver is exported with no permission on it
+* The caller is identified by the framework and checked three ways — an **exact package name** and never a prefix, the **uid the kernel reports**, and a **pinned SHA-256 signing certificate** — because a package name absent from a device is a name anyone can take, and a freshly wiped phone is exactly such a device
+* The payload moves through a **`ParcelFileDescriptor` the caller supplies**, duplicated before it leaves the binder call and closed on every path out, so the backup app can rename, encrypt and checksum a file it owns end to end without this app ever writing into its directory
+* Export and import run in a new `AutomationDataService` foreground service holding a partial wakelock: a backgrounded app writing for minutes is frozen mid-stream on EMUI, which yields a truncated archive underneath a success reply — the one failure indistinguishable from a good backup until the day it is restored
+* An import is **spooled to a cache file rather than into memory**, because a restore reads the archive twice and this app ships the largest archive in the family
+* **Fixed: a restore could silently lose itself.** The settings import wrote preferences with `apply()`, and the calling app force-stops this one the instant it hears success, so an asynchronous write still in flight was simply dropped and the restore reported success over data that was gone. It commits synchronously now, with a trailing flush for what the upgrade path queues behind our back
+* **Fixed: automation replies were resting on a visibility grant nobody chose.** The manifest `<queries>` element named neither calling app, so every reply and progress broadcast aimed with `setPackage` was reaching them only through the implicit grant that arrives when another app interacts with you — working, but for a reason nobody picked, and one that lapses as soon as the interaction does. Both callers are now declared outright
+* One progress sender now serves both doors, sending the correlation id as both `reply_id` and `job_id`, and it gained a **20-second heartbeat** that resends the last true line: this export reports once per category, so zipping a gigabyte-scale mail store went silent well past the two minutes after which a caller presumes the app dead
+* The `describe` header states outright that the accounts category carries **every account and identity password — for an OAuth account, the live token — in plaintext inside an unencrypted archive**, so that fact is in front of you while you choose what to save rather than discovered later
+* Capability discovery through three manifest `<meta-data>` entries readable **without waking the app**, so a frozen FairEmail can still be listed as backupable, and a header that reports no required runtime permissions — checked rather than assumed, since this app keeps its contacts in its own table and never writes the system contacts provider
+
+1.2333+001 — on FairEmail 1.2333
+
+* Rebased the fork onto upstream FairEmail 1.2333 (S/MIME gains support for auth-enveloped-data, together with fixed class cast exceptions, better recipient information handling, and a stop on storing root certificates that are already known; rule expression conditions gain the `startswith`, `endswith` and `jpath` operators, and a rule that throws now names itself in the exception; the AI layer was reworked, with Gemini migrated to the OpenAI compatible API, a model selector and a maximum tokens option added, error reporting added, the system prompt skipped for AI conditions, and notifications held back while a summary is generated; experimental Gadgetbridge support; a GMX check with its own time limit and tag; the MiniDNS customisation dropped in favour of the stock library; spacing disabled for the tabular view; the LAN snackbar made dismissible; Gradle updated to 9.7.1; refreshed FAQ and translations)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
+1.2332+001 — on FairEmail 1.2332
+
+* Rebased the fork onto upstream FairEmail 1.2332 (a Jsoup crash in the reformatted message view is prevented on Android 6, where the ICU charset decoder threw `IllegalArgumentException: Bad position` part way through a streamed parse, by reading the stream into memory and parsing the string instead; Rackspace is recognised as a provider; the Android Gradle plugin moves to 9.3.2; refreshed FAQ and translations)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
+1.2331+001 — on FairEmail 1.2331
+
+* Rebased the fork onto upstream FairEmail 1.2331 (support for PGPony; the real submitter is decoded from `@mozmail.com` masked addresses, so Firefox Relay mail shows who actually sent it; an address that looks suspicious is now shown in the personal field, and the earlier behaviour of showing the email address whenever the display name contained one was reverted; relaxed qmail and nullmailer checks; debug code removed; refreshed public suffix list, FAQ and translations)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
+1.2330+001 — on FairEmail 1.2330
+
+* Rebased the fork onto upstream FairEmail 1.2330 (the message language is now available as an expression condition in rules, rule regular expressions are validated before they are saved, and the bundled libraries were refreshed: Jsoup 1.23.1, EvalEx 3.7.0, BouncyCastle 1.85, ez-vcard 0.12.2, MiniDNS 1.1.1, JsonPath 3.0.0 and core library desugaring 2.1.5)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
+1.2329+001 — on FairEmail 1.2329
+
+* Rebased the fork onto upstream FairEmail 1.2329 (message rendering now ignores CSS colour schemes and the `prefers-color-scheme: dark` rule, so a sender stylesheet can no longer drag its own dark palette across the custom theme, and CSS media-list results are cached while a message is styled, which cuts the repeated matching on style-heavy mail; a settings button on the notification-permission dialog; a guard against reading a contact-picker cursor that returns no columns; refreshed public suffix list, Brave debounce list, AndroidX libraries and translations)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
+1.2328+002 — on FairEmail 1.2328
+
+* Rebased the fork onto upstream FairEmail 1.2328 (an inset for the display cutout and medium list spacing by default, a VPN list button, the Thundermail provider, a corrected default Gemini model name, refreshed S/MIME root certificates, PSL and Brave debounce list, an NPE guard, and refreshed translations)
+* The fork build number is now **zero padded to three digits** in the version name, so this build reads `1.2328+002` rather than `1.2328+2`. Build lists and APK file names in the directories shared with the other sideloaded apps now sort in build order instead of lexically, where build 10 would otherwise land ahead of build 2. The padding is confined to the version name; the version code arithmetic is unchanged, and the update check still ignores everything after the plus sign
+* No other fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
+1.2327+1 — on FairEmail 1.2327
+
+* Rebased the fork onto upstream FairEmail 1.2327 (collapsed inline attachments in the message editor, a "Sort on synchronized" option in the folder list, send-service and unified-widget fixes, refreshed translations, updated build tools — Android Gradle plugin 9.3.1)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
+1.2326+8 — on FairEmail 1.2326
+
+**Major features**
+
+* The automation category list now carries the contract's **fourth `default` field** — every `LIST_CATEGORIES` line goes out as `id⇥label⇥parent⇥on|off`, with the parent field empty because these categories are flat — so the sister app's item picker, which is drawn fresh from this reply each time it is opened, starts with **local emails unticked** and everything else ticked
+* An `EXPORT_STATE` request that names no `items` now takes **that same default set** instead of everything, which is what the contract means by "your default set": a headless backup no longer drags the gigabyte-scale mail store along unasked
+* New **`CANCEL_EXPORT`** action on the same exported receiver (`token`, plus an optional `reply_id` naming the run): it flips a flag the export tests at entry, account, folder, message and 8 KB-block boundaries, so a run unwinds at the next boundary rather than being torn down mid-write, nothing is interrupted or killed, and the stopped export sends `ERROR:cancelled` as its own terminal reply through the existing single-fire guard
+* The cancel **answers nobody** — a bad token, automation switched off, an export that already finished, or nothing running at all are all silent no-ops, so it is safe to fire at any time
+* Backups are now written to **`<name>.part` and renamed only once the archive is closed and complete**, through one helper shared by the automation receiver and the in-app panel, on the plain-file route and the SAF route alike
+
+**Fixes and behavior**
+
+* Anything that ends an export early — a cancel, an error, a full disk — deletes the part file in the same `finally`, so the backup directory is left exactly as it was found; previously a failed export left its half-written archive behind under the final name, indistinguishable from a real backup until a restore tried to read it, and silently the newest one in the directory every app in the family shares
+* The SAF part file is created as `application/octet-stream`, because a zip mime type makes the document provider append a second extension to a name that already ends in `.part`
+* Only one automation export runs at a time (`ERROR:export already running`), which is what lets a cancel name the running one by leaving `reply_id` out; the guard is process-local and released in a `finally`, never persisted, so a crash can never wedge exporting for good
+* The in-app Export/Import panel deletes the document the save-as picker created when the export does not finish
+* The panel checkboxes, the automation reply and the no-items export all read one array, so the in-app sheet and the sister app's picker cannot drift apart
+
+1.2326+7 — on FairEmail 1.2326
+
+**Major features**
+
+* Backups are now **one ZIP per backup**, named by the sister-app family convention `shiroikuma-fairemail_<yyyy-MM-dd_HH-mm-ss>.zip` — the English repo basename, the timestamp, nothing else, so every 白い熊 app's backups sort and read uniformly in one directory
+* The archive holds `manifest.json` (format, version, app, appVersion, createdTs, categories) plus `fairemail-export.json`, which is still the stock unencrypted export, so an unzipped backup stays importable by upstream FairEmail; import sniffs the ZIP magic and accepts the archive, an older bare-JSON fork export, and a stock upstream backup alike
+* New **local emails** export category (unticked by default, since a mail store can run to gigabytes): the whole local message store — bodies, raw MIME where downloaded, and attachment payloads — rides in the same single ZIP as `messages/index.jsonl` plus `messages/<n>/body.html`, `raw.eml` and `att-<k>`
+* Messages restore by account UUID and folder name, so they land on existing accounts as well as freshly imported ones; row-id references are dropped rather than carried across as stale ids, full-text indexing is reset, and a message already in that folder with the same message id is skipped, so the import merges instead of duplicating
+* New **automation export** surface answering 自由作業盤's 保存復元 contract: the exported receiver takes `EXPORT_STATE` and `LIST_CATEGORIES` on `shiroikuma.fairemail.action`, runs the export headlessly with no Activity, and replies with the written path, the real byte count, a human size, and the category count
+* An **Automation export** switch (off by default) and an **Automation token** row sit inside the Export / Import section of the UI page, directly below the existing export rows; the token row shows the token abbreviated, copies it whole to the clipboard on tap, and carries a Regenerate action
+
+**UI and theming**
+
+* The export/import panel starts with everything ticked except local emails, and Select all starts unticked with it, so a routine settings backup never silently drags the mail store along
+
+**Fixes and behavior**
+
+* The automation switch and token live in their own preferences file, outside the store the exporter serialises, so the token can never travel inside a backup ZIP and toggling it never trips the settings-activity restart listener
+* The automation gate reports "automation disabled" and "bad token" as distinct errors, refuses a request naming an unknown category without writing a file, and fires exactly one reply per request, guarded so an async success and a synchronous error can never both arrive
+* Progress is broadcast with real counts, never a percentage — `メール 1234/8942` through the mail store, `区分 6/9 — App settings` through the categories — throttled to one every 500 ms with a forced final one
+* All files access is declared (github flavor only) so the headless export can write into the directory a sister-app task names; without it the export falls back to the configured export directory, and turning the automation switch on offers to open the system setting
+
+1.2326+5 — on FairEmail 1.2326
+
+**Major features**
+
+* New 白い熊 FairEmail UI settings page (a dedicated tab after Display), styled after the futokxkb UI page: bold accent section headings underlined exactly as wide as their text, 1px hairline separators between sections, and a stepped indent ladder; the 28-role colour picker and the per-role font picker moved here from the bottom of the Display tab
+* Kōjiki-style export/import of every settable item as the first section of the UI page: a settable export directory (SAF tree, permission persisted, stored outside the exported preferences), queried on every page open for the newest export; per-category checkboxes — accounts and identities, filter rules, local contacts, answer templates, saved searches, notification channels, app settings, UI customization — with Select all; ArcaneChat-style round pill buttons, Cancel alone on the left, Import and Export on the right
+* Exports are stock-format JSON, interchangeable with upstream FairEmail backups, plus a ui_fonts extension carrying the custom font binaries base64-encoded so imported font paths never dangle; import merges — accounts are matched by UUID and never duplicated, and settings outside the selected categories stay untouched
+* Long-pressing either toolbar hamburger in the main view — the drawer toggle on the left or the three-dot overflow button on the right — opens the UI page directly
+* The Backup tab is removed; the UI page export/import covers everything it exported (exports are unencrypted JSON, so encrypted old backups can no longer be imported in-app)
+
+**UI and theming**
+
+* Export/import completion dialogs carry the yellow border; acknowledging a successful export, or "Later" after a successful import, closes the info dialog, the panel, and the settings page in one chain, "Restart now" restarts the app, and failures leave the panel open
+* The toolbar overflow (three-dot) menu is now black with a yellow border under the Custom theme — its surface resolves from actionOverflowMenuStyle, which the earlier popup-menu theming never reached
+
+**Fixes and behavior**
+
+* During a bulk settings import the per-key activity relaunch is suppressed, so importing dozens of theme, colour, and font keys no longer tears the settings screen down mid-flow
+
+1.2326+1 — on FairEmail 1.2326
+
+* Rebased the fork onto upstream FairEmail 1.2326 (updated S/MIME root certificates, refreshed public suffix list, inline local network permission requests with a warning, crash and NPE fixes, markdown improvements, AndroidX updates)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, and the unconditional Pro unlock all carry over unchanged
+
+1.2325+4 — on FairEmail 1.2325
+
+* Unlocked every Pro feature unconditionally: isPro now always returns true, so all convenience and advanced features are enabled without an activation code (FairEmail is GPLv3 and this is a personal build)
+* Removed the Pro activation salt pin, which is no longer needed now that Pro is unlocked directly rather than through a validated activation response
+* Hid the purchase section on the Pro features screen: the supporting-development intro, the buy button and price, the family and restore hints, and the support and consume buttons are gone, leaving the activated status, the export settings button, and the list of Pro features
+
+1.2325+1 — on FairEmail 1.2325
+
+* Rebased the fork onto upstream FairEmail 1.2325 (Migadu IMAP workaround, batch importing of S/MIME public keys, shared-filename sanitising, updated public suffix list)
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, and the folded two-line subject all carry over unchanged
+
+1.2324+1 — on FairEmail 1.2324
+
+**Major features**
+
+* Custom "black" theme: yellow text on pure black with a gold unread accent
+* Customisable colour picker in Display settings: 28 colour roles across 7 sections (backgrounds, text, icons, message-list accents, decorations, status indicators, highlights)
+* Per-role custom fonts and weights across 8 roles, with a Default cascade and an unread weight boost
+* Folded two-line message subject with a trailing date for the narrow folded-portrait Mate XT
+
+**UI and theming**
+
+* Black dialogs and popup menus with a yellow border
+* Black dropdown spinners with a yellow border
+* Black snackbars with a yellow border and yellow text
+* Black push buttons with a yellow border
+* Yellow navigation-drawer border without dimming the content
+* Legible and tunable compose-field hints and separators
+* Yellow unread accent, decoupled sender colour, sender-italic toggle, extended font-size range
+* Custom black-and-yellow line-traced envelope launcher icon
+* App label shown as 白い熊 FairEmail
+
+**Packaging and identity**
+
+* applicationId renamed to shiroikuma.fairemail for side-by-side install with the official FairEmail
+* Fork versioning: versionName 1.&lt;upstream&gt;+&lt;fork&gt;, versionCode &lt;upstream&gt; times 10000 plus fork
+* Gradle configuration cache enabled
+
+**Fixes and behavior**
+
+* Pro activation salt pinned to the original eu.faircode.email package id so Pro still validates after the rename
+* Update check strips the +&lt;fork&gt; suffix so it never falsely reports an update to the upstream build
+
+---
+
 Changelog
 
 --------------------
