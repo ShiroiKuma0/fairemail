@@ -179,6 +179,22 @@
             android:name="com.google.android.backup.api_key"
             android:value="unused" />
 
+        <!-- 白い熊 fork: automation capability discovery. Manifest entries rather than a query
+             intent, because a FROZEN app cannot be asked anything and 白い熊 freezes
+             aggressively - 応用管理 reads these across every installed package at once, with
+             MATCH_UNINSTALLED_PACKAGES | MATCH_DISABLED_COMPONENTS, to answer "can this app be
+             backed up" for an app that is currently disabled. An app without them is simply
+             not offered for data backup or restore. -->
+        <meta-data
+            android:name="shiroikuma.automation.contract"
+            android:value="2" />
+        <meta-data
+            android:name="shiroikuma.automation.format"
+            android:value="1" />
+        <meta-data
+            android:name="shiroikuma.automation.min_format"
+            android:value="1" />
+
         <activity
             android:name=".ActivityMain"
             android:description="@string/app_name"
@@ -815,8 +831,12 @@
         </receiver>
 
         <!-- 白い熊 fork: the sister-app state-export automation contract. No
-             android:permission, since the calling task cannot hold one - the token in
-             the intent is the gate (see AutomationAuth). -->
+             android:permission, since the calling task cannot hold one. This is the
+             UNAUTHENTICATED half of the surface, deliberately: it only ever writes where it
+             was told to and reports what it did, and the token is an extra a caller may be
+             asked for rather than the gate (see AutomationAuth). Everything that moves data
+             through a caller-supplied descriptor lives behind AutomationProvider, which knows
+             who is calling - which is why there is no IMPORT action here. -->
         <receiver
             android:name=".StateExportReceiver"
             android:exported="true">
@@ -826,5 +846,32 @@
                 <action android:name="${applicationId}.action.CANCEL_EXPORT" />
             </intent-filter>
         </receiver>
+
+        <!-- 白い熊 fork: the data door. No android:permission, and this time for a real
+             reason: a custom permission would have to be "normal" (any app may hold it) or
+             "signature" (impossible - every app in this family has its own keystore), and
+             neither buys anything the caller check does not. A provider gets the caller's
+             identity from the framework, which a broadcast cannot; AutomationCallers checks
+             the exact package name, the uid the kernel reports, and a pinned signing
+             certificate. -->
+        <provider
+            android:name=".AutomationProvider"
+            android:authorities="${applicationId}.automation"
+            android:exported="true"
+            tools:ignore="ExportedContentProvider" />
+
+        <!-- 白い熊 fork: where a data export or import actually runs. This app holds the
+             largest export in the family, and a backgrounded app writing for minutes is
+             frozen mid-stream on EMUI - which yields a truncated archive underneath a success
+             reply, the one failure indistinguishable from a good backup until the day it is
+             restored. -->
+        <service
+            android:name=".AutomationDataService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Writing this app's own backup into a file descriptor supplied by the user's backup app, or restoring one from it. The work is user-initiated, runs for minutes over a mail store that can reach gigabytes, and must not be frozen part-way: a backgrounded export is stopped mid-stream and leaves a truncated archive that looks like a complete backup. No other foreground service type describes a one-shot data transfer to another app on the same device." />
+        </service>
     </application>
 </manifest>
