@@ -20,13 +20,6 @@
       "Bash(ls *)",
       "Bash(grep *)",
       "Bash(find *)"
-    ],
-    "ask": [
-      "Bash(git push *)",
-      "Bash(git reset --hard*)",
-      "Bash(adb install *)",
-      "Bash(adb shell rm *)",
-      "Bash(rm *)"
     ]
   }
 }
