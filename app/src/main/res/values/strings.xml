@@ -807,7 +807,10 @@
     <string name="title_ui_automation_regenerate" translatable="false">Regenerate</string>
     <string name="title_ui_automation_regenerate_warn" translatable="false">A new token is generated and copied to the clipboard. Every task that already holds the old one stops working until you paste the new one into it.</string>
     <string name="title_ui_automation_allfiles_title" translatable="false">All files access</string>
-    <string name="title_ui_automation_allfiles_body" translatable="false">Without All files access the headless export can only write to the export directory above, and the directory a sister-app task asks for is ignored. Open the system setting now?</string>
+    <string name="title_ui_automation_allfiles_body" translatable="false">Without All files access the headless export can only write to the export directory above, and the directory a sister-app task asks for is ignored. The data door does not need it - it writes into the file 応用管理 opens. Open the system setting now?</string>
+    <string name="title_ui_automation_contains_credentials" translatable="false">Accounts and identities (includes passwords and OAuth tokens, unencrypted)</string>
+    <string name="title_ui_automation_data_export" translatable="false">Writing a backup for 応用管理</string>
+    <string name="title_ui_automation_data_import" translatable="false">Restoring a backup from 応用管理</string>
 
     <!-- Section headers -->
     <string name="title_custom_font_section_default" translatable="false">Default</string>
