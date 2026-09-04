@@ -96,6 +96,13 @@
 
         <package android:name="eu.faircode.netguard" />
 
+        <!-- 白い熊 fork: the automation callers. Both the export reply and the data door's
+             job reply are sent with setPackage, which fails SILENTLY on Android 11+ against
+             a package this app cannot see - the export runs, writes correctly and is never
+             heard of. 応用管理 drives the data door, 自由作業盤 the 保存復元 batch. -->
+        <package android:name="shiroikuma.oyokanri" />
+        <package android:name="shiroikuma.jiyusagyoban" />
+
         <package android:name="com.google.android.gm" />
 
         <intent>
