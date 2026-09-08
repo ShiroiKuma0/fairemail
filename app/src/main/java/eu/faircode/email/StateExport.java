@@ -813,7 +813,9 @@ public class StateExport {
                              @Nullable AtomicBoolean cancel) throws IOException {
         byte[] buffer = new byte[8192];
         int n;
-        while ((n = in.read(buffer)) > 0) {
+        // -1, not > 0: a read of 0 bytes is allowed and does not mean the entry is finished,
+        // and taking it for the end would write a truncated attachment out under its full name.
+        while ((n = in.read(buffer)) != -1) {
             checkCancelled(cancel);
             out.write(buffer, 0, n);
         }
@@ -980,7 +982,7 @@ public class StateExport {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         byte[] buffer = new byte[8192];
         int n;
-        while ((n = is.read(buffer)) > 0)
+        while ((n = is.read(buffer)) != -1)
             bos.write(buffer, 0, n);
         return new String(bos.toByteArray(), StandardCharsets.UTF_8);
     }
