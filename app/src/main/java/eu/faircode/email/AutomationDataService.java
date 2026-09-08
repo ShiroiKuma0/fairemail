@@ -297,15 +297,33 @@ public class AutomationDataService extends ServiceBase {
             // about: asking for one the archive lacks is how a restore ends up reporting
             // success over nothing. A caller that named items narrows that, never widens it.
             List<String> present = StateExport.categoriesIn(source);
-            List<String> wanted = resolve(items);
-            if (wanted == null) {
-                replier.reply("ERROR:unknown category in items: " + items);
-                return;
+
+            // NAMING NOTHING MEANS THE WHOLE ARCHIVE, NOT THE EXPORT DEFAULTS. This used to run
+            // the items through resolve(), which answers an empty request with defaultCats() -
+            // the set an EXPORT takes when nobody chose. That is right for an export and wrong
+            // for an import, and it threw away mail: 応用管理 sends no items on a restore, the
+            // local mail store is unticked by default, so a 52 MB archive whose caller had
+            // deliberately ticked "Local emails (bodies and attachments)" came back as its
+            // eight small categories and replied OK. A restore that silently returns less than
+            // was backed up is the same failure as a truncated archive, only quieter.
+            //
+            // The choice was already made at BACKUP time and it is what the archive holds.
+            // Re-applying an export default at restore time overrides 白い熊 with a preference
+            // about backup size, at the one moment where size is beside the point.
+            List<String> cats;
+            if (TextUtils.isEmpty(items))
+                cats = present;
+            else {
+                List<String> wanted = resolve(items);
+                if (wanted == null) {
+                    replier.reply("ERROR:unknown category in items: " + items);
+                    return;
+                }
+                cats = new ArrayList<>();
+                for (String cat : present)
+                    if (wanted.contains(cat))
+                        cats.add(cat);
             }
-            List<String> cats = new ArrayList<>();
-            for (String cat : present)
-                if (wanted.contains(cat))
-                    cats.add(cat);
             if (cats.isEmpty()) {
                 replier.reply("ERROR:archive carries no categories");
                 return;
