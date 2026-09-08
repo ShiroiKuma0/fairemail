@@ -10,7 +10,7 @@ A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions*
 
 Installs **side-by-side** with the official FairEmail (app id `shiroikuma.fairemail`).
 
-**📥 Latest release: [`1.2333+006`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
+**📥 Latest release: [`1.2333+008`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
 
 </div>
 
@@ -53,6 +53,8 @@ The archive never crosses the call. The caller opens its own destination and pas
 The header the door answers with says plainly what a backup holds — including that the accounts category carries every account and identity password, and for an OAuth account the live token, in the clear — so you know which before you choose rather than after.
 
 **A restore returns everything the archive holds.** Naming no categories means the whole archive, never a default set: the choice was already made when the backup was written, and re-applying a size preference at restore time is how a restore comes back quietly short. Mail bodies and attachments are **separate categories, both on by default**, so the weight can be left out without leaving the mail out — on a real backup the 1,088 bodies came to 45.0 MB and the 286 attachments to 46.3 MB. An attachment is only marked present once its payload has actually landed on disk; anything left behind is fetched from the server the first time you open it, rather than sitting there as a file the app thinks it has.
+
+**A restore counts out loud, from the first byte to the last.** The transfer reports the bytes as they arrive, and the restore that follows keeps counting rather than falling silent at the point where the longer half of the work begins: one step per category, a line per account, and the mail store counted message by message — first as the index is read, then as each payload lands. Real numbers throughout, never a percentage, and never an invented total: where a length genuinely cannot be known — a descriptor that may be a pipe, an index read as a stream — the count climbs against no denominator rather than against a guess.
 
 ---
 
