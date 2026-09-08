@@ -190,7 +190,7 @@
             android:value="2" />
         <meta-data
             android:name="shiroikuma.automation.format"
-            android:value="1" />
+            android:value="2" />
         <meta-data
             android:name="shiroikuma.automation.min_format"
             android:value="1" />
