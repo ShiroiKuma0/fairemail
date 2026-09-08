@@ -167,11 +167,26 @@ public class AutomationDataService extends ServiceBase {
             Helper.getParallelExecutor().submit(new Runnable() {
                 @Override
                 public void run() {
-                    PowerManager pm = Helper.getSystemService(context, PowerManager.class);
-                    PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                            BuildConfig.APPLICATION_ID + ":automation");
+                    // NOTHING MAY RUN OUTSIDE THIS TRY. The wakelock used to be taken above it,
+                    // and an ExecutorService swallows whatever a Runnable throws into a Future
+                    // nobody reads - so a null PowerManager or a refused wakelock would end the
+                    // job with no reply, no progress and no trace, which is indistinguishable
+                    // from the app never having run the job at all. Helper.getSystemService has
+                    // its own documented NoClassDefFoundError in this codebase (see
+                    // ApplicationEx.onTrimMemory), and an Error is not an Exception, so only a
+                    // catch of Throwable around everything closes this.
+                    PowerManager.WakeLock wl = null;
                     try {
-                        wl.acquire();
+                        PowerManager pm = Helper.getSystemService(context, PowerManager.class);
+                        if (pm != null) {
+                            wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                                    BuildConfig.APPLICATION_ID + ":automation");
+                            wl.acquire();
+                        } else
+                            // Worth doing without rather than refusing: the wakelock guards a
+                            // screen-off run from EMUI dozing the CPU, it is not what makes the
+                            // transfer correct.
+                            Log.w("Automation data no PowerManager job=" + jobId);
                         progress.beat();
                         if (importing)
                             runImport(context, jobId, fd, items, progress, replier);
@@ -200,7 +215,7 @@ public class AutomationDataService extends ServiceBase {
                         running = null;
                         AutomationJobs.finish(jobId);
                         close(fd);
-                        if (wl.isHeld())
+                        if (wl != null && wl.isHeld())
                             wl.release();
                         stopForeground(true);
                         stopSelf(id);
