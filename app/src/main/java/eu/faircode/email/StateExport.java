@@ -999,7 +999,7 @@ public class StateExport {
         // can be handed a file it may not read - so the friendly check belongs here rather
         // than in the body, which also serves descriptors this app opened itself.
         NoStreamException.check(uri, context);
-        return performImport(context, cats, sourceOf(context, uri), uri.toString());
+        return performImport(context, cats, sourceOf(context, uri), uri.toString(), null);
     }
 
     /**
@@ -1008,10 +1008,20 @@ public class StateExport {
      * automation data door supplies a spooled copy of the descriptor its caller opened, which
      * is why this cannot simply take a {@link Uri}.
      *
-     * @param label what the log should call the source; a Uri, or a descriptor's job.
+     * <p><b>Reported exactly as the export reports</b>: one step per finished category, with
+     * the per-account and per-message counters inside the two categories long enough to need
+     * them. Without this a restore is silent for its whole length — the automation door has
+     * nothing left to broadcast but the byte count of a spool that finished minutes ago, and a
+     * repeated number cannot be told apart from a dead app. The categories inside the
+     * transaction go past quickly; the mail store is where the time actually goes, so that is
+     * where the counter has to keep moving.
+     *
+     * @param label    what the log should call the source; a Uri, or a descriptor's job.
+     * @param progress where to report, or null for the panel's own import, which shows a
+     *                 spinner and a summary dialog rather than a running count.
      */
-    static String performImport(Context context, List<String> cats, Source source, String label)
-            throws Throwable {
+    static String performImport(Context context, List<String> cats, Source source, String label,
+                                @Nullable Progress progress) throws Throwable {
         boolean catAccounts = cats.contains(CAT_ACCOUNTS);
         boolean catRules = cats.contains(CAT_RULES);
         boolean catContacts = cats.contains(CAT_CONTACTS);
@@ -1023,6 +1033,15 @@ public class StateExport {
         boolean catUi = cats.contains(CAT_UI);
 
         EntityLog.log(context, "UI import " + label + " cats=" + TextUtils.join(",", cats));
+
+        // Said BEFORE the work rather than after it: pulling the export JSON out of the ZIP and
+        // parsing it runs to seconds on a large backup, and until this line the caller is still
+        // looking at the byte count of a transfer that is already over. 0/N is true, and naming
+        // the phase is what tells a slow restore from a stalled one.
+        int[] done = {0};
+        if (progress != null)
+            progress.report(0, cats.size(), UNIT_CATEGORY,
+                    UNIT_CATEGORY + " 0/" + cats.size() + " — 書庫を読み込み");
 
         String json = readExportJson(context, source).trim();
         if (!json.startsWith("{") || !json.endsWith("}"))
@@ -1063,6 +1082,7 @@ public class StateExport {
                     nAnswers++;
                 }
             }
+            step(context, progress, cats, done, CAT_ANSWERS);
 
             if (catSearches && jimport.has("searches")) {
                 JSONArray jsearches = jimport.getJSONArray("searches");
@@ -1084,12 +1104,21 @@ public class StateExport {
                     }
                 }
             }
+            step(context, progress, cats, done, CAT_SEARCHES);
 
             if (catAccounts && jimport.has("accounts")) {
                 JSONArray jaccounts = jimport.getJSONArray("accounts");
                 for (int a = 0; a < jaccounts.length(); a++) {
                     JSONObject jaccount = (JSONObject) jaccounts.get(a);
                     EntityAccount account = EntityAccount.fromJSON(jaccount);
+
+                    // Named before it is known whether this one will be kept: what the caller
+                    // wants to see is which account is being worked on, and an account already
+                    // present is skipped too fast to be worth a line of its own.
+                    if (progress != null)
+                        progress.report(a + 1, jaccounts.length(), UNIT_ACCOUNT,
+                                UNIT_ACCOUNT + " " + (a + 1) + "/" + jaccounts.length() +
+                                        " — " + account.name);
 
                     EntityAccount existing = db.account().getAccountByUUID(account.uuid);
                     if (existing != null) {
@@ -1289,6 +1318,9 @@ public class StateExport {
                     }
                 }
             }
+            step(context, progress, cats, done, CAT_ACCOUNTS);
+            step(context, progress, cats, done, CAT_CONTACTS);
+            step(context, progress, cats, done, CAT_RULES);
 
             if ((catSettings || catUi)) {
                 // Certificates ride with App settings, like the stock import
@@ -1432,6 +1464,8 @@ public class StateExport {
                 editor.commit();
                 ApplicationEx.upgrade(context);
             }
+            step(context, progress, cats, done, CAT_SETTINGS);
+            step(context, progress, cats, done, CAT_UI);
 
             if (catChannels && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                     jimport.has("channels")) {
@@ -1450,6 +1484,8 @@ public class StateExport {
                     }
             }
 
+            step(context, progress, cats, done, CAT_CHANNELS);
+
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
@@ -1464,7 +1500,10 @@ public class StateExport {
         // to avoid. Only an archive that declares the category separately can have it withheld.
         boolean withAttachments = (cats.contains(CAT_ATTACHMENTS) ||
                 !categoriesIn(source).contains(CAT_ATTACHMENTS));
-        int nMessages = (catMessages ? importMessages(context, source, withAttachments) : 0);
+        int nMessages = (catMessages
+                ? importMessages(context, source, withAttachments, progress) : 0);
+        step(context, progress, cats, done, CAT_MESSAGES);
+        step(context, progress, cats, done, CAT_ATTACHMENTS);
 
         // And flush what this app does not own the editor for. ApplicationEx.upgrade writes
         // with apply() behind our back, which our own edit() cannot reach; an empty commit()
@@ -1507,8 +1546,8 @@ public class StateExport {
      * are ones already in that folder with the same message id — the import merges, it
      * never duplicates. A backup written without this category simply has no such entries.
      */
-    private static int importMessages(Context context, Source source, boolean withAttachments)
-            throws Throwable {
+    private static int importMessages(Context context, Source source, boolean withAttachments,
+                                      @Nullable Progress progress) throws Throwable {
         DB db = DB.getInstance(context);
 
         Map<String, EntityAccount> accounts = new HashMap<>();
@@ -1519,6 +1558,15 @@ public class StateExport {
         Map<String, Long> arrivals = new HashMap<>();
         int imported = 0;
         int skipped = 0;
+        // Index records read, which is the message count the payload pass then counts against:
+        // the index is the first messages entry, so it is complete before the first payload
+        // arrives. Not known any earlier than that - the index is JSON-Lines read as a stream,
+        // and counting its lines up front would mean decompressing the whole thing twice.
+        int records = 0;
+        // The messages/<n>/ prefix of the previous payload entry, and how many distinct ones
+        // have gone past.
+        String group = null;
+        int passed = 0;
 
         try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(source.open()))) {
             ZipEntry entry;
@@ -1545,8 +1593,28 @@ public class StateExport {
                             Log.w(ex);
                             skipped++;
                         }
+                        records++;
+                        if (progress != null)
+                            progress.report(records, 0, UNIT_MESSAGE,
+                                    UNIT_MESSAGE + " 目録 " + records);
                     }
                 } else if (name.startsWith(ENTRY_MESSAGES)) {
+                    // A message's payload entries are contiguous under messages/<n>/, so a
+                    // change of that prefix is one more message gone by. Counted here, ahead of
+                    // the two skips below, because this counts the archive's own numbering -
+                    // the same thing the export counted on the way out. A message dropped for a
+                    // folder this device does not have still went past, and a counter that
+                    // stalled on it would be reporting this device's decisions, not progress.
+                    int slash = name.indexOf('/', ENTRY_MESSAGES.length());
+                    String base = (slash < 0 ? name : name.substring(0, slash + 1));
+                    if (!base.equals(group)) {
+                        group = base;
+                        passed++;
+                        if (progress != null)
+                            progress.report(passed, records, UNIT_MESSAGE,
+                                    UNIT_MESSAGE + " " + passed + "/" + records);
+                    }
+
                     File target = targets.get(name);
                     if (target == null)
                         continue;
