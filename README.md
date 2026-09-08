@@ -10,7 +10,7 @@ A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions*
 
 Installs **side-by-side** with the official FairEmail (app id `shiroikuma.fairemail`).
 
-**📥 Latest release: [`1.2333+004`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
+**📥 Latest release: [`1.2333+006`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
 
 </div>
 
@@ -51,6 +51,8 @@ A second, separate surface lets a backup app take this app away **with its mail*
 The archive never crosses the call. The caller opens its own destination and passes a **file descriptor**; this app writes bytes into it and nothing else, so the backup app can rename, encrypt and checksum a file it owns from start to finish. The work runs in a foreground service with a wakelock, because a backgrounded app writing for minutes is frozen mid-stream on EMUI and would hand back a truncated archive underneath a success reply — the one failure indistinguishable from a good backup until the day you need it. Restore is **only** here and has no intent, because an import overwrites every account and every message.
 
 The header the door answers with says plainly what a backup holds — including that the accounts category carries every account and identity password, and for an OAuth account the live token, in the clear — so you know which before you choose rather than after.
+
+**A restore returns everything the archive holds.** Naming no categories means the whole archive, never a default set: the choice was already made when the backup was written, and re-applying a size preference at restore time is how a restore comes back quietly short. Mail bodies and attachments are **separate categories, both on by default**, so the weight can be left out without leaving the mail out — on a real backup the 1,088 bodies came to 45.0 MB and the 286 attachments to 46.3 MB. An attachment is only marked present once its payload has actually landed on disk; anything left behind is fetched from the server the first time you open it, rather than sitting there as a file the app thinks it has.
 
 ---
 
