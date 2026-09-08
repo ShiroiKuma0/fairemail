@@ -304,7 +304,7 @@ public class AutomationDataService extends ServiceBase {
                         throw new StateExport.CancelledException();
                     out.write(buffer, 0, read);
                     written += read;
-                    progress.written(written);
+                    progress.spooled(written);
                 }
             }
             if (written == 0) {
