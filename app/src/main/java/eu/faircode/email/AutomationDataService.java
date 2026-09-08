@@ -293,7 +293,13 @@ public class AutomationDataService extends ServiceBase {
                  OutputStream out = new FileOutputStream(spool)) {
                 byte[] buffer = new byte[SPOOL_BUFFER];
                 int read;
-                while ((read = in.read(buffer)) > 0) {
+                // END OF STREAM IS -1, NOT 0. InputStream.read is permitted to return 0
+                // without meaning the stream is finished, and the natural > 0 takes that for
+                // the end - producing a SHORT spool, a truncated archive that then imports as
+                // garbage with nothing anywhere saying so. This descriptor is unlikely to do
+                // it; the loop still must not be what stands between a silent half-restore and
+                // a correct one.
+                while ((read = in.read(buffer)) != -1) {
                     if (AutomationJobs.isCancelled(jobId))
                         throw new StateExport.CancelledException();
                     out.write(buffer, 0, read);
