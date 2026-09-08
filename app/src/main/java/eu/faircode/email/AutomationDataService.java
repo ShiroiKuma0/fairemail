@@ -351,7 +351,12 @@ public class AutomationDataService extends ServiceBase {
             }
 
             String summary = StateExport.performImport(context, cats, source,
-                    "automation job=" + jobId);
+                    "automation job=" + jobId, progress);
+
+            // The last progress line leaves before the reply, never after it: the caller
+            // force-stops this app the moment it hears success, so a broadcast sent then would
+            // be racing a SIGKILL for nothing. The export door orders these the same way.
+            progress.finish(cats.size());
 
             // 応用管理 force-stops this app the instant it hears success, with a SIGKILL that no
             // orderly shutdown follows - which is what makes StateExport commit its preferences
