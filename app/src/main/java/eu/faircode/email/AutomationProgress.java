@@ -100,6 +100,29 @@ class AutomationProgress implements StateExport.Progress {
         send(false);
     }
 
+    /**
+     * The import's counter, carried by the fields the contract actually defines.
+     *
+     * <p>{@link #written(long)} puts the same number in the additive {@code bytes} extra, which
+     * is the right place beside a category count and the wrong place on its own: the caller
+     * reads {@code current}/{@code total}/{@code unit} and knows nothing about a {@code bytes}
+     * extra at all. Nothing calls {@link #report} while an archive is being spooled — an import
+     * has no category to count until the whole thing has arrived — so an import that set only
+     * {@code bytes} broadcast 0/0 for its entire length while tens of megabytes went past, and
+     * every number it did send was dropped at the receiver. Here the bytes ARE the progress, so
+     * they travel in the field that is read.
+     *
+     * <p>The total stays 0 because a descriptor has no length this app may ask for: it can be a
+     * pipe, and an invented total is worse than none. The caller renders that as N/0 — a number
+     * that climbs, which is the whole of what is wanted.
+     */
+    synchronized void spooled(long bytes) {
+        this.bytes = bytes;
+        // The sister apps' unit for a byte count, read literally by the caller: not a
+        // translated word, however Japanese the item units beside it are.
+        report(bytes, 0, "bytes", "書庫を受信 " + Helper.humanReadableByteCount(bytes));
+    }
+
     /** The mandatory final broadcast: the export is done, counts are complete. */
     synchronized void finish(int categories) {
         if (total <= 0) {
