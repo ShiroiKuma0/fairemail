@@ -87,7 +87,18 @@ public class StateExport {
     static final String EXPORT_MIME = "application/zip";
 
     static final String FORMAT = "shiroikuma-fairemail";
-    static final int VERSION = 1;
+    /**
+     * 2 since 2026-09-08, when {@link #CAT_ATTACHMENTS} split off {@link #CAT_MESSAGES} and the
+     * manifest's category vocabulary gained an id.
+     *
+     * <p>Both directions still work and neither needs a branch, which is why
+     * {@code MIN_FORMAT_READABLE} stays at 1. A format 1 archive names only {@code messages}
+     * and carries its attachment payloads inside it; they restore because the payload pass is
+     * driven by the entries actually present, not by the category list. A format 2 archive read
+     * by a build that predates the split loses the unknown id from its category list and
+     * restores the payloads the same way.
+     */
+    static final int VERSION = 2;
     static final String ENTRY_MANIFEST = "manifest.json";
     static final String ENTRY_EXPORT = "fairemail-export.json";
 
@@ -105,6 +116,24 @@ public class StateExport {
     static final String CAT_RULES = "rules";
     static final String CAT_CONTACTS = "contacts";
     static final String CAT_MESSAGES = "messages";
+    /**
+     * Attachment payloads, split out of {@link #CAT_MESSAGES} (白い熊, 2026-09-08).
+     *
+     * <p>Measured on a real backup: 1,088 bodies came to 44,996,387 bytes and 286 attachment
+     * payloads to 46,346,285 — attachments were more than half the mail by volume and, being
+     * already-compressed formats, rather more than half the archive. Bodies are the searchable
+     * text of the mail and are cheap; attachments are the weight. Keeping them as one category
+     * meant the only way to leave the weight out was to leave the mail out.
+     *
+     * <p><b>It rides with {@link #CAT_MESSAGES} and cannot travel alone.</b> An attachment
+     * payload is written under the message that owns it and is named by the index entry, so
+     * without the index there is nothing to attach it to.
+     *
+     * <p>The attachment ROWS always travel with the messages, whether or not the payloads do:
+     * that is what lets a restore without payloads still show the mail as having attachments
+     * and fetch them from the server on demand.
+     */
+    static final String CAT_ATTACHMENTS = "attachments";
     static final String CAT_ANSWERS = "answers";
     static final String CAT_SEARCHES = "searches";
     static final String CAT_CHANNELS = "channels";
@@ -112,7 +141,7 @@ public class StateExport {
     static final String CAT_UI = "ui";
 
     static final String[] CAT_IDS = {
-            CAT_ACCOUNTS, CAT_RULES, CAT_CONTACTS, CAT_MESSAGES, CAT_ANSWERS,
+            CAT_ACCOUNTS, CAT_RULES, CAT_CONTACTS, CAT_MESSAGES, CAT_ATTACHMENTS, CAT_ANSWERS,
             CAT_SEARCHES, CAT_CHANNELS, CAT_SETTINGS, CAT_UI
     };
 
@@ -126,8 +155,13 @@ public class StateExport {
             true,   // accounts
             true,   // rules
             true,   // contacts
-            false,  // messages: the local mail store is the largest thing here and re-syncs
-                    // from the server using the account definitions in accounts, which is on
+            true,   // messages: on since 2026-09-08. It was off while it also meant the
+                    // attachments, which is what made it heavy; the bodies on their own are
+                    // the searchable text of the mail and a backup without them is not a
+                    // backup of a mail client
+            true,   // attachments: 白い熊's choice. Off is the sensible setting for a small
+                    // archive, since a payload re-downloads from the server, but a backup is
+                    // for the day the server copy is not there either
             true,   // answers
             true,   // searches
             true,   // channels
@@ -140,6 +174,7 @@ public class StateExport {
             R.string.title_ui_eim_cat_rules,
             R.string.title_ui_eim_cat_contacts,
             R.string.title_ui_eim_cat_messages,
+            R.string.title_ui_eim_cat_attachments,
             R.string.title_ui_eim_cat_answers,
             R.string.title_ui_eim_cat_searches,
             R.string.title_ui_eim_cat_channels,
@@ -395,6 +430,10 @@ public class StateExport {
 
         if (cats.contains(CAT_MESSAGES))
             exportMessages(context, zos, cats, progress, done, cancel);
+        else
+            // Attachments cannot travel alone - there would be no index to attach them to.
+            // Stepped anyway so the category counter still reaches its own total.
+            step(context, progress, cats, done, CAT_ATTACHMENTS);
 
         // Last boundary: a cancel arriving here still leaves no finished archive behind
         checkCancelled(cancel);
@@ -675,6 +714,7 @@ public class StateExport {
                                        @Nullable Progress progress, int[] done,
                                        @Nullable AtomicBoolean cancel) throws Throwable {
         DB db = DB.getInstance(context);
+        final boolean withAttachments = cats.contains(CAT_ATTACHMENTS);
 
         List<MessageRef> refs = new ArrayList<>();
         for (EntityAccount account : db.account().getAccounts())
@@ -734,11 +774,16 @@ public class StateExport {
             if (raw.exists())
                 copyEntry(zos, base + "raw.eml", raw, cancel);
 
-            List<EntityAttachment> attachments = db.attachment().getAttachments(message.id);
-            for (int a = 0; a < attachments.size(); a++) {
-                File file = attachments.get(a).getFile(context);
-                if (file.exists())
-                    copyEntry(zos, base + "att-" + a, file, cancel);
+            // The rows went out with the index unconditionally; only the payloads are optional.
+            // A message therefore still knows it has attachments in a bodies-only backup, and
+            // the import leaves them marked not-downloaded so they come from the server.
+            if (withAttachments) {
+                List<EntityAttachment> attachments = db.attachment().getAttachments(message.id);
+                for (int a = 0; a < attachments.size(); a++) {
+                    File file = attachments.get(a).getFile(context);
+                    if (file.exists())
+                        copyEntry(zos, base + "att-" + a, file, cancel);
+                }
             }
 
             if (progress != null)
@@ -747,6 +792,7 @@ public class StateExport {
         }
 
         step(context, progress, cats, done, CAT_MESSAGES);
+        step(context, progress, cats, done, CAT_ATTACHMENTS);
     }
 
     private static void copyEntry(ZipOutputStream zos, String name, File file,
@@ -1409,7 +1455,14 @@ public class StateExport {
 
         // Outside the transaction: restoring the mail store writes thousands of rows and
         // their payload files, and it needs the folders the transaction above committed.
-        int nMessages = (catMessages ? importMessages(context, source) : 0);
+        // ATTACHMENTS ARE TAKEN UNLESS THE ARCHIVE ITSELF DISTINGUISHES THEM AND THEY WERE NOT
+        // ASKED FOR. A format 1 archive names only "messages" and has the payloads inside it, so
+        // reading the caller's selection literally there would silently drop every attachment in
+        // every backup written before the split - which is the exact failure the split was made
+        // to avoid. Only an archive that declares the category separately can have it withheld.
+        boolean withAttachments = (cats.contains(CAT_ATTACHMENTS) ||
+                !categoriesIn(source).contains(CAT_ATTACHMENTS));
+        int nMessages = (catMessages ? importMessages(context, source, withAttachments) : 0);
 
         // And flush what this app does not own the editor for. ApplicationEx.upgrade writes
         // with apply() behind our back, which our own edit() cannot reach; an empty commit()
@@ -1452,12 +1505,16 @@ public class StateExport {
      * are ones already in that folder with the same message id — the import merges, it
      * never duplicates. A backup written without this category simply has no such entries.
      */
-    private static int importMessages(Context context, Source source) throws Throwable {
+    private static int importMessages(Context context, Source source, boolean withAttachments)
+            throws Throwable {
         DB db = DB.getInstance(context);
 
         Map<String, EntityAccount> accounts = new HashMap<>();
         Map<String, EntityFolder> folders = new HashMap<>();
         Map<String, File> targets = new HashMap<>();
+        // Entry name to attachment id, for the rows that go in marked absent and are only
+        // marked present once their payload has actually been written.
+        Map<String, Long> arrivals = new HashMap<>();
         int imported = 0;
         int skipped = 0;
 
@@ -1478,7 +1535,7 @@ public class StateExport {
                             continue;
                         try {
                             if (importMessage(context, db, new JSONObject(line),
-                                    accounts, folders, targets))
+                                    accounts, folders, targets, arrivals))
                                 imported++;
                             else
                                 skipped++;
@@ -1491,12 +1548,22 @@ public class StateExport {
                     File target = targets.get(name);
                     if (target == null)
                         continue;
+                    // Left where it was inserted: the row stays marked absent and the
+                    // attachment is fetched from the server the first time it is opened.
+                    if (!withAttachments && arrivals.containsKey(name))
+                        continue;
                     File dir = target.getParentFile();
                     if (dir != null && !dir.exists() && !dir.mkdirs())
                         throw new IOException("Cannot create " + dir);
                     try (FileOutputStream out = new FileOutputStream(target)) {
                         copy(zis, out);
                     }
+                    // The payload is on disk now, so the row may claim it. Size from the file
+                    // rather than from the JSON: what was written is the truth, and a
+                    // half-written entry must not be advertised at its intended length.
+                    Long attachment = arrivals.get(name);
+                    if (attachment != null)
+                        db.attachment().setDownloaded(attachment, target.length());
                 }
             }
         }
@@ -1509,7 +1576,8 @@ public class StateExport {
     private static boolean importMessage(Context context, DB db, JSONObject jrecord,
                                          Map<String, EntityAccount> accounts,
                                          Map<String, EntityFolder> folders,
-                                         Map<String, File> targets) throws Throwable {
+                                         Map<String, File> targets,
+                                         Map<String, Long> arrivals) throws Throwable {
         String uuid = jrecord.optString("account", null);
         String folderName = jrecord.optString("folder", null);
         if (uuid == null || folderName == null || !jrecord.has("message"))
@@ -1560,11 +1628,23 @@ public class StateExport {
             jsonToEntity(jattachment, attachment);
             attachment.id = null;
             attachment.message = message.id;
+
+            // NOT AVAILABLE UNTIL THE PAYLOAD ACTUALLY ARRIVES. The row carries available=true
+            // from the export, and believing it is how an attachment ends up listed, opened and
+            // failing, with the app convinced it already holds the file and never fetching it.
+            // Since the attachments category became separable the archive may legitimately
+            // carry the row without the payload, and a truncated archive always could. So the
+            // row goes in marked absent and is flipped by importMessages when its entry comes
+            // past; anything that never arrives is simply re-downloaded from the server.
+            attachment.available = false;
+            attachment.progress = null;
             attachment.id = db.attachment().insertAttachment(attachment);
 
             String file = jattachment.optString("file", null);
-            if (file != null)
+            if (file != null) {
                 targets.put(base + file, attachment.getFile(context));
+                arrivals.put(base + file, attachment.id);
+            }
         }
 
         return true;
