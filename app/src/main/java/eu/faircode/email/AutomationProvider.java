@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -145,13 +146,21 @@ public class AutomationProvider extends ContentProvider {
      * <em>before</em> streaming tens of megabytes into an app that would reject them — which
      * it cannot do if the header is buried inside an encrypted archive.
      *
-     * <p>{@code contains} names the default set, not the whole catalogue: the local mail store
-     * is opt-in per export because it re-syncs from the server using the account definitions
-     * the backup already carries.
+     * <p><b>{@code contains} names the whole catalogue, not the default set.</b> It used to
+     * name only what {@link StateExport#defaultCats()} returns, which left the local mail store
+     * out because that category is unticked by default. That was wrong twice over, and 白い熊
+     * caught it on a backup that did contain the mail. 応用管理 stores this list verbatim in the
+     * backup and shows it as what the archive holds, so a backup whose caller ticked the mail
+     * store described itself as not having it. Worse, 応用管理 pairs these labels
+     * <em>positionally</em> with the per-category sizes it measures inside the archive, so a
+     * short list does not merely omit the last row: every size from the missing category onward
+     * is printed against the wrong label. What a caller actually takes is its own choice, sent
+     * as {@code items} and remembered in its picker; this answer is the catalogue that choice is
+     * made from.
      */
     private String describe(Context context) throws Throwable {
         JSONArray jcontains = new JSONArray();
-        List<String> cats = StateExport.defaultCats();
+        List<String> cats = Arrays.asList(StateExport.CAT_IDS);
         for (String cat : cats)
             // Said plainly rather than left to be discovered: the accounts category carries
             // every account's and identity's password, and for an OAuth account that column IS
