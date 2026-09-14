@@ -10,7 +10,7 @@ A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions*
 
 Installs **side-by-side** with the official FairEmail (app id `shiroikuma.fairemail`).
 
-**📥 Latest release: [`1.2333+008`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
+**📥 Latest release: [`1.2333+010`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
 
 </div>
 
@@ -66,7 +66,7 @@ On the narrow folded-portrait state of the tri-fold, an optional mode lets the m
 
 ## 🖤 Black-and-yellow, everywhere
 
-The theme is carried all the way into the floating and chrome surfaces that usually stay grey: **dialogs and popup menus, dropdown spinners, snackbars, and push buttons** all become black with a yellow border, the navigation **drawer gets a yellow edge without dimming the content**, compose-field hints and separators are made legible and tunable, and the launcher wears a custom **black-and-yellow line-traced envelope** icon.
+The theme is carried all the way into the floating and chrome surfaces that usually stay grey: **dialogs and popup menus, dropdown spinners, snackbars, and push buttons** all become black with a yellow border, the navigation **drawer gets a yellow edge without dimming the content**, compose-field hints and separators are made legible and tunable, and the launcher wears a custom **black-and-yellow line-traced envelope** icon. Settings get the same treatment where it earns its keep: the app-language picker is lifted out of the middle of the Miscellaneous card into a **bordered accent panel at the top of the tab**, the one setting that page is usually opened for.
 
 ---
 
