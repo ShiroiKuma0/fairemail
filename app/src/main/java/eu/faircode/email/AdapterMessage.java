@@ -6989,8 +6989,25 @@ public class AdapterMessage extends RecyclerView.Adapter<AdapterMessage.ViewHold
                         fragment.setArguments(args);
                         fragment.show(parentFragment.getParentFragmentManager(), "open:link");
                     } else {
-                        boolean link_view = prefs.getBoolean(chost + ".link_view", false);
-                        boolean link_sanitize = prefs.getBoolean(chost + ".link_sanitize", false);
+                        // There are two ways to reach this branch: the global
+                        // confirmation is off, or this host is exempt from it.
+                        // Both per host instructions below were recorded as one
+                        // half of an exemption, by the checkbox and the button
+                        // of a single dialog, so they apply only in the second
+                        // case. With the confirmation globally off there is no
+                        // exemption left for them to belong to, and the only
+                        // instruction the user has given is the global open
+                        // with choice, which Helper.view reads below. Obeying a
+                        // leftover link_view there hands the link to the system
+                        // chooser instead of the chosen app, and the chooser
+                        // cannot even offer a handler that is not an approved
+                        // link handler for the domain, so the choice is lost
+                        // with no way to see why.
+                        boolean host_exempt = (confirm_links && chost != null);
+                        boolean link_view = host_exempt &&
+                                prefs.getBoolean(chost + ".link_view", false);
+                        boolean link_sanitize = host_exempt &&
+                                prefs.getBoolean(chost + ".link_sanitize", false);
 
                         if (link_sanitize && UriHelper.isHyperLink(uri)) {
                             Uri sanitized = UriHelper.sanitize(context, uri);
