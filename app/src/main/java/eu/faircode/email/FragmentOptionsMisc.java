@@ -35,8 +35,11 @@ import android.content.pm.PermissionInfo;
 import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabaseCorruptException;
+import android.content.res.ColorStateList;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.fonts.Font;
 import android.graphics.fonts.SystemFonts;
 import android.net.Uri;
@@ -77,6 +80,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.Group;
+import androidx.core.widget.TextViewCompat;
 import androidx.lifecycle.Observer;
 import androidx.preference.PreferenceManager;
 import androidx.work.WorkManager;
@@ -128,6 +132,9 @@ public class FragmentOptionsMisc extends FragmentBase implements SharedPreferenc
     private SwitchCompat swShowFiltered;
     private SwitchCompat swHapticFeedback;
     private SwitchCompat swHapticFeedbackSwipe;
+    private View cardLanguage;
+    private TextView tvLanguage;
+    private TextView tvLanguageHint;
     private ImageButton ibClassification;
     private Spinner spLanguage;
     private SwitchCompat swUpdates;
@@ -406,6 +413,9 @@ public class FragmentOptionsMisc extends FragmentBase implements SharedPreferenc
         swShowFiltered = view.findViewById(R.id.swShowFiltered);
         swHapticFeedback = view.findViewById(R.id.swHapticFeedback);
         swHapticFeedbackSwipe = view.findViewById(R.id.swHapticFeedbackSwipe);
+        cardLanguage = view.findViewById(R.id.cardLanguage);
+        tvLanguage = view.findViewById(R.id.tvLanguage);
+        tvLanguageHint = view.findViewById(R.id.tvLanguageHint);
         spLanguage = view.findViewById(R.id.spLanguage);
         swUpdates = view.findViewById(R.id.swUpdates);
         tvGithubPrivacy = view.findViewById(R.id.tvGithubPrivacy);
@@ -561,6 +571,25 @@ public class FragmentOptionsMisc extends FragmentBase implements SharedPreferenc
         grpTest = view.findViewById(R.id.grpTest);
 
         cardDebug = view.findViewById(R.id.cardDebug);
+
+        // The prominent language box reads its border, fill and text colour from
+        // theme attributes at inflation time, a path the Custom theme colour
+        // override wrapper cannot reach (it only sees Resources.getColor). Resolve
+        // the same attributes again here through Helper.resolveColor, which does
+        // consult the overrides, so a repainted accent or info colour lands on the
+        // box as well.
+        Context ctx = cardLanguage.getContext();
+        int boxForeground = Helper.resolveColor(ctx, R.attr.colorInfoForeground);
+        Drawable boxBackground = cardLanguage.getBackground();
+        if (boxBackground instanceof GradientDrawable) {
+            GradientDrawable box = (GradientDrawable) boxBackground.mutate();
+            box.setColor(Helper.resolveColor(ctx, R.attr.colorInfoBackground));
+            box.setStroke(Helper.dp2pixels(ctx, 3), Helper.resolveColor(ctx, androidx.appcompat.R.attr.colorAccent));
+            cardLanguage.setBackground(box);
+        }
+        tvLanguage.setTextColor(boxForeground);
+        tvLanguageHint.setTextColor(boxForeground);
+        TextViewCompat.setCompoundDrawableTintList(tvLanguage, ColorStateList.valueOf(boxForeground));
 
         setOptions();
 
@@ -2561,7 +2590,7 @@ public class FragmentOptionsMisc extends FragmentBase implements SharedPreferenc
             swCleanupAttachments.setChecked(prefs.getBoolean("cleanup_attachments", false));
             swGoogleBackup.setChecked(prefs.getBoolean("google_backup", BuildConfig.PLAY_STORE_RELEASE));
 
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, android.R.id.text1, display);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.spinner_item_prominent, android.R.id.text1, display);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spLanguage.setAdapter(adapter);
             if (selected >= 0)

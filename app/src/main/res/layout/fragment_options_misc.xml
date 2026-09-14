@@ -45,6 +45,53 @@
             app:layout_constraintTop_toTopOf="@+id/tvDefault"
             app:srcCompat="@drawable/twotone_help_24" />
 
+        <!-- The app language is what this tab is actually opened for, so it leads
+             the page in a box of its own instead of sitting between two haptic
+             switches halfway down the General card. -->
+        <LinearLayout
+            android:id="@+id/cardLanguage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="3dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/prominent_setting_background"
+            android:orientation="vertical"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvDefault">
+
+            <TextView
+                android:id="@+id/tvLanguage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/twotone_language_24"
+                android:drawablePadding="12dp"
+                android:gravity="center_vertical"
+                android:text="@string/title_advanced_language"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                android:textColor="?attr/colorInfoForeground"
+                android:textStyle="bold" />
+
+            <eu.faircode.email.SpinnerEx
+                android:id="@+id/spLanguage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:minHeight="56dp" />
+
+            <TextView
+                android:id="@+id/tvLanguageHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/title_advanced_english_hint"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:textColor="?attr/colorInfoForeground"
+                android:textStyle="italic" />
+        </LinearLayout>
+
         <androidx.cardview.widget.CardView
             android:id="@+id/cardGeneral"
             android:layout_width="match_parent"
@@ -56,7 +103,7 @@
             app:cardElevation="0dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvDefault">
+            app:layout_constraintTop_toBottomOf="@id/cardLanguage">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -368,40 +415,6 @@
                     app:layout_constraintTop_toBottomOf="@id/swHapticFeedback"
                     app:switchPadding="12dp" />
 
-                <TextView
-                    android:id="@+id/tvLanguage"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginEnd="48dp"
-                    android:text="@string/title_advanced_language"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                    android:textColor="?android:attr/textColorPrimary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/swHapticFeedbackSwipe" />
-
-                <eu.faircode.email.SpinnerEx
-                    android:id="@+id/spLanguage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tvLanguage" />
-
-                <TextView
-                    android:id="@+id/tvLanguageHint"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginEnd="48dp"
-                    android:text="@string/title_advanced_english_hint"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                    android:textStyle="italic"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/spLanguage" />
-
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/swUpdates"
                     android:layout_width="0dp"
@@ -413,7 +426,7 @@
                     android:text="@string/title_advanced_updates"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tvLanguageHint"
+                    app:layout_constraintTop_toBottomOf="@id/swHapticFeedbackSwipe"
                     app:switchPadding="12dp" />
 
                 <TextView

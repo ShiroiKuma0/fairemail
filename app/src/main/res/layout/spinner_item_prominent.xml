@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Selected item view for a spinner inside a prominent setting box: the stock
+    simple_spinner_item with the value rendered large and bold, so the current
+    choice is readable at a glance instead of being the smallest text on the
+    panel. The dropdown items keep the stock size.
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/text1"
+    style="?android:attr/spinnerItemStyle"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="48dp"
+    android:singleLine="true"
+    android:textAppearance="@style/TextAppearance.AppCompat.Large"
+    android:textStyle="bold" />
