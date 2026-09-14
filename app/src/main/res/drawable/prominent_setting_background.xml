@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Background for a setting lifted out of its card because it matters more
+    than its neighbours: a thick accent border around an info tinted fill, so
+    the box reads as a highlighted panel rather than one more row. The colours
+    come from theme attributes, so every theme paints it in its own palette;
+    the Custom theme lands on a yellow border over dim yellow. Under the
+    Custom theme the inflation time attribute read bypasses the colour
+    overrides, so the border and fill are reapplied in code through
+    Helper.resolveColor (see FragmentOptionsMisc.onCreateView).
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="?attr/colorInfoBackground" />
+    <stroke
+        android:width="3dp"
+        android:color="?attr/colorAccent" />
+    <corners android:radius="8dp" />
+</shape>
