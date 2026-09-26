@@ -2,6 +2,12 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2337+001 — on FairEmail 1.2337
+
+* Rebased the fork onto upstream FairEmail 1.2337, a jump of four releases and 50 commits (1.2337 adds demo accounts to comply with Play Store policies; 1.2336 fixes bugs in new features; 1.2335 moves the FAQ base URI off `https://m66b.github.io/FairEmail/` to `https://github.com/M66B/FairEmail/blob/master/FAQ.md`, because Microsoft incorrectly blocks the GitHub Pages host; 1.2334 fixes all reported issues, adds drag and drop to address bubbles, adds `via`, `submitter`, `cc`, `bcc` and `replyto` to rule expression conditions, and refreshes the public suffix list and translations)
+* Upstream also stopped restricting its own time and date-time formatters to the short and medium styles, and gave the long time style seconds and a zone. The message list is untouched, because its row date and the folded two-line subject trailing date both read the short formatter; but the message-view Sent, Received and Stored fields, a calendar invitation start and end, the snooze line and the quoted-reference header of a reply all resolve at the long style, so those now carry seconds and a time zone where the platform default did not
+* No fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
 ### 1.2333+010 — on FairEmail 1.2333
 
 * **The app language now leads the Miscellaneous tab in a box of its own.** Stock renders the one setting this tab tends to be opened for as the smallest thing on the page: a Small caption above a `wrap_content` spinner, wedged between two haptic-feedback switches half way down the General card, where it reads as one more row in a run of switches. The label, the spinner and the restart hint are lifted out into a highlighted panel directly below the header row — a 3dp accent border around an info-tinted fill, the label at Large size and bold behind a language icon, and a full-width spinner whose selected value also renders Large and bold. The panel takes its border and fill from theme attributes, so every theme paints it in its own palette; because that read happens at inflation time, the one path the custom-theme colour override wrapper cannot reach, the same attributes are resolved again in code and reapplied, so a repainted accent or info colour lands on the box as well
