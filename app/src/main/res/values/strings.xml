@@ -1597,7 +1597,17 @@
 
     <string name="title_synchronize_now">Synchronize now</string>
     <string name="title_synchronize_subfolders">Subfolders</string>
-    <string name="title_synchronize_more">Fetch more messages</string>
+    <string name="title_synchronize_more">Fetch more/all messages</string>
+    <string name="title_sync_entire_folder">Entire folder</string>
+    <string name="title_full_sync_stop">Stop fetching all messages</string>
+    <string name="title_full_sync_stop_short">Stop</string>
+    <string name="title_full_sync_stop_group">Stop fetching all messages (%1$d folders)</string>
+    <string name="title_sync_include_subfolders">Include subfolders (%1$s)</string>
+    <string name="title_full_sync_notification">Fetching all messages: %1$s</string>
+    <string name="title_full_sync_listing">Listing messages on the server &#8230;</string>
+    <string name="title_full_sync_headers">Headers %1$s / %2$s</string>
+    <string name="title_full_sync_bodies">Message texts %1$s / %2$s</string>
+    <string name="title_full_sync_stopping">Stopping &#8230;</string>
     <string name="title_synchronize_more_hint">This will result in a single download of older messages, so it will not result in more battery usage for everyday use</string>
     <string name="title_synchronize_more_hint2">
         Messages will be fetched as fast as the email server can deliver them and stored as fast as the device can store and index them.
@@ -2571,7 +2581,7 @@
     </string>
     <string name="title_hint_important">Important</string>
     <string name="title_hint_sync">Downloading messages can take some time, depending on the speed of the provider, internet connection, the device and on the number of messages. While downloading messages the app might respond slower.</string>
-    <string name="title_hint_sync_note">By default, not all messages will be downloaded to limit storage space and battery and data usage. You can change this by long pressing a folder in the folder list and selecting \'Fetch more messages\'.</string>
+    <string name="title_hint_sync_note">By default, not all messages will be downloaded to limit storage space and battery and data usage. You can change this by long pressing a folder in the folder list and selecting \'Fetch more/all messages\'.</string>
     <string name="title_hint_battery">Since FairEmail by default always receives messages, Android will report FairEmail as always being active. Therefore it might look as if FairEmail is always consuming battery power although this is in fact not the case.</string>
     <string name="title_hint_reformat">By default, FairEmail reformats messages for privacy and security reasons. To view the original message, tap the \'full screen\' icon above the message text.</string>
     <string name="title_hint_design">The design is intentionally not distracting, but kept highly functional. There are many options to customize the appearance, but please understand that it is impossible to make everybody completely happy at the same time.</string>

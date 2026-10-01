@@ -237,6 +237,12 @@
             app:showAsAction="never" />
 
         <item
+            android:id="@+id/menu_full_sync_stop"
+            android:icon="@drawable/twotone_stop_24"
+            android:title="@string/title_full_sync_stop"
+            app:showAsAction="never" />
+
+        <item
             android:id="@+id/menu_force_sync"
             android:icon="@drawable/twotone_sync_24"
             android:title="@string/title_force_sync"

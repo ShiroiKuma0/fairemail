@@ -752,6 +752,10 @@
         </receiver>
 
         <receiver
+            android:name=".FullSync$StopReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".ReceiverAutoStart"
             android:exported="true">
 

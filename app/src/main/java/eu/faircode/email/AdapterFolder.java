@@ -45,6 +45,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,6 +61,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.OnLifecycleEvent;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -78,8 +80,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class AdapterFolder extends RecyclerView.Adapter<AdapterFolder.ViewHolder> {
     private Fragment parentFragment;
@@ -117,6 +121,9 @@ public class AdapterFolder extends RecyclerView.Adapter<AdapterFolder.ViewHolder
     private List<Long> disabledIds = new ArrayList<>();
     private List<TupleFolderEx> all = new ArrayList<>();
     private List<TupleFolderEx> selected = new ArrayList<>();
+    private Set<Long> fullSyncShown = new HashSet<>();
+
+    private static final String PAYLOAD_FULL_SYNC = "fullsync";
 
     private NumberFormat NF = NumberFormat.getNumberInstance();
 
@@ -156,6 +163,9 @@ public class AdapterFolder extends RecyclerView.Adapter<AdapterFolder.ViewHolder
 
         private TextView tvError;
         private Button btnHelp;
+        private TextView tvFullSync;
+        private ProgressBar pbFullSync;
+        private Button btnFullSyncStop;
 
         private Group grpFlagged;
         private Group grpFlaggedEnd;
@@ -198,6 +208,9 @@ public class AdapterFolder extends RecyclerView.Adapter<AdapterFolder.ViewHolder
 
             tvError = itemView.findViewById(R.id.tvError);
             btnHelp = itemView.findViewById(R.id.btnHelp);
+            tvFullSync = itemView.findViewById(R.id.tvFullSync);
+            pbFullSync = itemView.findViewById(R.id.pbFullSync);
+            btnFullSyncStop = itemView.findViewById(R.id.btnFullSyncStop);
 
             grpFlagged = itemView.findViewById(R.id.grpFlagged);
             grpFlaggedEnd = itemView.findViewById(R.id.grpFlaggedEnd);
@@ -464,6 +477,55 @@ public class AdapterFolder extends RecyclerView.Adapter<AdapterFolder.ViewHolder
                 grpFlaggedEnd.setVisibility(show_flagged && !show_compact ? View.VISIBLE : View.GONE);
                 grpExtended.setVisibility(show_compact ? View.GONE : View.VISIBLE);
             }
+
+            bindFullSync(folder);
+        }
+
+        private void bindFullSync(TupleFolderEx folder) {
+            if (tvFullSync == null || pbFullSync == null || btnFullSyncStop == null)
+                return;
+
+            FullSync.Progress p = (listener == null ? FullSync.get(folder.id) : null);
+            if (p == null) {
+                tvFullSync.setVisibility(View.GONE);
+                pbFullSync.setVisibility(View.GONE);
+                btnFullSyncStop.setVisibility(View.GONE);
+                btnFullSyncStop.setOnClickListener(null);
+                return;
+            }
+
+            boolean indeterminate = (p.stopping || p.phase == FullSync.PHASE_LISTING || p.total <= 0);
+            tvFullSync.setText(FullSync.describe(context, p));
+            pbFullSync.setIndeterminate(indeterminate);
+            if (!indeterminate) {
+                pbFullSync.setMax(p.total);
+                pbFullSync.setProgress(p.done);
+            }
+            tvFullSync.setVisibility(View.VISIBLE);
+            pbFullSync.setVisibility(View.VISIBLE);
+
+            btnFullSyncStop.setContentDescription(FullSync.getStopTitle(context, folder.id));
+            btnFullSyncStop.setVisibility(p.stopping ? View.GONE : View.VISIBLE);
+            btnFullSyncStop.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Bundle args = new Bundle();
+                    args.putLong("folder", folder.id);
+
+                    new SimpleTask<Void>() {
+                        @Override
+                        protected Void onExecute(Context context, Bundle args) {
+                            FullSync.cancel(context, args.getLong("folder"));
+                            return null;
+                        }
+
+                        @Override
+                        protected void onException(Bundle args, Throwable ex) {
+                            Log.e(ex);
+                        }
+                    }.execute(context, owner, args, "folder:fullsync:stop");
+                }
+            });
         }
 
         @Override
@@ -621,6 +683,10 @@ public class AdapterFolder extends RecyclerView.Adapter<AdapterFolder.ViewHolder
             if (folder.selectable) {
                 if (folder.account != null && folder.accountProtocol == EntityAccount.TYPE_IMAP) {
                     popupMenu.getMenu().add(Menu.NONE, R.string.title_synchronize_more, order++, R.string.title_synchronize_more);
+                    if (FullSync.isRunning(folder.id) ||
+                            Integer.valueOf(Integer.MAX_VALUE).equals(folder.initialize))
+                        popupMenu.getMenu().add(Menu.NONE, R.string.title_full_sync_stop, order++,
+                                FullSync.getStopTitle(context, folder.id));
 
                     popupMenu.getMenu().add(Menu.NONE, R.string.title_delete_local, order++, R.string.title_delete_local);
                     popupMenu.getMenu().add(Menu.NONE, R.string.title_delete_browsed, order++, R.string.title_delete_browsed);
@@ -789,6 +855,9 @@ public class AdapterFolder extends RecyclerView.Adapter<AdapterFolder.ViewHolder
                         return true;
                     } else if (itemId == R.string.title_synchronize_more) {
                         onActionSyncMore(false);
+                        return true;
+                    } else if (itemId == R.string.title_full_sync_stop) {
+                        onActionStopFullSync();
                         return true;
                     } else if (itemId == R.string.title_delete_local) {
                         OnActionDeleteLocal(false);
@@ -1079,6 +1148,24 @@ public class AdapterFolder extends RecyclerView.Adapter<AdapterFolder.ViewHolder
                             Log.unexpectedError(parentFragment.getParentFragmentManager(), ex);
                         }
                     }.execute(context, owner, args, "children:navigation");
+                }
+
+                private void onActionStopFullSync() {
+                    Bundle args = new Bundle();
+                    args.putLong("folder", folder.id);
+
+                    new SimpleTask<Void>() {
+                        @Override
+                        protected Void onExecute(Context context, Bundle args) {
+                            FullSync.cancel(context, args.getLong("folder"));
+                            return null;
+                        }
+
+                        @Override
+                        protected void onException(Bundle args, Throwable ex) {
+                            Log.unexpectedError(parentFragment.getParentFragmentManager(), ex);
+                        }
+                    }.execute(context, owner, args, "folder:fullsync:stop");
                 }
 
                 private void onActionSyncMore(boolean children) {
@@ -1489,6 +1576,25 @@ public class AdapterFolder extends RecyclerView.Adapter<AdapterFolder.ViewHolder
         this.context = context;
         this.owner = owner;
         this.inflater = LayoutInflater.from(context);
+
+        // Whole folder fetch progress is not in the database, so it does not arrive with the folder list
+        if (listener == null)
+            FullSync.getChanged().observe(owner, new Observer<Integer>() {
+                @Override
+                public void onChanged(Integer tick) {
+                    for (int pos = 0; pos < selected.size(); pos++) {
+                        TupleFolderEx f = selected.get(pos);
+                        if (f == null)
+                            continue;
+                        boolean running = FullSync.isRunning(f.id);
+                        if (running)
+                            fullSyncShown.add(f.id);
+                        else if (!fullSyncShown.remove(f.id))
+                            continue;
+                        notifyItemChanged(pos, PAYLOAD_FULL_SYNC);
+                    }
+                }
+            });
         if (context instanceof FragmentActivity && BuildConfig.DEBUG)
             this.selectedModel = new ViewModelProvider((FragmentActivity) context)
                     .get(ViewModelSelected.class);
@@ -1901,6 +2007,16 @@ public class AdapterFolder extends RecyclerView.Adapter<AdapterFolder.ViewHolder
     @NonNull
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new ViewHolder(inflater.inflate(viewType, parent, false));
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
+        if (payloads.contains(PAYLOAD_FULL_SYNC) && payloads.size() == 1) {
+            // Progress only: no full rebind, so the row does not flicker on every batch
+            holder.bindFullSync(selected.get(position));
+            return;
+        }
+        super.onBindViewHolder(holder, position, payloads);
     }
 
     @Override

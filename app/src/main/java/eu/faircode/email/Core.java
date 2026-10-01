@@ -3863,6 +3863,8 @@ class Core {
             IMAPStore istore, final IMAPFolder ifolder, State state)
             throws JSONException, MessagingException, IOException {
         final DB db = DB.getInstance(context);
+        boolean whole = false;
+        boolean finished = false;
         try {
             SyncStats stats = new SyncStats();
 
@@ -3876,6 +3878,23 @@ class Core {
             boolean auto_delete = jargs.optBoolean(3, false);
             int initialize = jargs.optInt(4, folder.initialize);
             boolean force = jargs.optBoolean(5, false);
+
+            // Whole folder fetch: the initialize pass for all messages, and the text download it queues
+            whole = (initialize == Integer.MAX_VALUE || jargs.optBoolean(6, false));
+            boolean stopped = false;
+            if (whole && FullSync.isCancelled(folder.id)) {
+                // Stopped before this pass started: run an ordinary sync instead
+                Log.i(folder.name + " full sync stopped before start");
+                FullSync.clearCancel(folder.id);
+                whole = false;
+                initialize = 0;
+                sync_days = Math.min(folder.sync_days, keep_days);
+                jargs.put(0, sync_days);
+                jargs.put(4, 0);
+                jargs.put(6, false);
+                folder.initialize = 0;
+                db.folder().setFolderInitialize(folder.id, 0);
+            }
 
             if (keep_days == sync_days && keep_days != Integer.MAX_VALUE)
                 keep_days++;
@@ -3912,6 +3931,8 @@ class Core {
             }
 
             db.folder().setFolderSyncState(folder.id, "syncing");
+            if (whole)
+                FullSync.begin(context, folder, FullSync.PHASE_LISTING, 0);
 
             Flags flags = ifolder.getPermanentFlags();
 
@@ -4398,8 +4419,15 @@ class Core {
                     // Add/update local messages
                     DutyCycle dc = new DutyCycle(account.name + " sync");
                     Log.i(folder.name + " add=" + imessages.length);
+                    if (whole)
+                        FullSync.begin(context, folder, FullSync.PHASE_HEADERS, imessages.length);
                     for (int i = imessages.length - 1; i >= 0; i -= SYNC_BATCH_SIZE) {
                         state.ensureRunning("Sync/IMAP/sync/fetch");
+                        if (whole && FullSync.isCancelled(folder.id)) {
+                            Log.i(folder.name + " full sync stopped at " + (imessages.length - 1 - i));
+                            stopped = true;
+                            break;
+                        }
 
                         int from = Math.max(0, i - SYNC_BATCH_SIZE + 1);
                         Message[] isub = Arrays.copyOfRange(imessages, from, i + 1);
@@ -4493,6 +4521,9 @@ class Core {
                                 dc.stop(state.getForeground(), from == 0 && j == 0);
                             }
                         }
+
+                        if (whole)
+                            FullSync.update(context, folder.id, imessages.length - from);
                     }
                 }
 
@@ -4524,6 +4555,10 @@ class Core {
                 search = SystemClock.elapsedRealtime();
             }
 
+            // A stopped fetch skipped messages, so the next sync must not trust the modseq
+            if (stopped)
+                modseq = null;
+
             // Update modseq
             folder.modseq = modseq;
             EntityLog.log(context,
@@ -4543,8 +4578,15 @@ class Core {
                 // Download messages/attachments
                 DutyCycle dc = new DutyCycle(account.name + " download");
                 Log.i(folder.name + " download=" + imessages.length);
+                if (whole)
+                    FullSync.begin(context, folder, FullSync.PHASE_BODIES, imessages.length);
                 for (int i = imessages.length - 1; i >= 0; i -= DOWNLOAD_BATCH_SIZE) {
                     state.ensureRunning("Sync/IMAP/download/fetch");
+                    if (whole && FullSync.isCancelled(folder.id)) {
+                        Log.i(folder.name + " full download stopped at " + (imessages.length - 1 - i));
+                        stopped = true;
+                        break;
+                    }
 
                     int from = Math.max(0, i - DOWNLOAD_BATCH_SIZE + 1);
                     Message[] isub = Arrays.copyOfRange(imessages, from, i + 1);
@@ -4583,6 +4625,9 @@ class Core {
                             dc.stop(state.getForeground(), from == 0 && j == 0);
                         }
                     }
+
+                    if (whole)
+                        FullSync.update(context, folder.id, imessages.length - from);
                 }
             }
 
@@ -4592,7 +4637,11 @@ class Core {
                 db.folder().setFolderInitialize(folder.id, 0);
 
                 // Schedule download
-                if (download) {
+                if (download && !stopped) {
+                    // Mark the text download as part of the whole folder fetch, for progress and stop
+                    if (whole)
+                        jargs.put(6, true);
+
                     EntityOperation operation = new EntityOperation();
                     operation.account = folder.account;
                     operation.folder = folder.id;
@@ -4611,9 +4660,12 @@ class Core {
 
             EntityLog.log(context, EntityLog.Type.Statistics,
                     account.name + "/" + folder.name + " sync stats " + stats);
+            finished = true;
         } finally {
             Log.i(folder.name + " end sync state=" + state);
             db.folder().setFolderSyncState(folder.id, null);
+            if (whole)
+                FullSync.end(context, folder.id, finished);
         }
     }
 

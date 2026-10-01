@@ -27,6 +27,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -35,6 +37,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.preference.PreferenceManager;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +55,8 @@ public class FragmentDialogSync extends FragmentDialogBase {
         final Context context = getContext();
         View view = LayoutInflater.from(context).inflate(R.layout.dialog_sync, null);
         final TextView tvFolder = view.findViewById(R.id.tvFolder);
+        final CheckBox cbChildren = view.findViewById(R.id.cbChildren);
+        final CheckBox cbAll = view.findViewById(R.id.cbAll);
         final EditText etMonths = view.findViewById(R.id.etMonths);
         final TextView tvRemark = view.findViewById(R.id.tvRemark);
 
@@ -71,6 +76,48 @@ public class FragmentDialogSync extends FragmentDialogBase {
         int def = prefs.getInt(key, DEFAULT_KEEP);
         etMonths.setText(def < 0 ? null : Integer.toString(def));
 
+        // An empty months field always meant the entire folder; say so with a box of its own
+        cbAll.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                etMonths.setEnabled(!isChecked);
+            }
+        });
+        cbAll.setChecked(def < 0);
+        etMonths.setEnabled(!cbAll.isChecked());
+
+        // Offer the subfolders right here, with their count, instead of only via the Subfolders submenu
+        cbChildren.setChecked(args.getBoolean("children"));
+        if (fid > 0) {
+            Bundle cargs = new Bundle();
+            cargs.putLong("folder", fid);
+
+            new SimpleTask<Integer>() {
+                @Override
+                protected Integer onExecute(Context context, Bundle args) {
+                    int count = 0;
+                    for (EntityFolder child : EntityFolder.getChildFolders(context, args.getLong("folder")))
+                        if (child.selectable)
+                            count++;
+                    return count;
+                }
+
+                @Override
+                protected void onExecuted(Bundle args, Integer count) {
+                    if (count == null || count == 0)
+                        return;
+                    cbChildren.setText(getString(R.string.title_sync_include_subfolders,
+                            NumberFormat.getNumberInstance().format(count)));
+                    cbChildren.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                protected void onException(Bundle args, Throwable ex) {
+                    Log.e(ex);
+                }
+            }.execute(context, this, cargs, "folder:months:children");
+        }
+
         tvRemark.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -86,7 +133,8 @@ public class FragmentDialogSync extends FragmentDialogBase {
                         String months = etMonths.getText().toString();
 
                         Bundle args = getArguments();
-                        if (TextUtils.isEmpty(months)) {
+                        args.putBoolean("children", cbChildren.getVisibility() == View.VISIBLE && cbChildren.isChecked());
+                        if (cbAll.isChecked() || TextUtils.isEmpty(months)) {
                             prefs.edit().putInt(key, -1).apply();
                             args.putInt("months", 0);
                         } else
@@ -108,6 +156,7 @@ public class FragmentDialogSync extends FragmentDialogBase {
                                 boolean children = args.getBoolean("children");
 
                                 DB db = DB.getInstance(context);
+                                List<Long> whole = new ArrayList<>();
                                 try {
                                     db.beginTransaction();
 
@@ -133,18 +182,23 @@ public class FragmentDialogSync extends FragmentDialogBase {
                                             if (months == 0) {
                                                 db.folder().setFolderInitialize(folder.id, Integer.MAX_VALUE);
                                                 db.folder().setFolderKeep(folder.id, Integer.MAX_VALUE);
+                                                FullSync.clearCancel(folder.id);
+                                                whole.add(folder.id);
                                             } else if (months > 0) {
                                                 db.folder().setFolderInitialize(folder.id, months * 30);
                                                 db.folder().setFolderKeep(folder.id, months * 30);
                                             }
 
-                                            EntityOperation.sync(context, folder.id, true);
+                                            // Force replaces an already queued sync, whose arguments predate the new values
+                                            EntityOperation.sync(context, folder.id, true, months == 0);
                                         }
 
                                     db.setTransactionSuccessful();
                                 } finally {
                                     db.endTransaction();
                                 }
+
+                                FullSync.setGroup(whole);
 
                                 ServiceSynchronize.eval(context, "folder:months");
 
