@@ -6,11 +6,11 @@
 
 **A black-and-yellow FairEmail, tuned for the Huawei Mate XT tri-fold.**
 
-A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions**: a fully customisable black/yellow theme with a 28-role colour picker, per-role custom fonts and weights, a dedicated 白い熊 FairEmail UI page with one-tap export/import of everything including the mail store, a headless automation export plus a signature-pinned data door that lets a backup app take this app away with its mail, a folded two-line message subject, and every Pro feature unlocked.
+A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions**: a fully customisable black/yellow theme with a 28-role colour picker, per-role custom fonts and weights, a dedicated 白い熊 FairEmail UI page with one-tap export/import of everything including the mail store, a headless automation export plus a signature-pinned data door that lets a backup app take this app away with its mail, a whole-folder fetch with a live progress meter and a stop button, a folded two-line message subject, and every Pro feature unlocked.
 
 Installs **side-by-side** with the official FairEmail (app id `shiroikuma.fairemail`).
 
-**📥 Latest release: [`1.2337+001`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
+**📥 Latest release: [`1.2337+004`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
 
 </div>
 
@@ -55,6 +55,12 @@ The header the door answers with says plainly what a backup holds — including 
 **A restore returns everything the archive holds.** Naming no categories means the whole archive, never a default set: the choice was already made when the backup was written, and re-applying a size preference at restore time is how a restore comes back quietly short. Mail bodies and attachments are **separate categories, both on by default**, so the weight can be left out without leaving the mail out — on a real backup the 1,088 bodies came to 45.0 MB and the 286 attachments to 46.3 MB. An attachment is only marked present once its payload has actually landed on disk; anything left behind is fetched from the server the first time you open it, rather than sitting there as a file the app thinks it has.
 
 **A restore counts out loud, from the first byte to the last.** The transfer reports the bytes as they arrive, and the restore that follows keeps counting rather than falling silent at the point where the longer half of the work begins: one step per category, a line per account, and the mail store counted message by message — first as the index is read, then as each payload lands. Real numbers throughout, never a percentage, and never an invented total: where a length genuinely cannot be known — a descriptor that may be a pipe, an index read as a stream — the count climbs against no denominator rather than against a guess.
+
+---
+
+## 📥 Fetch an entire folder — and watch it happen
+
+Stock FairEmail keeps only recent mail on the device and hides the way to get the rest behind an empty months field. Here **Fetch more/all messages** has an **Entire folder** box and an **Include subfolders (N)** box, so one tap pulls a whole folder tree onto the phone. While it runs, the folder row shows the stage and a live count — *Headers 1,240 / 18,532*, then the message texts — over a progress bar with a bordered **■ Stop** button, mirrored by an ongoing notification. Stop ends the run at the next batch of twenty, keeps everything already fetched, and halts every folder started with it.
 
 ---
 
