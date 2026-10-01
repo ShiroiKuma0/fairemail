@@ -291,6 +291,49 @@
                 app:srcCompat="@drawable/twotone_star_24" />
 
             <TextView
+                android:id="@+id/tvFullSync"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:layout_marginEnd="6dp"
+                android:text="Headers 1,240 / 18,532"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:textColor="?android:attr/textColorPrimary"
+                android:visibility="gone"
+                app:layout_constraintEnd_toStartOf="@id/btnFullSyncStop"
+                app:layout_constraintStart_toEndOf="@id/ibExpander"
+                app:layout_constraintTop_toBottomOf="@id/tvKeywords" />
+
+            <ProgressBar
+                android:id="@+id/pbFullSync"
+                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:layout_marginEnd="6dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toStartOf="@id/btnFullSyncStop"
+                app:layout_constraintStart_toEndOf="@id/ibExpander"
+                app:layout_constraintTop_toBottomOf="@id/tvFullSync" />
+
+            <Button
+                android:id="@+id/btnFullSyncStop"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_marginEnd="6dp"
+                android:contentDescription="@string/title_full_sync_stop"
+                android:drawableStart="@drawable/twotone_stop_24"
+                android:drawablePadding="6dp"
+                android:text="@string/title_full_sync_stop_short"
+                android:visibility="gone"
+                app:drawableTint="?android:attr/textColorPrimary"
+                app:layout_constraintBottom_toBottomOf="@id/pbFullSync"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/tvFullSync" />
+
+            <TextView
                 android:id="@+id/tvError"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -302,7 +345,7 @@
                 android:textIsSelectable="true"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/ibExpander"
-                app:layout_constraintTop_toBottomOf="@id/tvKeywords" />
+                app:layout_constraintTop_toBottomOf="@id/pbFullSync" />
 
             <Button
                 android:id="@+id/btnHelp"
