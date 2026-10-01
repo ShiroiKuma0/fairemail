@@ -78,6 +78,7 @@ class NotificationHelper {
     static final int NOTIFICATION_UPDATE = 400;
     static final int NOTIFICATION_TAGGED = 500;
     static final int NOTIFICATION_TTS = 600;
+    static final int NOTIFICATION_FULL_SYNC = 800;
 
     private static final int MAX_NOTIFICATION_DISPLAY = 10; // per group
     private static final int MAX_NOTIFICATION_COUNT = 100; // per group

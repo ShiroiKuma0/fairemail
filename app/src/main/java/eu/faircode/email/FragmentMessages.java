@@ -6823,6 +6823,10 @@ public class FragmentMessages extends FragmentBase
             }
 
             menu.findItem(R.id.menu_sync_more).setVisible(folder);
+            boolean full_sync = (viewType == AdapterMessage.ViewType.FOLDER && FullSync.isRunning(this.folder));
+            menu.findItem(R.id.menu_full_sync_stop).setVisible(full_sync);
+            if (full_sync)
+                menu.findItem(R.id.menu_full_sync_stop).setTitle(FullSync.getStopTitle(context, this.folder));
             menu.findItem(R.id.menu_force_sync).setVisible(viewType == AdapterMessage.ViewType.UNIFIED || primary_inbox);
             menu.findItem(R.id.menu_force_send).setVisible(outbox);
 
@@ -6991,6 +6995,9 @@ public class FragmentMessages extends FragmentBase
             return true;
         } else if (itemId == R.id.menu_sync_more) {
             onMenuSyncMore();
+            return true;
+        } else if (itemId == R.id.menu_full_sync_stop) {
+            onMenuStopFullSync();
             return true;
         } else if (itemId == R.id.menu_force_sync) {
             onMenuForceSync();
@@ -7566,6 +7573,24 @@ public class FragmentMessages extends FragmentBase
                 Log.unexpectedError(getParentFragmentManager(), ex);
             }
         }.execute(this, args, "folder:months");
+    }
+
+    private void onMenuStopFullSync() {
+        Bundle args = new Bundle();
+        args.putLong("folder", folder);
+
+        new SimpleTask<Void>() {
+            @Override
+            protected Void onExecute(Context context, Bundle args) {
+                FullSync.cancel(context, args.getLong("folder"));
+                return null;
+            }
+
+            @Override
+            protected void onException(Bundle args, Throwable ex) {
+                Log.unexpectedError(getParentFragmentManager(), ex);
+            }
+        }.execute(this, args, "messages:fullsync:stop");
     }
 
     private void onMenuForceSync() {
