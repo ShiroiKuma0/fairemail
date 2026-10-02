@@ -10,7 +10,7 @@ A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions*
 
 Installs **side-by-side** with the official FairEmail (app id `shiroikuma.fairemail`).
 
-**📥 Latest release: [`1.2338+001`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
+**📥 Latest release: [`1.2338+002`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
 
 </div>
 

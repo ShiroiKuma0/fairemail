@@ -2,6 +2,10 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+1.2338+002 — on FairEmail 1.2338
+
+* **The rule editor no longer calls rules a pro feature.** Upstream 1.2338 added a "This is a pro feature" notice to the rule editor, hidden only when a real activation has stored the pro flag. This fork unlocks every pro feature without that flag, so the notice showed on every rule even though rules work. It now asks the same unlock check the rest of the app uses, and stays hidden
+
 1.2338+001 — on FairEmail 1.2338
 
 * Rebased the fork onto upstream FairEmail 1.2338, 32 commits. Upstream fixes all reported issues and adds: an **eye toggle in the Accounts list menu that hides the user names** under each account; **direct on-device search scoped to the one account** when only one IMAP account synchronises, searching its inbox (its archive on Gmail) instead of every folder; links allowed in AI summaries; up to 25 notifications per group instead of 10; a **beige switch in the theme selector** for the light card background; a Pro badge where rules are used; a confirmation that shows a sanitised host or domain; and a fixed floating action button colour on yellow backgrounds. Cloud sync is deprecated and its card is now shown only to accounts already signed in to it. Also the public suffix list, AndroidX, the Android Gradle plugin 9.4.1 and the translations
