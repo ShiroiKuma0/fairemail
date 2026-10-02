@@ -433,8 +433,9 @@ public class FragmentRule extends FragmentBase {
         grpUrl = view.findViewById(R.id.grpUrl);
         grpSummarize = view.findViewById(R.id.grpSummarize);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        boolean pro = prefs.getBoolean("pro", false);
+        // Fork: ask isPro rather than the raw pro preference, which the
+        // unconditional unlock never sets
+        boolean pro = ActivityBilling.isPro(getContext());
 
         tvPro.setVisibility(pro && !BuildConfig.DEBUG ? View.GONE : View.VISIBLE);
 
