@@ -2,6 +2,13 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2338+001 — on FairEmail 1.2338
+
+* Rebased the fork onto upstream FairEmail 1.2338, 32 commits. Upstream fixes all reported issues and adds: an **eye toggle in the Accounts list menu that hides the user names** under each account; **direct on-device search scoped to the one account** when only one IMAP account synchronises, searching its inbox (its archive on Gmail) instead of every folder; links allowed in AI summaries; up to 25 notifications per group instead of 10; a **beige switch in the theme selector** for the light card background; a Pro badge where rules are used; a confirmation that shows a sanitised host or domain; and a fixed floating action button colour on yellow backgrounds. Cloud sync is deprecated and its card is now shown only to accounts already signed in to it. Also the public suffix list, AndroidX, the Android Gradle plugin 9.4.1 and the translations
+* The new beige switch is greyed out under the **Custom** theme, the same way that theme already greys out the black, reverse and light/dark options: Custom is a fixed yellow-on-black palette, and the beige tint only ever applies to light card backgrounds
+* Fork build number reset to `001` for the new upstream base, so this build reads `1.2338+001` (version code `23380001`)
+* No other fork-specific changes this round; the custom theme, colour roles, per-role fonts, the folded two-line subject, the folder fetch with its progress meter and stop button, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
 ### 1.2337+004 — on FairEmail 1.2337
 
 * **Fetch an entire folder, with a progress meter and a stop button.** Stock could already pull every message of a folder onto the device, but you would never know: the long-press entry was called "Fetch more messages", which reads like the partial fetch done while scrolling, the dialog asked for a number of months, and only a placeholder in that empty field said "All". Once it ran, the only sign was a spinner on the folder row, with no count, no end in sight and no way to cancel. A pass cut short by a dropped connection carried on silently at the next sync, so it looked like a partial result
