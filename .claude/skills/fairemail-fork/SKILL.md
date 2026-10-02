@@ -14,16 +14,16 @@ This is the personal fork of **M66B/FairEmail** (open-source Android email clien
 | Upstream | `M66B/FairEmail` (git remote `upstream`) |
 | Fork | `ShiroiKuma0/fairemail`, SSH `git@github.com:ShiroiKuma0/fairemail.git` (remote `origin`) |
 | Working branch | `custom` (rebased onto an upstream tag) |
-| Current base tag | `1.2337` |
+| Current base tag | `1.2338` |
 | `namespace` | `eu.faircode.email` (unchanged from upstream; Java package stays this) |
 | `applicationId` | `shiroikuma.fairemail` (debug variant adds `.debug`) |
 | Display name | `白い熊 FairEmail` (github flavor `app_name` in `app/src/github/res/values/strings.xml`) |
-| Versioning | `versionName` = `1.<upstream>+<fork>`, fork number zero padded to three digits (e.g. `1.2337+001`); `versionCode` = `<upstream> * 10000 + <fork>` (e.g. `23370001`, unpadded arithmetic). The `getForkBuild` literal in `app/build.gradle` is the fork build number — reset to **1** on every upstream rebase, **+1** on every subsequent local build. `getVersionCode()` keeps returning the bare upstream code (it feeds archivesName/changelog/signature paths; do not repurpose it). |
+| Versioning | `versionName` = `1.<upstream>+<fork>`, fork number zero padded to three digits (e.g. `1.2338+001`); `versionCode` = `<upstream> * 10000 + <fork>` (e.g. `23380001`, unpadded arithmetic). The `getForkBuild` literal in `app/build.gradle` is the fork build number — reset to **1** on every upstream rebase, **+1** on every subsequent local build. `getVersionCode()` keeps returning the bare upstream code (it feeds archivesName/changelog/signature paths; do not repurpose it). |
 | Keystore | `~/.android-keystores/fairemail-custom.jks`, alias `fairemail`. Password is NOT in this repo — keep it in `~/.gradle/gradle.properties` or an env var. |
 | Build flavor / type | `github` / `release` → task `:app:assembleGithubRelease` |
 | Built APK path | `app/build/outputs/apk/github/release/FairEmail-v<tag>a-github-release.apk` |
-| Deployed APK names | `shiroikuma-fairemail_<versionName>_arm64-v8a.apk` (e.g. `shiroikuma-fairemail_1.2337+001_arm64-v8a.apk`), copied to `~/tmp/` AND pushed to `/sdcard/tmp/`. No datetime — matches the user's other sideloaded apps (denwa, futokxkb, simplex): `shiroikuma-<app>_<upstream>+<fork>_arm64-v8a.apk`, fork number zero padded to three digits so the shared directories sort in build order. |
-| Toolchain (tag 1.2337) | compileSdk=37, minSdk=23, targetSdk=37, NDK `27.3.13750724` (r27d), AGP 9.3.2 / Gradle 9.7.1, Java toolchain 21 (upstream bumped 17→21 at 1.2317), kotlin-android plugin REMOVED. Host build JDK is OpenJDK 21 (`JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`). SDK lives at `$HOME/android-sdk`; export `ANDROID_HOME`/`ANDROID_SDK_ROOT` for builds (set in the user's `.bashrc` but NOT in non-interactive shells, and no `local.properties` is committed). |
+| Deployed APK names | `shiroikuma-fairemail_<versionName>_arm64-v8a.apk` (e.g. `shiroikuma-fairemail_1.2338+001_arm64-v8a.apk`), copied to `~/tmp/` AND pushed to `/sdcard/tmp/`. No datetime — matches the user's other sideloaded apps (denwa, futokxkb, simplex): `shiroikuma-<app>_<upstream>+<fork>_arm64-v8a.apk`, fork number zero padded to three digits so the shared directories sort in build order. |
+| Toolchain (tag 1.2338) | compileSdk=37, minSdk=23, targetSdk=37, NDK `27.3.13750724` (r27d), AGP 9.4.1 / Gradle 9.7.1, Java toolchain 21 (upstream bumped 17→21 at 1.2317), kotlin-android plugin REMOVED. Host build JDK is OpenJDK 21 (`JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`). SDK lives at `$HOME/android-sdk`; export `ANDROID_HOME`/`ANDROID_SDK_ROOT` for builds (set in the user's `.bashrc` but NOT in non-interactive shells, and no `local.properties` is committed). |
 | Device | Huawei Mate XT tri-fold. Folded-portrait ≈ 1008×2127 px (~366 dp wide); every other fold/orientation state is ≥ ~745 dp. |
 
 ## Commit stack on origin/custom
@@ -31,93 +31,99 @@ This is the personal fork of **M66B/FairEmail** (open-source Android email clien
 Newest first (short hashes). For the authoritative current list run `git log --oneline <upstream-tag>..origin/custom`.
 
 ```
-4da48aab52  Reset the fork build number for the 1.2337 rebase
-a72e326670  Publish 1.2333+010: refresh changelog and README for the language box and the link fix
-d45c5c42df  Bump the fork build number to 10
-ea2dc28032  Apply a per host link decision only inside its own exemption
-631bde3aa9  Lead the miscellaneous settings tab with a loud language box
-4e4f7af876  Publish 1.2333+008: refresh changelog and README for the progress fixes
-bbf394c685  Bump the fork build number to 8
-f3cbbf4539  Report progress through the restore, not only through the spool
-eca895235d  Send the import byte count in the fields the caller reads
-8ffaf2eb90  Read a stream to its real end, not to its first empty read
-2a63d2979e  Publish 1.2333+006: refresh changelog and README for the backup fixes
-9b9db31eea  Bump the fork build number to 6
-e55b99d8da  Split email attachments from message bodies as their own category
-3f2011774a  Answer the caller even when the automation worker cannot start
-3e0e89954e  Restore every category the archive carries, not the export defaults
-1d3c1eafa1  Report the whole category catalogue at the automation data door
-aad19a9d5e  Drop the ask list from the project Claude settings
-d82a283213  Publish 1.2333+004: refresh changelog and README for the automation data door
-a03dc510fb  Bump the fork build number to 4
-4ef6e2b018  Add the automation data door for backup and restore
-73df333e12  Send automation progress from one place for both doors
-eec3af363e  Make the automation token optional and ship the switch on
-1b620578b6  Declare both automation callers in the manifest queries element
-18834067e7  Publish 1.2333+001: refresh changelog and README for the 1.2333 rebase
-151f69df92  Refresh fork skill and CLAUDE docs for the 1.2333 rebase
-5be0d137f7  Publish 1.2331+001: refresh changelog and README for the 1.2331 rebase
-52e6c808e7  Publish 1.2330+001: refresh changelog and README for the 1.2330 rebase
-d5f6ae2765  Publish 1.2329+001: refresh changelog and README for the 1.2329 rebase
-777fd5d5aa  Reset the fork build number for the 1.2329 rebase
-15dd468b7e  Publish 1.2328+002: refresh changelog and README for the 1.2328 rebase
-8038e4f26c  Bump the fork build number to 2
-adbdb66df2  Zero pad the fork build number in the version name
-d21fe1b67c  Refresh fork skill and CLAUDE docs for the 1.2327 rebase
-ade33ada81  Publish 1.2327+1: refresh changelog and README for the 1.2327 rebase
-d23e397a16  Reset the fork build number for the 1.2327 rebase
-33ae80db15  Publish 1.2326+8: refresh changelog and README for the cancel work
-e3797f36fa  Bump the fork build number to 8
-a01d8c293d  Stop a running export, leaving no partial file behind
-d2a1889a2a  Say which backup categories start ticked
-478ee07721  Publish 1.2326+7: refresh changelog and README for the backup work
-a07d3e1ded  Bump the fork build number to 7
-6271e004c5  Answer the sister app state export automation contract
-e3ba79f707  Add the automation token gate and its Export Import rows
-4689e53cd1  Export the local mail store as an opt-in backup category
-d6d8655517  Write backups as one ZIP named by the sister-app convention
-e0bf38cd08  Publish 1.2326+5: refresh changelog and README for the UI page
-701f32162e  Bump the fork build number to 5
-56a0bf5128  Custom theme: black toolbar overflow menu with a yellow border
-80190aafe6  Open the UI page by long-pressing the toolbar hamburger buttons
-5a84eeaf75  Add the 白い熊 FairEmail UI page with export/import replacing Backup
-92aa20c2b2  Publish 1.2326+1: refresh changelog and README for the 1.2326 rebase
-1087b37fef  Publish 1.2325+4: refresh README and changelog for the pro unlock
-bfc119852f  Hide the purchase section on the pro features screen
-4f8727eaea  Unlock all pro features unconditionally
-76f525d45c  skills: document the merged changelog workflow
-c5d48f07ba  Add a merged fork changelog to CHANGELOG.md
-9168861445  Add a fork README for the GitHub release
-ca2e5eb2df  Custom theme: black dropdown spinners with a yellow border
-9e8b9d9f42  skills: auto-deliver builds via /after-build (drop the transfer prompt)
-b676a6ba06  Make compose field hints and separators legible and tunable
-f3a41d817e  docs: no attribution trailer in commits
-9e41f77dcc  Refresh fork skill and CLAUDE docs for the 1.2326 rebase
-510f0556da  Custom launcher icon: black-yellow line-traced envelope
-af85e754b5  Skill: never delete old APKs on the device when deploying
-5ca8fe9b01  Custom theme: yellow drawer border without dimming the content
-c3b280bd64  Custom theme: black push buttons with a yellow border
-c5dcf118bf  Custom theme: black snackbars with a yellow border and yellow text
-eb800b2a0b  Custom theme: black dialogs and popup menus with a yellow border
-b3ee55ce53  Add upstream-new-version skill to drive the upstream rebase and build
-f0a70f3e18  kxkb: document fork versioning and label, refresh skill for 1.2318
-8f2fd95fcc  Rename the sideloaded app label to 白い熊 FairEmail
-b7ce32d30d  Version the fork as the upstream version plus a local build number
-0f654c324e  kxkb: add agent config (CLAUDE.md + .claude/skills/)
-eb563703a3  Folded message list: optional two-line subject with trailing date
-6a397af7ba  Custom fonts: expand to independent per-role selection across eight roles
-16e09af08a  Custom font picker: defer pref save so the activity recreates cleanly
-665af29a71  Add custom font and weight selection for message text
-c25e9f44bc  Custom theme colours: route tvBody link colour through the override
-38f2241d4a  Custom theme colours: expand to 28 roles across 7 sections
-adf633b62f  Custom theme colours: refactor picker UI to be data-driven
-8caf85fd36  Custom theme: hook XML-resolved colours via Activity-only Resources wrap
-fbeb041c25  Custom theme: hook code-resolved colours to user prefs
-ad9bbd644f  Custom theme: scaffold the customizable colour picker UI
-a071b63a8a  Custom theme: unread accent yellow, decouple sender colour, extend font size range
-f090253d62  Custom theme polish: swap subject/sender highlight target, never bold sender, add sender_italic toggle, accent yellow
-43d560fa1e  Add Custom theme: yellow-on-black with gold unread accent
-82e93ac894  Customize github flavor for sideloaded shiroikuma.fairemail build
+ef44426347  Reset the fork build number for the 1.2338 rebase
+d7160087ef  Publish 1.2337+004: refresh changelog and README for the folder fetch
+964cd40745  Bump the fork build number to 4
+9b0af4f2ac  Fetch an entire folder with progress and a stop button
+738c41f4eb  Publish 1.2337+001: refresh changelog and README for the 1.2337 rebase
+1cf75fcee1  Refresh fork skill and CLAUDE docs for the 1.2337 rebase
+3185e19343  Reset the fork build number for the 1.2337 rebase
+824f5264f4  Publish 1.2333+010: refresh changelog and README for the language box and the link fix
+b58c7a22a2  Bump the fork build number to 10
+71808d5cb1  Apply a per host link decision only inside its own exemption
+8b4abe86e1  Lead the miscellaneous settings tab with a loud language box
+f5f8052ef7  Publish 1.2333+008: refresh changelog and README for the progress fixes
+a376d69855  Bump the fork build number to 8
+4f2d542363  Report progress through the restore, not only through the spool
+7c6b7f6bd0  Send the import byte count in the fields the caller reads
+03fd49e7c6  Read a stream to its real end, not to its first empty read
+adef442754  Publish 1.2333+006: refresh changelog and README for the backup fixes
+9bccc6076d  Bump the fork build number to 6
+0b13237dce  Split email attachments from message bodies as their own category
+7a39d7f3c0  Answer the caller even when the automation worker cannot start
+b4f4ac9259  Restore every category the archive carries, not the export defaults
+fe6d57b2ed  Report the whole category catalogue at the automation data door
+e862c8c633  Drop the ask list from the project Claude settings
+2f7c1db0c3  Publish 1.2333+004: refresh changelog and README for the automation data door
+8c94f21bd4  Bump the fork build number to 4
+875e79a0ae  Add the automation data door for backup and restore
+29afff81a9  Send automation progress from one place for both doors
+9485f5b287  Make the automation token optional and ship the switch on
+a16d1b2bdf  Declare both automation callers in the manifest queries element
+5294092996  Publish 1.2333+001: refresh changelog and README for the 1.2333 rebase
+61559d373d  Refresh fork skill and CLAUDE docs for the 1.2333 rebase
+bd1f80f1a3  Publish 1.2331+001: refresh changelog and README for the 1.2331 rebase
+d4fe15ab3a  Publish 1.2330+001: refresh changelog and README for the 1.2330 rebase
+ea40069ae5  Publish 1.2329+001: refresh changelog and README for the 1.2329 rebase
+5740248bc1  Reset the fork build number for the 1.2329 rebase
+6446700c04  Publish 1.2328+002: refresh changelog and README for the 1.2328 rebase
+4953ab15b5  Bump the fork build number to 2
+51d14429e5  Zero pad the fork build number in the version name
+de6bfd82be  Refresh fork skill and CLAUDE docs for the 1.2327 rebase
+9e43797589  Publish 1.2327+1: refresh changelog and README for the 1.2327 rebase
+ffc067c95e  Reset the fork build number for the 1.2327 rebase
+21f005213c  Publish 1.2326+8: refresh changelog and README for the cancel work
+eb34258817  Bump the fork build number to 8
+7ee87664a0  Stop a running export, leaving no partial file behind
+166197d5ff  Say which backup categories start ticked
+515bb5a38a  Publish 1.2326+7: refresh changelog and README for the backup work
+485b4dea1e  Bump the fork build number to 7
+f7c0a2fb50  Answer the sister app state export automation contract
+83f0578f29  Add the automation token gate and its Export Import rows
+1beaea1bf2  Export the local mail store as an opt-in backup category
+39a6bdac86  Write backups as one ZIP named by the sister-app convention
+5662518d70  Publish 1.2326+5: refresh changelog and README for the UI page
+abb01fbeb7  Bump the fork build number to 5
+acdeef1ade  Custom theme: black toolbar overflow menu with a yellow border
+44ba7bcfba  Open the UI page by long-pressing the toolbar hamburger buttons
+578fb7747d  Add the 白い熊 FairEmail UI page with export/import replacing Backup
+07d9ec19ce  Publish 1.2326+1: refresh changelog and README for the 1.2326 rebase
+d1fdefaf50  Publish 1.2325+4: refresh README and changelog for the pro unlock
+39d7b55f32  Hide the purchase section on the pro features screen
+023ef9ed38  Unlock all pro features unconditionally
+63a3b016aa  skills: document the merged changelog workflow
+b6848ccb4a  Add a merged fork changelog to CHANGELOG.md
+03281c619b  Add a fork README for the GitHub release
+dd8f1adce0  Custom theme: black dropdown spinners with a yellow border
+0d470eda3b  skills: auto-deliver builds via /after-build (drop the transfer prompt)
+402213ec72  Make compose field hints and separators legible and tunable
+1376ce58ec  docs: no attribution trailer in commits
+0d561ee4c5  Refresh fork skill and CLAUDE docs for the 1.2326 rebase
+c5d4361fb3  Custom launcher icon: black-yellow line-traced envelope
+fa44c86369  Skill: never delete old APKs on the device when deploying
+1d66c1bd21  Custom theme: yellow drawer border without dimming the content
+89e4f42c2a  Custom theme: black push buttons with a yellow border
+eca75137ef  Custom theme: black snackbars with a yellow border and yellow text
+9bd7042865  Custom theme: black dialogs and popup menus with a yellow border
+1fa8237afc  Add upstream-new-version skill to drive the upstream rebase and build
+04d8b6d8d3  kxkb: document fork versioning and label, refresh skill for 1.2318
+228c4629bf  Rename the sideloaded app label to 白い熊 FairEmail
+1f837cf713  Version the fork as the upstream version plus a local build number
+c585b69d01  kxkb: add agent config (CLAUDE.md + .claude/skills/)
+331d0085d7  Folded message list: optional two-line subject with trailing date
+c28222550d  Custom fonts: expand to independent per-role selection across eight roles
+0b0742d302  Custom font picker: defer pref save so the activity recreates cleanly
+4f2c925c94  Add custom font and weight selection for message text
+f4731fd09e  Custom theme colours: route tvBody link colour through the override
+6f37cb6b04  Custom theme colours: expand to 28 roles across 7 sections
+336428377d  Custom theme colours: refactor picker UI to be data-driven
+b7b47a32bb  Custom theme: hook XML-resolved colours via Activity-only Resources wrap
+50867840ab  Custom theme: hook code-resolved colours to user prefs
+f7a80c2c49  Custom theme: scaffold the customizable colour picker UI
+86e7df41f3  Custom theme: unread accent yellow, decouple sender colour, extend font size range
+dda439ece2  Custom theme polish: swap subject/sender highlight target, never bold sender, add sender_italic toggle, accent yellow
+92910dcd25  Add Custom theme: yellow-on-black with gold unread accent
+37aa88391f  Customize github flavor for sideloaded shiroikuma.fairemail build
 ```
 
 ## Build + deploy pipeline
@@ -133,8 +139,8 @@ export ANDROID_HOME=$HOME/android-sdk ANDROID_SDK_ROOT=$HOME/android-sdk   # not
 Copy to `~/tmp/`, then deliver via `/after-build` — never auto-install:
 
 ```bash
-build_apk=app/build/outputs/apk/github/release/FairEmail-v1.2337a-github-release.apk   # archivesName uses the bare upstream code
-version=1.2337+001                                          # versionName: 1.<upstream>+<fork>, fork padded to 3 digits (bump <fork> each local build)
+build_apk=app/build/outputs/apk/github/release/FairEmail-v1.2338a-github-release.apk   # archivesName uses the bare upstream code
+version=1.2338+001                                          # versionName: 1.<upstream>+<fork>, fork padded to 3 digits (bump <fork> each local build)
 apk_name="shiroikuma-fairemail_${version}_arm64-v8a.apk"
 cp "$build_apk" ~/tmp/$apk_name
 ```
@@ -160,11 +166,11 @@ Before telling the user the APK is ready:
 
 ## Upstream rebase procedure
 
-Periodically rebase `custom` onto a newer upstream tag (last done 1.2333 → 1.2337):
+Periodically rebase `custom` onto a newer upstream tag (last done 1.2337 → 1.2338):
 
 1. `git fetch upstream --tags`.
 2. Create a safety branch: `git branch custom-pre-<newtag>-rebase`.
-3. `git rebase <newtag>` and resolve conflicts. Recurring spots: `app/build.gradle` (**keep** `applicationId "shiroikuma.fairemail"` and the `getForkBuild` versioning lines; **take upstream** `getVersionCode`/SDK/NDK/Java/Gradle bumps); `CHANGELOG.md` (and its build-copied twin `app/src/main/assets/CHANGELOG.md`) when upstream prepends a new version block — **keep our fork section above the `---` divider, take upstream's new `### 1.NNNN` block below it**; the fork section sits above `## Changelog` precisely so this stays a clean three-way merge most rebases (see the Merged changelog note in the feature inventory); plus `fragment_options_display.xml` and `AdapterMessage.java` when upstream reshuffles the display options or message-row bind code (1.2317 dropped the `tvSenderEllipsizeRemark`/`tvSubjectEllipsizeRemark` hints and flattened the subject single-line block — re-anchor our `swSenderItalic` switch to `spSenderEllipsize`). The 1.2322 → 1.2324 rebase (25 upstream commits, skipping the 1.2323 tag) had a single real conflict, the `getVersionCode` 2322→2324 bump in `app/build.gradle`. Upstream 1.2324 added `org.gradle.configuration-cache=true` to `gradle.properties` itself, the exact line our `Enable Gradle configuration cache` commit introduced, so that fork commit was auto-skipped as an already-applied cherry-pick. `ActivityView.java`, `ActivityBase.java`, `AdapterMessage.java`, `ApplicationEx.java`, and `Helper.java` were all in the overlap set but auto-merged cleanly (verify the fork hooks survived after such an auto-merge: the `CustomFont.apply` calls, the two-line-subject logic, the `swSenderItalic` anchor, the `migrateLegacyWeightIfNeeded` call, the colour-override reads, and the `ActivityView` update-check `+<fork>` suffix strip). The 1.2327 → 1.2328 rebase (16 upstream commits, all housekeeping: Crowdin sync, S/MIME roots, PSL, Brave debounce list, the Thundermail provider, a Gemini model-name fix, a VPN list button, an NPE guard, a display-cutout inset and default medium spacing) again had exactly one conflict, the `getVersionCode` 2327→2328 bump. `ActivityBase.java`, `ApplicationEx.java`, `FragmentOptionsDisplay.java`, `strings.xml` and both changelogs were in the overlap set and auto-merged cleanly. The 1.2328 → 1.2329 rebase (10 upstream commits: CSS colour schemes and `prefers-color-scheme: dark` now ignored, cached CSS media-list matching, a settings button on the notification-permission dialog, a contact-picker cursor guard, plus PSL, Brave debounce list, AndroidX and Crowdin) had the same single `getVersionCode` conflict. `FragmentCompose.java` was in the overlap set for the first time — upstream touched the contact-picker cursor read and the `processStyles` call site, both far from our compose hint and separator colour hooks — and it auto-merged cleanly, as did both changelogs, which for once needed no manual reconciliation. The 1.2329 → 1.2330 rebase (15 upstream commits: the message language added as an expression condition in rules, rule regular expressions validated before they are saved, and library bumps for Jsoup 1.23.1, EvalEx 3.7.0, BouncyCastle 1.85, ez-vcard 0.12.2, MiniDNS 1.1.1, JsonPath 3.0.0 and core library desugaring 2.1.5) had the same single `getVersionCode` conflict, this time in the original versioning commit rather than the tip, because that is the commit that first touches the line: take upstream `2330`, keep the `getForkBuild` block, and the later zero padding commit replays over it untouched. Both changelogs auto-merged for the second rebase running. No toolchain movement at all this round — compileSdk 37, NDK r27d and Gradle 9.6.1 all stand — so `clean` plus the resource probe was the whole verification. The 1.2330 → 1.2331 rebase (12 upstream commits: support for PGPony, the submitter decoded from `@mozmail.com` masked addresses, suspicious addresses shown in the personal field with the earlier "Show email address if name contains email address" behaviour reverted, relaxed qmail and nullmailer checks, debug code removed, plus PSL, FAQ and Crowdin) again had the single `getVersionCode` conflict in the original versioning commit, resolved the same way: take upstream `2331`, keep the `getForkBuild` block. `AdapterMessage.java`, `FragmentCompose.java`, `Helper.java`, `strings.xml` and both changelogs were in the overlap set and auto-merged cleanly, the third rebase running with no changelog handwork. No toolchain movement again — compileSdk 37, NDK r27d and Gradle 9.x all stand. The 1.2331 → 1.2332 rebase (8 upstream commits: a Jsoup crash in the reformatted message view prevented on Android 6 by reading the stream into memory and parsing the string instead of streaming it through the ICU charset decoder, which threw `IllegalArgumentException: Bad position` on API 23; Rackspace added to the provider list; the Android Gradle plugin moved to 9.3.2; plus FAQ and Crowdin) had the same single `getVersionCode` conflict in the original versioning commit, resolved the same way: take upstream `2332`, keep the `getForkBuild` block. Only `app/build.gradle` and both changelogs were in the overlap set this round, the smallest overlap yet, and the changelogs auto-merged for the fourth rebase running. No toolchain movement beyond that AGP point release — compileSdk 37, NDK r27d and Java 21 all stand. The 1.2332 → 1.2333 rebase (44 upstream commits, the largest jump since 1.2324: S/MIME gains auth-enveloped-data support along with fixed class cast exceptions and better recipient info handling, and known root certificates are no longer stored; rule expression conditions gain `startswith`, `endswith` and `jpath` operators, and a failing rule now names itself in the exception; the AI layer was reworked, with Gemini migrated to the OpenAI compatible API, a model selector, a max tokens option, error reporting, and notifications delayed while a summary generates; experimental Gadgetbridge support; a GMX check with a time limit and tag; the MiniDNS customisation dropped in favour of the stock library; spacing disabled for the tabular view; a dismissible LAN snackbar; plus FAQ and Crowdin) had the same single `getVersionCode` conflict in the original versioning commit, resolved the same way: take upstream `2333`, keep the `getForkBuild` block. `ApplicationEx.java`, `strings.xml` and both changelogs were in the overlap set and auto-merged cleanly, the fifth rebase running with no changelog handwork. Gradle moved 9.6.1 → 9.7.1, the first toolchain movement in five rebases that needs more than a clean build: run `./gradlew --stop` before building so the new distribution is fetched against no stale daemon. compileSdk 37, NDK r27d and Java 21 all stand. The 1.2333 → 1.2337 rebase (50 upstream commits across four tags: demo accounts added to comply with Play Store policies at 1.2337; bug fixes in new features at 1.2336; the FAQ base URI moved from `https://m66b.github.io/FairEmail/` to `https://github.com/M66B/FairEmail/blob/master/FAQ.md` at 1.2335, because Microsoft incorrectly blocks the Pages host; and at 1.2334 drag and drop on address bubbles, `via`, `submitter`, `cc`, `bcc` and `replyto` added to rule expression conditions, plus the Public Suffix List and Crowdin) was the first rebase in six to conflict anywhere but `app/build.gradle`. That one conflicted as always, in the original versioning commit: take upstream `2337`, keep the `getForkBuild` block. **`README.md` conflicted for the first time**, because upstream reworded eighteen lines of its own README while our fork replaces the file wholesale — there is nothing of upstream to preserve there, so resolve it by taking the fork README verbatim (`git show <fork-README-commit>:README.md > README.md`). Both changelogs auto-merged for the sixth rebase running. `ApplicationEx.java` and `Helper.java` were in the overlap set and auto-merged cleanly: upstream gated its Gemini to OpenAI migration on no OpenAI key being set already and stripped the `models/` prefix from the model name, then dropped the `SHORT`/`MEDIUM` restriction from `getTimeInstance`/`getDateTimeInstance` and gave the `LONG` time style seconds and a zone — all far from our extended zoom ladder, the `resolveColor` override hook, the themed snackbar and the `migrateLegacyWeightIfNeeded` call. Because the stack replayed ending on `Bump the fork build number to 10`, this rebase also needed its own **Reset the fork build number** commit, which the 1.2330 through 1.2333 rebases did not: the 1.2329 reset commit had left the literal at 1 and nothing after it moved it until the 1.2333 feature work did. No toolchain movement whatsoever — compileSdk 37, NDK r27d, Gradle 9.7.1 and Java 21 all stand — so `clean` plus the probes was the whole verification. Note also that `git fetch upstream --tags` over the old HTTPS remote URL now fails with `HTTP 401 www-authenticate: Basic realm="GitHub"`, sandboxed or not, because GitHub refuses the anonymous HTTPS fetch; the `upstream` remote was switched to `git@github.com:M66B/FairEmail.git` on 2026-09-03, which fixes it for good. Cheapest proof the stack replayed intact: `git diff <oldtag>..<safety-branch>` and `git diff <newtag>..custom` should have an identical file list and line count — if they match, no fork hunk was dropped.
+3. `git rebase <newtag>` and resolve conflicts. Recurring spots: `app/build.gradle` (**keep** `applicationId "shiroikuma.fairemail"` and the `getForkBuild` versioning lines; **take upstream** `getVersionCode`/SDK/NDK/Java/Gradle bumps); `CHANGELOG.md` (and its build-copied twin `app/src/main/assets/CHANGELOG.md`) when upstream prepends a new version block — **keep our fork section above the `---` divider, take upstream's new `### 1.NNNN` block below it**; the fork section sits above `## Changelog` precisely so this stays a clean three-way merge most rebases (see the Merged changelog note in the feature inventory); plus `fragment_options_display.xml` and `AdapterMessage.java` when upstream reshuffles the display options or message-row bind code (1.2317 dropped the `tvSenderEllipsizeRemark`/`tvSubjectEllipsizeRemark` hints and flattened the subject single-line block — re-anchor our `swSenderItalic` switch to `spSenderEllipsize`). The 1.2322 → 1.2324 rebase (25 upstream commits, skipping the 1.2323 tag) had a single real conflict, the `getVersionCode` 2322→2324 bump in `app/build.gradle`. Upstream 1.2324 added `org.gradle.configuration-cache=true` to `gradle.properties` itself, the exact line our `Enable Gradle configuration cache` commit introduced, so that fork commit was auto-skipped as an already-applied cherry-pick. `ActivityView.java`, `ActivityBase.java`, `AdapterMessage.java`, `ApplicationEx.java`, and `Helper.java` were all in the overlap set but auto-merged cleanly (verify the fork hooks survived after such an auto-merge: the `CustomFont.apply` calls, the two-line-subject logic, the `swSenderItalic` anchor, the `migrateLegacyWeightIfNeeded` call, the colour-override reads, and the `ActivityView` update-check `+<fork>` suffix strip). The 1.2327 → 1.2328 rebase (16 upstream commits, all housekeeping: Crowdin sync, S/MIME roots, PSL, Brave debounce list, the Thundermail provider, a Gemini model-name fix, a VPN list button, an NPE guard, a display-cutout inset and default medium spacing) again had exactly one conflict, the `getVersionCode` 2327→2328 bump. `ActivityBase.java`, `ApplicationEx.java`, `FragmentOptionsDisplay.java`, `strings.xml` and both changelogs were in the overlap set and auto-merged cleanly. The 1.2328 → 1.2329 rebase (10 upstream commits: CSS colour schemes and `prefers-color-scheme: dark` now ignored, cached CSS media-list matching, a settings button on the notification-permission dialog, a contact-picker cursor guard, plus PSL, Brave debounce list, AndroidX and Crowdin) had the same single `getVersionCode` conflict. `FragmentCompose.java` was in the overlap set for the first time — upstream touched the contact-picker cursor read and the `processStyles` call site, both far from our compose hint and separator colour hooks — and it auto-merged cleanly, as did both changelogs, which for once needed no manual reconciliation. The 1.2329 → 1.2330 rebase (15 upstream commits: the message language added as an expression condition in rules, rule regular expressions validated before they are saved, and library bumps for Jsoup 1.23.1, EvalEx 3.7.0, BouncyCastle 1.85, ez-vcard 0.12.2, MiniDNS 1.1.1, JsonPath 3.0.0 and core library desugaring 2.1.5) had the same single `getVersionCode` conflict, this time in the original versioning commit rather than the tip, because that is the commit that first touches the line: take upstream `2330`, keep the `getForkBuild` block, and the later zero padding commit replays over it untouched. Both changelogs auto-merged for the second rebase running. No toolchain movement at all this round — compileSdk 37, NDK r27d and Gradle 9.6.1 all stand — so `clean` plus the resource probe was the whole verification. The 1.2330 → 1.2331 rebase (12 upstream commits: support for PGPony, the submitter decoded from `@mozmail.com` masked addresses, suspicious addresses shown in the personal field with the earlier "Show email address if name contains email address" behaviour reverted, relaxed qmail and nullmailer checks, debug code removed, plus PSL, FAQ and Crowdin) again had the single `getVersionCode` conflict in the original versioning commit, resolved the same way: take upstream `2331`, keep the `getForkBuild` block. `AdapterMessage.java`, `FragmentCompose.java`, `Helper.java`, `strings.xml` and both changelogs were in the overlap set and auto-merged cleanly, the third rebase running with no changelog handwork. No toolchain movement again — compileSdk 37, NDK r27d and Gradle 9.x all stand. The 1.2331 → 1.2332 rebase (8 upstream commits: a Jsoup crash in the reformatted message view prevented on Android 6 by reading the stream into memory and parsing the string instead of streaming it through the ICU charset decoder, which threw `IllegalArgumentException: Bad position` on API 23; Rackspace added to the provider list; the Android Gradle plugin moved to 9.3.2; plus FAQ and Crowdin) had the same single `getVersionCode` conflict in the original versioning commit, resolved the same way: take upstream `2332`, keep the `getForkBuild` block. Only `app/build.gradle` and both changelogs were in the overlap set this round, the smallest overlap yet, and the changelogs auto-merged for the fourth rebase running. No toolchain movement beyond that AGP point release — compileSdk 37, NDK r27d and Java 21 all stand. The 1.2332 → 1.2333 rebase (44 upstream commits, the largest jump since 1.2324: S/MIME gains auth-enveloped-data support along with fixed class cast exceptions and better recipient info handling, and known root certificates are no longer stored; rule expression conditions gain `startswith`, `endswith` and `jpath` operators, and a failing rule now names itself in the exception; the AI layer was reworked, with Gemini migrated to the OpenAI compatible API, a model selector, a max tokens option, error reporting, and notifications delayed while a summary generates; experimental Gadgetbridge support; a GMX check with a time limit and tag; the MiniDNS customisation dropped in favour of the stock library; spacing disabled for the tabular view; a dismissible LAN snackbar; plus FAQ and Crowdin) had the same single `getVersionCode` conflict in the original versioning commit, resolved the same way: take upstream `2333`, keep the `getForkBuild` block. `ApplicationEx.java`, `strings.xml` and both changelogs were in the overlap set and auto-merged cleanly, the fifth rebase running with no changelog handwork. Gradle moved 9.6.1 → 9.7.1, the first toolchain movement in five rebases that needs more than a clean build: run `./gradlew --stop` before building so the new distribution is fetched against no stale daemon. compileSdk 37, NDK r27d and Java 21 all stand. The 1.2333 → 1.2337 rebase (50 upstream commits across four tags: demo accounts added to comply with Play Store policies at 1.2337; bug fixes in new features at 1.2336; the FAQ base URI moved from `https://m66b.github.io/FairEmail/` to `https://github.com/M66B/FairEmail/blob/master/FAQ.md` at 1.2335, because Microsoft incorrectly blocks the Pages host; and at 1.2334 drag and drop on address bubbles, `via`, `submitter`, `cc`, `bcc` and `replyto` added to rule expression conditions, plus the Public Suffix List and Crowdin) was the first rebase in six to conflict anywhere but `app/build.gradle`. That one conflicted as always, in the original versioning commit: take upstream `2337`, keep the `getForkBuild` block. **`README.md` conflicted for the first time**, because upstream reworded eighteen lines of its own README while our fork replaces the file wholesale — there is nothing of upstream to preserve there, so resolve it by taking the fork README verbatim (`git show <fork-README-commit>:README.md > README.md`). Both changelogs auto-merged for the sixth rebase running. `ApplicationEx.java` and `Helper.java` were in the overlap set and auto-merged cleanly: upstream gated its Gemini to OpenAI migration on no OpenAI key being set already and stripped the `models/` prefix from the model name, then dropped the `SHORT`/`MEDIUM` restriction from `getTimeInstance`/`getDateTimeInstance` and gave the `LONG` time style seconds and a zone — all far from our extended zoom ladder, the `resolveColor` override hook, the themed snackbar and the `migrateLegacyWeightIfNeeded` call. Because the stack replayed ending on `Bump the fork build number to 10`, this rebase also needed its own **Reset the fork build number** commit, which the 1.2330 through 1.2333 rebases did not: the 1.2329 reset commit had left the literal at 1 and nothing after it moved it until the 1.2333 feature work did. No toolchain movement whatsoever — compileSdk 37, NDK r27d, Gradle 9.7.1 and Java 21 all stand — so `clean` plus the probes was the whole verification. Note also that `git fetch upstream --tags` over the old HTTPS remote URL now fails with `HTTP 401 www-authenticate: Basic realm="GitHub"`, sandboxed or not, because GitHub refuses the anonymous HTTPS fetch; the `upstream` remote was switched to `git@github.com:M66B/FairEmail.git` on 2026-09-03, which fixes it for good. The 1.2337 → 1.2338 rebase (32 upstream commits: a beige switch added to the theme selector, single-account direct device search, an option to hide the username for accounts, links allowed in summaries, Cloud sync deprecated, more notifications, MTE enabled for debug builds, rules marked as a Pro feature, pro enabled for demo accounts, a FAB foreground fix for yellow backgrounds, sanitized host and domain confirmation, plus PSL, AndroidX, FAQ and Crowdin) was the first rebase to conflict inside a fork Java hunk: **`FragmentDialogTheme.java`** conflicted in the original `Add Custom theme` commit, because upstream added a `bandw` (black and white) flag next to our `custom` flag in `eval()` and a new `swBeige` switch whose enable line sat next to our `swBlack` line. Resolve by keeping both flags and adding `!custom` to the new `swBeige.setEnabled(...)` as well, so the Custom theme greys the beige switch out exactly as it greys out black, reverse and the light/dark options (the `beige` preference itself predates the switch and only tints light card backgrounds, so nothing at runtime needed reconciling). `app/build.gradle` conflicted as always in the original versioning commit: take upstream `2338`, keep the `getForkBuild` block. `AdapterMessage.java`, `Core.java`, `FragmentMessages.java`, `FragmentOptionsBackup.java`, `NotificationHelper.java`, the three `dialog_theme.xml` layouts, `strings.xml`, `styles.xml` and both changelogs were in the overlap set — the largest overlap yet — and all auto-merged cleanly, the seventh rebase running with no changelog handwork. The replay ended on `Bump the fork build number to 4`, so a **Reset the fork build number** commit was needed again. Toolchain: AGP moved 9.3.2 → 9.4.1 in the root `build.gradle` and AndroidX fragment 1.9.0 → 1.9.1; compileSdk 37, NDK r27d, Gradle 9.7.1 and Java 21 all stand, and `clean` plus the probes was enough (no `--stop` needed, `gradle.properties` was untouched). The identical-file-list proof below held with a one-line difference, which is exactly the `!custom` added to the beige line. Cheapest proof the stack replayed intact: `git diff <oldtag>..<safety-branch>` and `git diff <newtag>..custom` should have an identical file list and line count — if they match, no fork hunk was dropped.
 4. **Reset the fork build number**: set `getForkBuild` in `app/build.gradle` back to `1` so the first build on the new tag is `1.<newtag>+001`; bump it +1 on every subsequent local build. If the rebase replayed prior `Bump the fork build number` commits, drop them (they recorded local builds on the old tag) so the reset is clean — the versioning commit already sets `getForkBuild` to `1`.
 5. Build + verify, then `git push --force-with-lease origin custom`.
 6. Delete the safety branch once confirmed.
@@ -205,10 +211,10 @@ Display toggle `subject_lines_narrow` (off by default, in Display options next t
 - **Known minor:** the split lands one frame after bind, so a fast scroll may show the pre-split layout for a frame. Move to `OnPreDrawListener` if it ever bothers the user.
 
 ### Fork versioning, APK naming, and app label (`app/build.gradle`, github `strings.xml`, `ActivityView`)
-- **Versioning:** `getForkBuild` in `app/build.gradle` carries the fork build number. `versionCode = getVersionCode() * 10000 + getForkBuild()`; `versionName = "1." + getVersionCode() + "+" + String.format("%03d", getForkBuild())`. So upstream `2337` build `1` → versionName `1.2337+001`, versionCode `23370001`. Reset `getForkBuild` to 1 on each upstream rebase, +1 each subsequent local build. The zero padding is confined to the versionName string (the literal stays a bare int, so the versionCode arithmetic is untouched); it exists so `~/tmp/` and `/sdcard/tmp/`, which every sideloaded sister app shares, sort in build order instead of putting `+10` before `+2`. The scheme stays monotonic because the upstream code only increases. `getVersionCode()` is deliberately left returning the bare upstream code so archivesName, the `CHANGELOG.md` rename, the fdroid signature dirs, and `build_uuid` keep their upstream-keyed values.
+- **Versioning:** `getForkBuild` in `app/build.gradle` carries the fork build number. `versionCode = getVersionCode() * 10000 + getForkBuild()`; `versionName = "1." + getVersionCode() + "+" + String.format("%03d", getForkBuild())`. So upstream `2338` build `1` → versionName `1.2338+001`, versionCode `23380001`. Reset `getForkBuild` to 1 on each upstream rebase, +1 each subsequent local build. The zero padding is confined to the versionName string (the literal stays a bare int, so the versionCode arithmetic is untouched); it exists so `~/tmp/` and `/sdcard/tmp/`, which every sideloaded sister app shares, sort in build order instead of putting `+10` before `+2`. The scheme stays monotonic because the upstream code only increases. `getVersionCode()` is deliberately left returning the bare upstream code so archivesName, the `CHANGELOG.md` rename, the fdroid signature dirs, and `build_uuid` keep their upstream-keyed values.
 - **APK name on deploy:** `shiroikuma-fairemail_<versionName>_arm64-v8a.apk`. The built artifact under `app/build/.../FairEmail-v1.<upstream>a-github-release.apk` is unchanged (archivesName uses the bare code), so only the copied/pushed filename carries the `+<fork>`.
 - **App label:** github flavor `app_name` = `白い熊 FairEmail` in `app/src/github/res/values/strings.xml` (was `FairEmail Custom`). Only the github flavor is renamed; `app/src/main` keeps `FairEmail`.
-- **Update-check robustness (`ActivityView`):** the github update checker compares `Double.parseDouble(info.tag_name)` against `Double.parseDouble(BuildConfig.VERSION_NAME)`. `1.2337+001` is not a parseable double, so the comparison now strips the `+<fork>` suffix before parsing (the strip cuts at the `+`, so it is agnostic to the padding width); otherwise every check would log an exception and falsely report an update to M66B's upstream build.
+- **Update-check robustness (`ActivityView`):** the github update checker compares `Double.parseDouble(info.tag_name)` against `Double.parseDouble(BuildConfig.VERSION_NAME)`. `1.2338+001` is not a parseable double, so the comparison now strips the `+<fork>` suffix before parsing (the strip cuts at the `+`, so it is agnostic to the padding width); otherwise every check would log an exception and falsely report an update to M66B's upstream build.
 
 ### Merged changelog (`CHANGELOG.md`, in-app + GitHub)
 The fork keeps a **single merged changelog**: a fork section at the very top of `CHANGELOG.md` (a `# 白い熊 FairEmail — fork changes` heading with one `### 1.NNNN+F` block per fork release, newest first), then a `---` divider, then upstream's verbatim `## Changelog`. Editing **only the root `CHANGELOG.md`** is enough — the Gradle `copyMarkdown` task (a `preBuild` dependency) copies it verbatim into `app/src/main/assets/CHANGELOG.md`, so the in-app Changelog screen shows the fork section too; commit both files in sync (a build re-copies). The `copyChangelog` task also derives `metadata/en-US/changelogs/<code>.txt` from it (markdown stripped) — that one is build output, leave it to regenerate.
