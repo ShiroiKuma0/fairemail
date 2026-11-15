@@ -580,7 +580,10 @@ abstract class ActivityBase extends AppCompatActivity implements SharedPreferenc
     @Override
     public boolean onPreparePanel(int featureId, @Nullable View view, @NonNull Menu menu) {
         try {
-            return super.onPreparePanel(featureId, view, menu);
+            boolean result = super.onPreparePanel(featureId, view, menu);
+            // shiroikuma fork: the rows of the toolbar overflow menu get their icons
+            MenuPills.decorate(this, menu);
+            return result;
         } catch (Throwable ex) {
             /*
                 This should never happen, but ...
