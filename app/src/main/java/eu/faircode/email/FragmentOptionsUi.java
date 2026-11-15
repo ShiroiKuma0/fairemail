@@ -286,31 +286,46 @@ public class FragmentOptionsUi extends FragmentBase {
         // --- Export / import (first section, Kōjiki-style) ---
         addSectionHeader(containerUi, R.string.title_ui_eim_row, true);
 
+        // A row that opens something must not read as a heading or a note: the
+        // label is an outlined pill as wide as itself, thick and bold as the main
+        // action of its section, with a chevron because it opens a panel. The
+        // status line sits beneath it and is not part of the touch target.
         LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.VERTICAL);
         row.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        row.setPadding(dp(72), dp(14), dp(16), dp(14));
-        TypedValue tv = new TypedValue();
-        context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, tv, true);
-        row.setBackgroundResource(tv.resourceId);
-        row.setClickable(true);
+        row.setPadding(dp(56), dp(3), dp(16), dp(6));
 
         TextView rowTitle = new TextView(context);
-        rowTitle.setText(R.string.title_ui_eim_row);
+        rowTitle.setText(context.getString(R.string.title_ui_eim_row) + "  \u203A");
         rowTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-        rowTitle.setTextColor(colorText);
+        rowTitle.setTypeface(Typeface.DEFAULT_BOLD);
+        rowTitle.setTextColor(colorAccent);
+        rowTitle.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        rowTitle.setPadding(dp(16), dp(9), dp(16), dp(9));
+        GradientDrawable eimPill = new GradientDrawable();
+        eimPill.setColor(0x00000000);
+        eimPill.setCornerRadius(100 * density);
+        eimPill.setStroke(dp(3), colorAccent);
+        GradientDrawable eimMask = new GradientDrawable();
+        eimMask.setColor(0xFFFFFFFF);
+        eimMask.setCornerRadius(100 * density);
+        rowTitle.setBackground(new RippleDrawable(
+                ColorStateList.valueOf((colorAccent & 0x00FFFFFF) | 0x4D000000), eimPill, eimMask));
+        rowTitle.setClickable(true);
         row.addView(rowTitle);
 
         tvEximStatus = new TextView(context);
         tvEximStatus.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         LinearLayout.LayoutParams vlp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        vlp.topMargin = dp(3);
+        vlp.topMargin = dp(4);
+        vlp.leftMargin = dp(16);
         tvEximStatus.setLayoutParams(vlp);
         row.addView(tvEximStatus);
 
-        row.setOnClickListener(new View.OnClickListener() {
+        rowTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openEximDialog();
