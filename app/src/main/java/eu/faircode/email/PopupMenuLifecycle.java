@@ -43,9 +43,14 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.OnLifecycleEvent;
 
 public class PopupMenuLifecycle extends PopupMenu {
+    private final Context context;
+    private final View anchor;
+    private MenuPopupHelper tall;
 
     public PopupMenuLifecycle(@NonNull Context context, LifecycleOwner owner, @NonNull View anchor) {
         super(new ContextThemeWrapper(context, R.style.popupMenuStyle), anchor, Gravity.NO_GRAVITY);
+        this.context = context;
+        this.anchor = anchor;
         Log.i("Instantiate " + this);
 
         owner.getLifecycle().addObserver(new LifecycleObserver() {
@@ -67,14 +72,37 @@ public class PopupMenuLifecycle extends PopupMenu {
     public void show() {
         Log.i("Show " + this);
         try {
-            super.show();
+            MenuPills.decorate(context, getMenu());
+
+            // A menu taller than the room below its anchor is shown shifted up,
+            // so it gets the height of the screen instead of scrolling
+            Context wrapped = new ContextThemeWrapper(context, R.style.popupMenuStyle);
+            Integer offset = MenuPills.verticalOffset(wrapped, anchor, getMenu());
+            if (offset == null)
+                super.show();
+            else {
+                tall = new MenuPopupHelper(wrapped, (MenuBuilder) getMenu(), anchor);
+                tall.show(0, offset);
+            }
         } catch (Throwable ex) {
             Log.e(ex);
         }
     }
 
+    @Override
+    public void dismiss() {
+        try {
+            if (tall != null)
+                tall.dismiss();
+        } catch (Throwable ex) {
+            Log.e(ex);
+        }
+        super.dismiss();
+    }
+
     public void showWithIcons(Context context, View anchor) {
         Context wrapped = new ContextThemeWrapper(context, R.style.popupMenuStyle);
+        MenuPills.decorate(context, getMenu());
         MenuPopupHelper menuHelper = new MenuPopupHelper(wrapped, (MenuBuilder) getMenu(), anchor);
         menuHelper.setForceShowIcon(true);
         menuHelper.setGravity(Gravity.END);
