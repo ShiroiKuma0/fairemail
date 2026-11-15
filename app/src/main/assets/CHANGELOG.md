@@ -2,6 +2,17 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2338+009 — on FairEmail 1.2338
+
+* **Menus show what can be pressed.** In the Custom theme every line of a menu was plain yellow text, so an action looked no different from a label. Every action row is now an **outlined pill spanning the menu**, with its **icon inside at the left** and a **›** at the right when it opens a screen, a dialog, a picker or a submenu. This covers the long-press and popup menus, their submenus and the toolbar ⋮ overflow menus alike
+* **Destructive actions stand out.** Delete, empty, expunge and reset rows take the theme's Warning colour for frame, icon and label; a disabled action is dimmed
+* **Switches instead of checkboxes.** A checkable menu row stays an unframed line, a compact 36 dp tall, and carries the outlined switch of the theme: a round outline with a solid dot, right and bright when on, left and darker when off
+* **Icons throughout.** Menu items that had no icon get one, 183 of them, and items that already had one now show it in the ⋮ overflow menus, in the colour of their row. Menus that draw their icons inside the labels, such as the message and compose menus, keep doing so
+* **A visible group divider.** The line between two groups of a menu was a near-invisible grey; it is now a clear darker-yellow line as wide as the pills
+* **A long menu no longer scrolls while the screen has room.** A popup menu was only ever given the larger of the room above and the room below the row it was opened from, so the folder menu opened from a row low on the screen scrolled with half the screen free. It is now shifted up by what is missing and uses the height of the screen first
+* **The Export / import row on the 白い熊 FairEmail UI page is a button now**: a thick outlined pill with a ›, its status line beneath, instead of a line of text that read as a heading
+* All of the above applies to the **Custom** theme; the other themes keep the stock menus. The colours follow the Accent, Warning and Background roles of the colour picker
+
 ### 1.2338+002 — on FairEmail 1.2338
 
 * **The rule editor no longer calls rules a pro feature.** Upstream 1.2338 added a "This is a pro feature" notice to the rule editor, hidden only when a real activation has stored the pro flag. This fork unlocks every pro feature without that flag, so the notice showed on every rule even though rules work. It now asks the same unlock check the rest of the app uses, and stays hidden
