@@ -90,6 +90,7 @@ class MenuPills {
             R.string.title_setup_reorder_folders,
             R.string.title_advanced_manage_certificates,
             R.string.title_advanced_create_alias,
+            R.string.title_advanced_import_aliases,
             R.string.title_rule_select_sound_audio,
             R.string.title_rule_select_sound_ringtone,
             R.string.title_compose,
@@ -137,6 +138,7 @@ class MenuPills {
         ICONS.put(R.string.title_account_auth_update, R.drawable.twotone_vpn_key_24);
         ICONS.put(R.string.title_account_ondemand, R.drawable.twotone_sync_disabled_24);
         ICONS.put(R.string.title_advanced_create_alias, R.drawable.twotone_person_add_24);
+        ICONS.put(R.string.title_advanced_import_aliases, R.drawable.twotone_save_alt_24);
         ICONS.put(R.string.title_advanced_manage_certificates, R.drawable.twotone_vpn_key_24);
         ICONS.put(R.string.title_advanced_never_favorite, R.drawable.twotone_star_border_24);
         ICONS.put(R.string.title_analyze, R.drawable.twotone_psychology_24);
@@ -406,6 +408,7 @@ class MenuPills {
                 R.string.title_insert_contact,
                 R.string.title_search_sender,
                 R.string.title_advanced_create_alias,
+                R.string.title_advanced_import_aliases,
                 R.string.menu_faq,
                 R.string.menu_issue,
                 R.string.menu_translate,
