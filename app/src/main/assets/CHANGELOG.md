@@ -2,6 +2,14 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+### 1.2341+001 — on FairEmail 1.2341
+
+* Rebased the fork onto upstream FairEmail 1.2341, a jump of three releases and 65 commits. **1.2341** improves the detection of Firefox Relay addresses, limits the age of contacts that are deleted, updates the CA certificates and returns core library desugaring to 2.0.4. **1.2340** adds an option to **always show the recipient for sent messages**, **import of Gmail aliases**, support for Firefox Relay, an OpenAI timeout option, a notice for unsolicited server responses and the source message when a move across accounts fails; it also checks PGP meta data, always cleans up raw message files, and **reverts the single-account direct device search** that 1.2338 had added. **1.2339** adds a **rule option to remove stars**, shows the unflag action of a rule, supports `cid:` and `mid:` links (RFC 2392), stops auto-linking `.zip` names, checks the SMTP OAuth2 line length, works around an invalid command on Fastmail, fixes saving an EML from a POP3 account, and updates MiniDNS to 1.1.3 and AndroidX
+* The new **Always** switch under the reversed addresses option sits beside the fork's sender italic switch on the display settings; both are there
+* Upstream's new **Import aliases** row in the identity menu gets its icon, its › and the contact colour, like every other row of the pill menus
+* Fork build number reset to `001` for the new upstream base, so this build reads `1.2341+001` (version code `23410001`)
+* No other fork-specific changes this round; the custom theme with its pill buttons, pill menus and coloured menu icons, the colour roles, per-role fonts, the folded two-line subject, the folder fetch with its progress meter and stop button, the UI page with its export/import and headless automation surface, and the unconditional Pro unlock all carry over unchanged
+
 ### 1.2338+011 — on FairEmail 1.2338
 
 * **Dialog buttons are buttons now.** The Cancel and OK of every dialog were bare yellow words. They are **outlined pills**: the confirming button is the main pill, with a thick 3 dp frame and bold text, and every other button a regular pill with a thin 1.25 dp frame. Nothing is ever filled
