@@ -100,7 +100,12 @@ public class AdapterNavMenu extends RecyclerView.Adapter<AdapterNavMenu.ViewHold
             ivItem.setImageResource(menu.getIcon());
 
             Integer color = menu.getColor();
-            ivItem.setImageTintList(ColorStateList.valueOf(color == null
+            // shiroikuma fork: the icon is coloured by what its row does
+            Integer role = (color == null ? MenuPills.role(view.getContext(), menu.getTitle()) : null);
+            if (role != null)
+                ivItem.setImageTintList(ColorStateList.valueOf(role));
+            else
+                ivItem.setImageTintList(ColorStateList.valueOf(color == null
                     ? colorControlNormal : color));
 
             Integer count = menu.getCount();
