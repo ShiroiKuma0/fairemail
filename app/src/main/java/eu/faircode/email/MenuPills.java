@@ -51,6 +51,8 @@ class MenuPills {
     static final int PILL_MARGIN_DP = 3; // above and below a pill
 
     private static final SparseIntArray ICONS = new SparseIntArray();
+    // What a row does, told by the colour of its icon: item id to colour role
+    private static final SparseIntArray ROLES = new SparseIntArray();
     private static final Set<Integer> OPENS = new HashSet<>(Arrays.asList(
             R.string.title_synchronize_more,
             R.string.title_edit_rules,
@@ -326,6 +328,162 @@ class MenuPills {
                 R.id.menu_clear));
     }
 
+    static {
+        for (int id : new int[]{
+                R.string.title_synchronize_now,
+                R.string.title_synchronize_more,
+                R.string.title_synchronize_enabled,
+                R.string.title_synchronize_batch_enable,
+                R.string.title_download_batch_enable,
+                R.string.title_execute_rules,
+                R.string.title_rule_execute,
+                R.string.title_setup_oauth_authorize,
+                R.string.title_subscribe,
+                R.string.title_setup_gmail,
+                R.string.title_setup_imap,
+                R.string.title_setup_other,
+                R.string.title_setup_pop3,
+                R.string.title_imap,
+                R.string.title_pop3,
+                R.string.title_enabled,
+                R.string.title_rule_enabled,
+                R.string.title_account_auth_password,
+                R.string.title_account_auth_update,
+                R.string.menu_operations,
+                R.string.menu_rules,
+                R.id.menu_force_sync,
+                R.id.menu_enabled,
+                R.id.menu_subscribed_only,
+                R.id.menu_sort_sync,
+                R.id.menu_apply_all})
+            ROLES.put(id, R.color.customColorMenuConnect);
+        for (int id : new int[]{
+                R.string.title_mark_all_read,
+                R.string.title_seen,
+                R.string.title_unseen,
+                R.string.title_compose,
+                R.string.title_flag,
+                R.string.title_unflag,
+                R.string.title_flag_color,
+                R.string.title_manage_keywords,
+                R.string.title_importance_high,
+                R.string.title_importance_low,
+                R.string.title_importance_normal,
+                R.string.title_snooze,
+                R.string.title_send_dialog,
+                R.string.title_raw_send,
+                R.string.title_insert_brackets,
+                R.string.title_insert_line,
+                R.string.title_insert_quotes,
+                R.string.title_paste_as_quote,
+                R.string.title_edit_plain_text,
+                R.string.title_edit_formatted_text,
+                R.string.title_notify_folder,
+                R.string.title_notify_batch_enable,
+                R.string.title_create_channel,
+                R.string.title_edit_channel,
+                R.string.title_answer_favorite,
+                R.string.title_primary,
+                R.string.title_pin,
+                R.string.title_summarize,
+                R.string.title_rule_select_sound_audio,
+                R.string.title_rule_select_sound_ringtone,
+                R.string.menu_answers,
+                R.id.menu_response,
+                R.id.menu_unseen,
+                R.id.menu_raw_send_message,
+                R.id.menu_raw_send_thread,
+                R.id.menu_filter_seen,
+                R.id.menu_filter_unseen,
+                R.id.menu_filter_flagged,
+                R.id.menu_filter_unflagged,
+                R.id.menu_filter_sent,
+                R.id.menu_show_flagged,
+                R.id.menu_sort_unread_atop})
+            ROLES.put(id, R.color.customColorMenuMessage);
+        for (int id : new int[]{
+                R.string.title_edit_contact,
+                R.string.title_insert_contact,
+                R.string.title_search_sender,
+                R.string.title_advanced_create_alias,
+                R.string.menu_faq,
+                R.string.menu_issue,
+                R.string.menu_translate,
+                R.string.menu_rate,
+                R.string.title_setup_help,
+                R.id.menu_show_users,
+                R.id.menu_filter_unknown,
+                R.id.menu_edit_account_name})
+            ROLES.put(id, R.color.customColorMenuContact);
+        for (int id : new int[]{
+                R.string.title_copy,
+                R.string.title_copy_to,
+                R.string.title_clipboard_copy,
+                R.string.title_share,
+                R.string.title_export_messages,
+                R.string.title_import_messages,
+                R.string.title_save,
+                R.string.title_zip,
+                R.string.title_move,
+                R.string.title_move_to_account,
+                R.string.title_move_to_folder,
+                R.string.title_archive,
+                R.string.title_create_sub_folder,
+                R.string.title_setup_reorder_accounts,
+                R.string.title_setup_reorder_folders,
+                R.id.menu_export,
+                R.id.menu_import,
+                R.id.menu_import_file,
+                R.id.menu_save,
+                R.id.menu_filter_duplicates})
+            ROLES.put(id, R.color.customColorMenuShare);
+        for (int id : new int[]{
+                R.string.title_hide,
+                R.string.title_hide_folder,
+                R.string.title_navigation_folder_hide,
+                R.string.title_notify_batch_disable,
+                R.string.title_synchronize_batch_disable,
+                R.string.title_download_batch_disable,
+                R.string.title_spam,
+                R.string.title_report_spam,
+                R.string.title_folder_junk,
+                R.string.title_full_sync_stop,
+                R.string.title_setup_close,
+                R.string.title_account_ondemand,
+                R.string.title_answer_hide,
+                R.string.title_unified_inbox_delete,
+                R.string.title_advanced_never_favorite,
+                R.string.menu_privacy,
+                R.id.menu_hide,
+                R.id.menu_filter_snoozed,
+                R.id.menu_pwned})
+            ROLES.put(id, R.color.customColorMenuBlock);
+    }
+
+    // The colour of the icon of a row, by what the row does: delete is red,
+    // connect green, message blue, contact cyan, share orange, block magenta
+    // and everything that only views or opens something keeps the accent
+    static int icon(Context context, int id) {
+        if (isDestructive(id))
+            return warning(context);
+        int role = ROLES.get(id);
+        return (role == 0 ? accent(context) : color(context, role));
+    }
+
+    // The same for a row outside a popup menu (the navigation menu), or null
+    // when the table has no role for it
+    static Integer role(Context context, int id) {
+        try {
+            if (!CustomThemeColors.isCustomTheme(context))
+                return null;
+            int role = ROLES.get(id);
+            return (role == 0 ? null : color(context, role));
+        } catch (Throwable ex) {
+            Log.e(ex);
+            return null;
+        }
+    }
+
     static boolean opens(int id) {
         return OPENS.contains(id);
     }
@@ -339,7 +497,7 @@ class MenuPills {
     }
 
     static int warning(Context context) {
-        return color(context, R.color.customColorWarning);
+        return color(context, R.color.customColorMenuDelete);
     }
 
     // The colour of a switch that is off: an opaque darker accent, 55 % of the
@@ -465,7 +623,7 @@ class MenuPills {
                 if (icon == null)
                     continue;
                 icon = icon.mutate();
-                icon.setTint(isDestructive(item.getItemId()) ? warning(context) : accent(context));
+                icon.setTint(icon(context, item.getItemId()));
                 if (!item.isEnabled())
                     icon.setAlpha(DISABLED_ALPHA);
                 item.setIcon(icon);

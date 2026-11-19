@@ -207,9 +207,14 @@ public class PillMenuItemView extends ListMenuItemView {
                     ilp.bottomMargin = dp(2);
                     child.setLayoutParams(ilp);
                 }
-                // An icon the item brought itself takes the colour of its row too
-                if (child instanceof ImageView)
-                    ((ImageView) child).setImageTintList(ColorStateList.valueOf(color));
+                // The icon is coloured by what its row does, also when the
+                // item brought it itself; frame and label keep the row colour
+                if (child instanceof ImageView) {
+                    int tint = MenuPills.icon(context, id);
+                    if (!item.isEnabled())
+                        tint = ColorUtils.setAlphaComponent(tint, MenuPills.DISABLED_ALPHA);
+                    ((ImageView) child).setImageTintList(ColorStateList.valueOf(tint));
+                }
             }
         }
 

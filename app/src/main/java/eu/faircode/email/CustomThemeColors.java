@@ -180,6 +180,26 @@ final class CustomThemeColors {
             new Entry("highlights", R.string.title_custom_color_section_highlights,
                     "custom_color_badge", R.string.title_custom_color_badge,
                     R.string.title_custom_color_badge_desc, R.color.customColorBadge),
+
+            // === Menu icons ===
+            new Entry("menu", R.string.title_custom_color_section_menu,
+                    "custom_color_menu_connect", R.string.title_custom_color_menu_connect,
+                    R.string.title_custom_color_menu_connect_desc, R.color.customColorMenuConnect),
+            new Entry("menu", R.string.title_custom_color_section_menu,
+                    "custom_color_menu_message", R.string.title_custom_color_menu_message,
+                    R.string.title_custom_color_menu_message_desc, R.color.customColorMenuMessage),
+            new Entry("menu", R.string.title_custom_color_section_menu,
+                    "custom_color_menu_contact", R.string.title_custom_color_menu_contact,
+                    R.string.title_custom_color_menu_contact_desc, R.color.customColorMenuContact),
+            new Entry("menu", R.string.title_custom_color_section_menu,
+                    "custom_color_menu_share", R.string.title_custom_color_menu_share,
+                    R.string.title_custom_color_menu_share_desc, R.color.customColorMenuShare),
+            new Entry("menu", R.string.title_custom_color_section_menu,
+                    "custom_color_menu_block", R.string.title_custom_color_menu_block,
+                    R.string.title_custom_color_menu_block_desc, R.color.customColorMenuBlock),
+            new Entry("menu", R.string.title_custom_color_section_menu,
+                    "custom_color_menu_delete", R.string.title_custom_color_menu_delete,
+                    R.string.title_custom_color_menu_delete_desc, R.color.customColorMenuDelete),
     };
 
     /** Resource id → pref key map; built once at class init from {@link #ENTRIES}. */

@@ -50,4 +50,12 @@
     <color name="customColorHighlight">#7FFFE000</color>
     <color name="customColorBookmark">#FFFF00</color>
     <color name="customColorBadge">#F44336</color>
+
+    <!-- menu icon roles: an icon is coloured by what its row does -->
+    <color name="customColorMenuConnect">#00FF00</color>
+    <color name="customColorMenuMessage">#4D94FF</color>
+    <color name="customColorMenuContact">#00FFFF</color>
+    <color name="customColorMenuShare">#FF8000</color>
+    <color name="customColorMenuBlock">#FF00FF</color>
+    <color name="customColorMenuDelete">#FF0000</color>
 </resources>

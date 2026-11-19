@@ -685,6 +685,7 @@
     <string name="title_custom_color_section_decorations" translatable="false">Decorations and accents</string>
     <string name="title_custom_color_section_status" translatable="false">Status indicators</string>
     <string name="title_custom_color_section_highlights" translatable="false">Highlights</string>
+    <string name="title_custom_color_section_menu" translatable="false">Menu icons</string>
 
     <!-- Backgrounds -->
     <string name="title_custom_color_background" translatable="false">Background</string>
@@ -737,6 +738,20 @@
     <string name="title_custom_color_toolbar_border_desc" translatable="false">Thin border line drawn under the top action bar separating it from content.</string>
     <string name="title_custom_color_separator" translatable="false">Separator</string>
     <string name="title_custom_color_separator_desc" translatable="false">Horizontal separator lines between groups in settings and lists.</string>
+
+    <!-- Menu icons -->
+    <string name="title_custom_color_menu_connect" translatable="false">Synchronize, fetch, connect</string>
+    <string name="title_custom_color_menu_connect_desc" translatable="false">Icons of rows that synchronize, fetch, connect or run something.</string>
+    <string name="title_custom_color_menu_message" translatable="false">Message and marking</string>
+    <string name="title_custom_color_menu_message_desc" translatable="false">Icons of rows that write, mark, star, label or snooze a message.</string>
+    <string name="title_custom_color_menu_contact" translatable="false">Contact</string>
+    <string name="title_custom_color_menu_contact_desc" translatable="false">Icons of rows about a contact, a person or an identity.</string>
+    <string name="title_custom_color_menu_share" translatable="false">Copy, move, share</string>
+    <string name="title_custom_color_menu_share_desc" translatable="false">Icons of rows that copy, move, share, export or save.</string>
+    <string name="title_custom_color_menu_block" translatable="false">Hide, mute, block</string>
+    <string name="title_custom_color_menu_block_desc" translatable="false">Icons of rows that hide, mute, disable, stop or mark as spam.</string>
+    <string name="title_custom_color_menu_delete" translatable="false">Delete</string>
+    <string name="title_custom_color_menu_delete_desc" translatable="false">Frame, icon and label of rows and buttons that delete or reset.</string>
 
     <!-- Status indicators -->
     <string name="title_custom_color_warning" translatable="false">Warning</string>
