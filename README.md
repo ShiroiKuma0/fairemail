@@ -10,7 +10,7 @@ A fork of [FairEmail](https://github.com/M66B/FairEmail) with **major additions*
 
 Installs **side-by-side** with the official FairEmail (app id `shiroikuma.fairemail`).
 
-**📥 Latest release: [`1.2338+009`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
+**📥 Latest release: [`1.2338+011`](https://github.com/ShiroiKuma0/fairemail/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/fairemail/releases)
 
 </div>
 
@@ -79,6 +79,12 @@ The theme is carried all the way into the floating and chrome surfaces that usua
 ## 👆 Menus that show what can be pressed
 
 Stock menus are columns of plain text, where an action looks no different from a label. Here every action row is an **outlined pill spanning the menu, with its icon inside and a › when it opens something**; destructive actions take the warning colour, checkable rows carry the theme's **outlined switch instead of a checkbox**, and the groups are parted by a line you can actually see. It reaches every long-press menu, submenu and toolbar ⋮ menu, and a long menu **uses the height of the screen before it scrolls**.
+
+---
+
+## 💊 Every button a pill, every icon a colour
+
+Stock dialogs end in two bare words, and stock menus show a column of icons all in one colour. Here **every dialog and push button is an outlined pill, never filled** — the confirming button thick and bold, the others thin — and a dialog that deletes something wears a **red pill** on the button that does it. **Menu icons are coloured by what the row does**: green to synchronize and connect, blue for messages, cyan for contacts, orange to copy, move and share, magenta to hide and mute, red to delete. The navigation menu follows, and all six colours are settable.
 
 ---
 
