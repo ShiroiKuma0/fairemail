@@ -232,7 +232,7 @@ public class FragmentDialogJunk extends FragmentDialogBase {
         btnClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new AlertDialog.Builder(v.getContext())
+                Pills.destructive(new AlertDialog.Builder(v.getContext())
                         .setIcon(R.drawable.twotone_warning_24)
                         .setTitle(R.string.title_junk_clear)
                         .setMessage(R.string.title_junk_clear_hint)
@@ -297,7 +297,7 @@ public class FragmentDialogJunk extends FragmentDialogBase {
                                 // Do nothing
                             }
                         })
-                        .show();
+                        .show()); // shiroikuma fork: red main pill
             }
         });
 

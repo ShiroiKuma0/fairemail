@@ -67,4 +67,11 @@ public class FragmentDialogContactDelete extends FragmentDialogBase {
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
     }
+
+    // shiroikuma fork: the confirming button of a deletion is a red pill
+    @Override
+    public void onStart() {
+        super.onStart();
+        Pills.destructive(getDialog());
+    }
 }

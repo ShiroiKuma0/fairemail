@@ -447,7 +447,7 @@ public class AdapterIdentity extends RecyclerView.Adapter<AdapterIdentity.ViewHo
                 }
 
                 private void onActionDelete() {
-                    new AlertDialog.Builder(view.getContext())
+                    Pills.destructive(new AlertDialog.Builder(view.getContext())
                             .setIcon(R.drawable.twotone_warning_24)
                             .setTitle(identity.email)
                             .setMessage(R.string.title_identity_delete)
@@ -463,7 +463,7 @@ public class AdapterIdentity extends RecyclerView.Adapter<AdapterIdentity.ViewHo
                                     // Do nothing
                                 }
                             })
-                            .show();
+                            .show()); // shiroikuma fork: red main pill
                 }
 
                 private void onDelete() {

@@ -118,4 +118,14 @@ public class FragmentDialogAsk extends FragmentDialogBase {
                 })
                 .create();
     }
+
+    // shiroikuma fork: a question that carries the warning mark deletes or
+    // discards something, so its confirming button is a red pill
+    @Override
+    public void onStart() {
+        super.onStart();
+        Bundle args = getArguments();
+        if (args != null && args.getBoolean("warning"))
+            Pills.destructive(getDialog());
+    }
 }
