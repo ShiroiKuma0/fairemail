@@ -19,6 +19,7 @@ package eu.faircode.email;
     Copyright 2018-2026 by Marcel Bokhorst (M66B)
 */
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -29,6 +30,7 @@ import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.widget.Button;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.graphics.ColorUtils;
 
@@ -64,6 +66,23 @@ class Pills {
             ((AppCompatButton) button).setSupportBackgroundTintList(null);
 
         style(button, accent, main, dialog);
+    }
+
+    // Marks a shown dialog as one that deletes, discards or resets: its
+    // confirming button keeps the main pill, with frame and text in the
+    // delete colour. Returns the dialog, so a show() chain can be wrapped.
+    static <T extends Dialog> T destructive(T dialog) {
+        try {
+            if (dialog instanceof AlertDialog &&
+                    CustomThemeColors.isCustomTheme(dialog.getContext())) {
+                Button button = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
+                if (button != null)
+                    style(button, MenuPills.warning(button.getContext()), true, true);
+            }
+        } catch (Throwable ex) {
+            Log.e(ex);
+        }
+        return dialog;
     }
 
     private static void style(Button button, int accent, boolean main, boolean dialog) {

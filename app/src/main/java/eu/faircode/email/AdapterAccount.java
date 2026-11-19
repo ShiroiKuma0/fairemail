@@ -837,7 +837,7 @@ public class AdapterAccount extends RecyclerView.Adapter<AdapterAccount.ViewHold
                 }
 
                 private void onActionDelete() {
-                    new AlertDialog.Builder(view.getContext())
+                    Pills.destructive(new AlertDialog.Builder(view.getContext())
                             .setIcon(R.drawable.twotone_warning_24)
                             .setTitle(account.name)
                             .setMessage(R.string.title_account_delete)
@@ -853,7 +853,7 @@ public class AdapterAccount extends RecyclerView.Adapter<AdapterAccount.ViewHold
                                     // Do nothing
                                 }
                             })
-                            .show();
+                            .show()); // shiroikuma fork: red main pill
                 }
 
                 private void onActionLog() {

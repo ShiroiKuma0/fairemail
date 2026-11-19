@@ -2574,7 +2574,7 @@ public class FragmentMessages extends FragmentBase
     }
 
     private void onExpunge() {
-        new AlertDialog.Builder(view.getContext())
+        Pills.destructive(new AlertDialog.Builder(view.getContext())
                 .setIcon(R.drawable.twotone_warning_24)
                 .setTitle(R.string.title_expunge)
                 .setMessage(R.string.title_expunge_remark)
@@ -2590,7 +2590,7 @@ public class FragmentMessages extends FragmentBase
                         // Do nothing
                     }
                 })
-                .show();
+                .show()); // shiroikuma fork: red main pill
     }
 
     private void expunge() {
