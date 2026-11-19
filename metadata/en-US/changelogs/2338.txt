@@ -2,6 +2,17 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+1.2338+011 — on FairEmail 1.2338
+
+* **Dialog buttons are buttons now.** The Cancel and OK of every dialog were bare yellow words. They are **outlined pills**: the confirming button is the main pill, with a thick 3 dp frame and bold text, and every other button a regular pill with a thin 1.25 dp frame. Nothing is ever filled
+* **Every push button is a pill.** The buttons in settings, panels and dialog bodies were boxes with slightly rounded corners that filled with dim yellow while pressed. They are the same outlined pill, with a ripple inside it when pressed and a dimmed frame when disabled
+* **A dialog that deletes says so on its button.** Where a confirmation carries the warning mark, its confirming button is a **red main pill**: emptying trash or spam, deleting a folder, an account, an identity, a rule or a template, deleting messages permanently, discarding a draft, expunging a folder, deleting all contacts and clearing the blocked senders
+* **Menu icons are coloured by what the row does**, so a menu can be read by colour before it is read by word: synchronize, fetch and connect are **green**, message and marking actions **blue**, contact rows **cyan**, copy, move, share and export **orange**, hide, mute and spam **magenta**, delete **red**. Rows that only view or open something keep the yellow. Frame and label of a row stay yellow; the plain toggle rows get the coloured icon too
+* **The navigation menu** carries the same icon colours
+* **Destructive menu rows are red** instead of the orange of the Warning role, which would have been the same colour as the share icons. Warning icons and texts elsewhere stay orange
+* **Six new settable colours**, in a section of their own in the colour picker, **Menu icons**: Synchronize/fetch/connect, Message and marking, Contact, Copy/move/share, Hide/mute/block and Delete. The pills follow the Accent role
+* All of the above applies to the **Custom** theme; the other themes are unchanged. Build `1.2338+010` was an intermediate build of the same work, without the red pill, and was not released
+
 1.2338+009 — on FairEmail 1.2338
 
 * **Menus show what can be pressed.** In the Custom theme every line of a menu was plain yellow text, so an action looked no different from a label. Every action row is now an **outlined pill spanning the menu**, with its **icon inside at the left** and a **›** at the right when it opens a screen, a dialog, a picker or a submenu. This covers the long-press and popup menus, their submenus and the toolbar ⋮ overflow menus alike
