@@ -26,6 +26,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatViewInflater;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.AppCompatTextView;
@@ -124,5 +125,18 @@ public class AppCompatViewInflaterEx extends AppCompatViewInflater {
     @Override
     protected AppCompatImageButton createImageButton(Context context, AttributeSet attrs) {
         return new FixedImageButton(context, attrs);
+    }
+
+    // shiroikuma fork: every push button of the Custom theme is an outlined pill
+    @NonNull
+    @Override
+    protected AppCompatButton createButton(Context context, AttributeSet attrs) {
+        AppCompatButton button = super.createButton(context, attrs);
+        try {
+            Pills.apply(button);
+        } catch (Throwable ex) {
+            Log.e(ex);
+        }
+        return button;
     }
 }
