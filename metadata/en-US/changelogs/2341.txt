@@ -2,6 +2,13 @@
 
 Changes this fork adds on top of stock FairEmail, newest first. The full upstream FairEmail changelog follows below the divider.
 
+1.2341+002 — on FairEmail 1.2341
+
+* **The device search finds words inside addresses and host names again.** With the search index switched on, a search for a word such as `odorik` returned only the messages where the word stood alone, and missed every message that had it only as part of `kontakt@odorik.cz` or `Odorik.cz`: one result where the mail server found ten. Every hit of the index is checked once more by a whole word filter, and that filter ended a word only at whitespace, while the word breaker in front of it keeps a host name such as `odorik.cz` together as one word. The filter now ends a word at **any character that is not a letter or a digit**, which is the rule the index itself applies, so the two no longer disagree
+* A search for several words accepts the same characters between them, so `odorik cz` finds `odorik.cz`
+* Partial words still do not match: `odorik` does not find `odoriky`. Searching without the index was not affected and is unchanged
+* This is a defect of stock FairEmail, present with the search index on; the fix is the fork's own
+
 1.2341+001 — on FairEmail 1.2341
 
 * Rebased the fork onto upstream FairEmail 1.2341, a jump of three releases and 65 commits. **1.2341** improves the detection of Firefox Relay addresses, limits the age of contacts that are deleted, updates the CA certificates and returns core library desugaring to 2.0.4. **1.2340** adds an option to **always show the recipient for sent messages**, **import of Gmail aliases**, support for Firefox Relay, an OpenAI timeout option, a notice for unsolicited server responses and the source message when a move across accounts fails; it also checks PGP meta data, always cleans up raw message files, and **reverts the single-account direct device search** that 1.2338 had added. **1.2339** adds a **rule option to remove stars**, shows the unflag action of a rule, supports `cid:` and `mid:` links (RFC 2392), stops auto-linking `.zip` names, checks the SMTP OAuth2 line length, works around an invalid command on Fastmail, fixes saving an EML from a POP3 account, and updates MiniDNS to 1.1.3 and AndroidX
