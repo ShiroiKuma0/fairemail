@@ -991,14 +991,16 @@ public class BoundaryCallbackMessages extends PagedList.BoundaryCallback<TupleMe
             return !or;
 
         // \b is limited to [0-9A-Za-z_]
-        String b = "(^|\\s+)";
-        String a = "($|\\s+)";
+        // A word ends at anything that is not a letter or a digit, like in the search index,
+        // because the word breaker keeps "example.org" together as one word
+        String b = "(?<![\\p{L}\\p{N}])";
+        String a = "(?![\\p{L}\\p{N}])";
 
         StringBuilder sb = new StringBuilder();
         sb.append(partial ? ".*(" : ".*?" + b + "(");
         for (int i = 0; i < word.size(); i++) {
             if (i > 0)
-                sb.append("\\s+");
+                sb.append("[^\\p{L}\\p{N}]+");
             sb.append(Pattern.quote(word.get(i)));
         }
         sb.append(partial ? ").*" : ")" + a + ".*?");
